@@ -34,9 +34,9 @@ just upstream merge    # merge, file engine code left under src/, list the UI to
 just check all
 ```
 
-- **"File location" conflicts** mark a file upstream added inside a directory that moved here. Git has already put it in `engine/`; check it isn't UI and `git add` it.
+- **"File location" conflicts** mark a file upstream added inside a directory that moved here. Git has already put it in `engine/` or, for a React file beside ported ones, in `ui/` as a `.tsx`; `git add` it where it is.
 - **Modify/delete conflicts** are upstream edits to React files the Svelte UI replaced. Git leaves upstream's version under `src/`: `git add` it there.
-- **Anything left under `src/`** after a merge goes through `just upstream place`. Engine code moves into `engine/src` (the package that already has its directory, else the engine). UI (components, hooks, React imports) stays and is listed with its twin under `ui/src`.
-- **Porting a UI change.** Diff upstream's file against the merge base (`git diff <base> upstream/main -- src/<path>`), carry the change into the twin following [`ui/AGENTS.md`](../ui/AGENTS.md), then `git rm` the file under `src/`. A new React file is ported to its path under `ui/src`. Nothing is left under `src/` when the merge is committed.
+- **Anything left under `src/`** after a merge goes through `just upstream place`. Engine code moves into `engine/src` (the package that already has its directory, else the engine). UI (components, hooks, React imports) stays and is listed with its twin under `ui/src`, as is any `.tsx` git filed into `ui/src`.
+- **Porting a UI change.** Diff upstream's file against the merge base (`git diff <base> upstream/main -- src/<path>`), carry the change into the twin following [`ui/AGENTS.md`](../ui/AGENTS.md), then `git rm` the React file. A new React file is ported to its path under `ui/src`. When the merge is committed, nothing is left under `src/` and no `.tsx` under `ui/src`.
 - **New UI exports in a contract.** When upstream adds a component or hook to a deps contract, export the Svelte one from the contract's twin under `ui/src`.
 - Merge commits keep upstream's history; never squash or rebase upstream commits.

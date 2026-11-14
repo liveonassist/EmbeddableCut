@@ -10,8 +10,10 @@
  * React UI kit is UI; the rest is engine. `just check engine` then catches an
  * engine file that reaches into the UI.
  *
- * UI files stay under src/: a new React file, or upstream's version of one
- * the Svelte UI replaced (a modify/delete conflict leaves it there). Each is
+ * UI files stay where the merge left them: under src/ (a new React file, or
+ * upstream's version of one the Svelte UI replaced, which a modify/delete
+ * conflict leaves there), or as a .tsx under ui/src, where git's directory
+ * rename detection files a React file added beside ported ones. Each is
  * ported into its twin under ui/src (docs/UPSTREAM.md), then removed.
  */
 
@@ -62,8 +64,13 @@ for (const rel of files) {
   execFileSync('git', ['mv', path.join('src', rel), target], { stdio: 'inherit' })
   console.log(`src/${rel} -> ${target}`)
 }
-if (toPort.length > 0) {
-  console.log('\nFreeCut UI to port into ui/src, then `git rm` from src/:')
+const placedInUi = walk(path.join(ROOT, 'ui', 'src'))
+  .filter((f) => f.endsWith('.tsx'))
+  .map((f) => path.relative(path.join(ROOT, 'ui', 'src'), f))
+if (toPort.length > 0 || placedInUi.length > 0) {
+  console.log('\nFreeCut UI to port into ui/src, then `git rm` the React file:')
   for (const rel of toPort) console.log(`  src/${rel} -> ${uiTwin(rel) ?? `ui/src/${rel} (new)`}`)
+  for (const rel of placedInUi) console.log(`  ui/src/${rel} -> ${uiTwin(rel) ?? 'its .svelte beside it (new)'}`)
+} else if (files.length === 0) {
+  console.log('Nothing to place or port.')
 }
-if (files.length === 0) console.log('Nothing under src/ to place.')

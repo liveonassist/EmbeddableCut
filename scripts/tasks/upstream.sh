@@ -51,10 +51,9 @@ merge)
   git -c merge.renameLimit=20000 merge --no-ff --no-edit "$ref" || {
     echo
     echo "Resolve the conflicts. A \"file location\" conflict is a file upstream added in a"
-    echo "directory that moved here: git has already put it in engine/, so check it isn't UI"
-    echo "and \`git add\` it. A modify/delete conflict is a React file the Svelte UI replaced:"
-    echo "\`git add\` it under src/. Then run: just upstream place, port what it lists, and"
-    echo "just check all."
+    echo "directory that moved here: git has put it in engine/ or ui/; \`git add\` it there."
+    echo "A modify/delete conflict is a React file the Svelte UI replaced: \`git add\` it"
+    echo "under src/. Then run: just upstream place, port what it lists, and just check all."
     exit 1
   }
   node scripts/tasks/place-upstream-files.mjs
