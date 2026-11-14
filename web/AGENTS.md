@@ -1,6 +1,6 @@
 # Editor App
 
-`web/` is `@embeddablecut/web`: the build of FreeCut's editor app, a static PWA (`index.html`) and the headless harness page (`headless.html`) the render package drives. It has no sources of its own: `index.html` loads the app from `@embeddablecut/ui/app` (the Svelte UI's `src/bootstrap.ts`), `headless.html` the harness from `@embeddablecut/sdk/harness`.
+`web/` is `@embeddablecut/web`: the build of FreeCut's editor app, a static PWA (`index.html`) and the headless harness page (`headless.html`) the render package drives. Its only sources are two one-line entries: `app.ts` imports the app from `@embeddablecut/ui/app` (the Svelte UI's `src/bootstrap.ts`) for `index.html`, `headless.ts` the harness from `@embeddablecut/sdk/harness` for `headless.html`. Vite's dev server can't resolve a package named in HTML, so the pages load these modules instead.
 
 ## Commands
 
@@ -8,7 +8,7 @@ Run inside `nix develop` from `web/`:
 
 ```bash
 npm run dev          # http://localhost:5173, with COOP/COEP headers
-npm run check        # oxlint over the build config — CI gate (the app is checked in ui/)
+npm run check        # oxlint over the entries and build config — CI gate (the app is checked in ui/)
 npm run build        # writes dist/: the PWA and headless.html
 npm run perf         # a production build served locally, for playback and export timing
 ```

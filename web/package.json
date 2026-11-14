@@ -11,15 +11,15 @@
     "dev:compare": "node scripts/run-dev-and-perf.mjs",
     "build": "vp build",
     "build:perf": "vp build --mode perf",
-    "lint": "vp lint vite.config.ts",
-    "lint:fix": "vp lint vite.config.ts --fix",
-    "format": "vp fmt vite.config.ts package.json",
-    "format:check": "vp fmt vite.config.ts package.json --check",
-    "check": "vp check --no-fmt vite.config.ts",
+    "lint": "vp lint app.ts headless.ts vite.config.ts",
+    "lint:fix": "vp lint app.ts headless.ts vite.config.ts --fix",
+    "format": "vp fmt app.ts headless.ts vite.config.ts package.json",
+    "format:check": "vp fmt app.ts headless.ts vite.config.ts package.json --check",
+    "check": "vp check --no-fmt app.ts headless.ts vite.config.ts",
     "preview": "vp preview",
     "preview:perf": "vp preview --host --strictPort --port 4173",
     "perf": "vp run build:perf && vp run preview:perf",
-    "check:fix": "vp check vite.config.ts package.json --fix"
+    "check:fix": "vp check app.ts headless.ts vite.config.ts package.json --fix"
   },
   "dependencies": {
     "@embeddablecut/engine": "0.0.0",
