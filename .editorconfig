@@ -21,3 +21,6 @@ trim_trailing_whitespace = false
 
 [*.{bat,cmd}]
 end_of_line = crlf
+
+[{justfile,*.just}]
+indent_size = 4
