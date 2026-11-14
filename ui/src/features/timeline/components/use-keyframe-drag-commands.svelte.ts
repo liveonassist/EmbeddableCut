@@ -1,0 +1,594 @@
+// SPDX-License-Identifier: MIT
+
+/**
+ * Keyframe graph panel — drag, selection, clipboard and removal commands.
+ *
+ * The snapshot-bracketed drag lifecycle (`onDragStart`/`onDragEnd`/
+ * `onDragCancel`), the keyframe / keyframes / bezier move handlers, segment
+ * easing, graph selection, copy/cut/paste, keyframe removal and keyframe
+ * navigation.
+ *
+ * Everything the panel owns arrives as a parameter: the selected item and its
+ * keyframe maps, the resolved editor callbacks (including the ones owned by
+ * `useVectorKeyframeEditing`), the store actions the panel read, and the refs
+ * shared with the other keyframe-editing hooks. The two drag snapshots are
+ * private to this hook — nothing else reads them.
+ */
+
+import { toast } from 'svelte-sonner'
+import {
+  buildEasingConfig,
+  type getTransitionBlockedRanges,
+} from '@/features/timeline/deps/keyframes'
+import { usePlaybackStore } from '@/shared/state/playback'
+import * as timelineActions from '@/features/timeline/stores/timeline-actions'
+import { useKeyframesStore } from '@/features/timeline/stores/keyframes-store'
+import { useKeyframeSelectionStore } from '@/features/timeline/stores/keyframe-selection-store'
+import { useTimelineCommandStore } from '@/features/timeline/stores/timeline-command-store'
+import { useTimelineSettingsStore } from '@/features/timeline/stores/timeline-settings-store'
+import {
+  captureSnapshot,
+  restoreSnapshot,
+  snapshotsEqual,
+} from '@/features/timeline/stores/commands/snapshot'
+import type { TimelineSnapshot } from '@/features/timeline/stores/commands/types'
+import type {
+  AnimatableProperty,
+  BezierControlPoints,
+  EasingConfig,
+  EasingType,
+  ItemKeyframes,
+  Keyframe,
+  KeyframeClipboard,
+  KeyframeRef,
+  VectorAnimatableProperty,
+  VectorKeyframe,
+} from '@/types/keyframe'
+import type { CanvasSettings, ResolvedTransform } from '@/types/transform'
+import type { TimelineItem } from '@/types/timeline'
+import {
+  applyKeyframeMoveEntry,
+  buildKeyframePastePlan,
+  buildPasteSkipReasons,
+  clampFrameToBlockedRanges,
+  getBezierEditorEasing,
+  getEditableVectorProxy,
+  pasteVectorKeyframePayload,
+  promoteAndRemoveLegacyVectorRef,
+  promoteLegacyVectorEntryForMove,
+  removeStoredVectorRef,
+  type KeyframeMoveEntry,
+  type PendingVectorMove,
+  type TFunction,
+} from './keyframe-graph-panel-model'
+
+interface UseKeyframeDragCommandsParams {
+  selectedItemForEditor: TimelineItem | null
+  selectedItemKeyframes: ItemKeyframes | null
+  selectedEditorKeyframes: Array<{ ref: KeyframeRef; keyframe: Keyframe }>
+  keyframesByProperty: Partial<Record<AnimatableProperty, Keyframe[]>>
+  allAvailableProperties: AnimatableProperty[]
+  availableProperties: AnimatableProperty[]
+  transitionBlockedRanges: ReturnType<typeof getTransitionBlockedRanges>
+  vectorBaseTransform: ResolvedTransform | null
+  relativeFrame: number
+  canvas: CanvasSettings
+  allItemsById: Record<string, TimelineItem>
+  allKeyframesByItemId: Record<string, ItemKeyframes>
+  keyframeClipboard: KeyframeClipboard | null
+  isKeyframeClipboardCut: boolean
+  t: TFunction
+  _updateKeyframe: (
+    itemId: string,
+    property: AnimatableProperty,
+    keyframeId: string,
+    updates: Partial<Omit<Keyframe, 'id'>>,
+  ) => void
+  ensureVectorKeyframeForLiveEdit: (ref: KeyframeRef) => {
+    property: VectorAnimatableProperty
+    axis: 'x' | 'y'
+    keyframe: VectorKeyframe
+  } | null
+  applyVectorKeyframeUpdates: (
+    ref: KeyframeRef,
+    updates: Partial<Omit<VectorKeyframe, 'id'>>,
+    commit: boolean,
+  ) => boolean
+  selectKeyframe: (ref: KeyframeRef) => void
+  selectKeyframes: (refs: KeyframeRef[]) => void
+  clearKeyframeSelection: () => void
+  copySelectedKeyframes: () => void
+  cutSelectedKeyframes: () => void
+  clearKeyframeClipboard: () => void
+  setSelectedProperty: (property: AnimatableProperty | null) => void
+  promotedVectorDragIdsRef: { current: Map<string, string> }
+  valueScrubCreatedKeyframesRef: { current: Map<AnimatableProperty, string> }
+}
+
+/**
+ * Materialize the vector half of a paste plan. Vector payloads need the clip's
+ * resolved base transform; without one they are skipped and the caller falls
+ * back to the scalar payloads.
+ */
+function insertVectorPastePayloads({
+  vectorPayloads,
+  item,
+  baseTransform,
+  canvas,
+  allItemsById,
+  allKeyframesByItemId,
+}: {
+  vectorPayloads: Parameters<typeof pasteVectorKeyframePayload>[0]['payload'][]
+  item: TimelineItem
+  baseTransform: ResolvedTransform | null
+  canvas: CanvasSettings
+  allItemsById: Record<string, TimelineItem>
+  allKeyframesByItemId: Record<string, ItemKeyframes>
+}): KeyframeRef[] {
+  if (!baseTransform) return []
+
+  const insertedRefs: KeyframeRef[] = []
+  for (const payload of vectorPayloads) {
+    const insertedRef = pasteVectorKeyframePayload({
+      payload,
+      item,
+      baseTransform,
+      canvas,
+      getItem: (itemId) => allItemsById[itemId],
+      getKeyframes: (itemId) => allKeyframesByItemId[itemId],
+    })
+    if (insertedRef) insertedRefs.push(insertedRef)
+  }
+  return insertedRefs
+}
+
+/** Report a finished paste: moved vs copied, plus any skipped keyframes. */
+function reportPasteOutcome({
+  t,
+  isCut,
+  pastedCount,
+  skippedCount,
+  skipReasons,
+}: {
+  t: TFunction
+  isCut: boolean
+  pastedCount: number
+  skippedCount: number
+  skipReasons: string[]
+}): void {
+  const summaryText = isCut
+    ? t('timeline.keyframeEditor.movedKeyframes', { count: pastedCount })
+    : t('timeline.keyframeEditor.pastedKeyframes', { count: pastedCount })
+
+  if (skippedCount > 0) {
+    toast.warning(summaryText, {
+      description: t('timeline.keyframeEditor.skippedDescription', {
+        count: skippedCount,
+        reasons: skipReasons.join('. '),
+      }),
+    })
+    return
+  }
+
+  toast.success(summaryText)
+}
+
+export function useKeyframeDragCommands(params: () => UseKeyframeDragCommandsParams) {
+  const selectedItemForEditor = $derived(params().selectedItemForEditor)
+  const selectedItemKeyframes = $derived(params().selectedItemKeyframes)
+  const selectedEditorKeyframes = $derived(params().selectedEditorKeyframes)
+  const keyframesByProperty = $derived(params().keyframesByProperty)
+  const allAvailableProperties = $derived(params().allAvailableProperties)
+  const availableProperties = $derived(params().availableProperties)
+  const transitionBlockedRanges = $derived(params().transitionBlockedRanges)
+  const vectorBaseTransform = $derived(params().vectorBaseTransform)
+  const relativeFrame = $derived(params().relativeFrame)
+  const canvas = $derived(params().canvas)
+  const allItemsById = $derived(params().allItemsById)
+  const allKeyframesByItemId = $derived(params().allKeyframesByItemId)
+  const keyframeClipboard = $derived(params().keyframeClipboard)
+  const isKeyframeClipboardCut = $derived(params().isKeyframeClipboardCut)
+  const t = $derived(params().t)
+  const _updateKeyframe = $derived(params()._updateKeyframe)
+  const ensureVectorKeyframeForLiveEdit = $derived(params().ensureVectorKeyframeForLiveEdit)
+  const applyVectorKeyframeUpdates = $derived(params().applyVectorKeyframeUpdates)
+  const selectKeyframe = $derived(params().selectKeyframe)
+  const selectKeyframes = $derived(params().selectKeyframes)
+  const clearKeyframeSelection = $derived(params().clearKeyframeSelection)
+  const copySelectedKeyframes = $derived(params().copySelectedKeyframes)
+  const cutSelectedKeyframes = $derived(params().cutSelectedKeyframes)
+  const clearKeyframeClipboard = $derived(params().clearKeyframeClipboard)
+  const setSelectedProperty = $derived(params().setSelectedProperty)
+  const promotedVectorDragIdsRef = $derived(params().promotedVectorDragIdsRef)
+  const valueScrubCreatedKeyframesRef = $derived(params().valueScrubCreatedKeyframesRef)
+  // Snapshot captured on drag start for undo batching.
+  let dragSnapshot: TimelineSnapshot | null = null
+  let dragSelectionSnapshot: KeyframeRef[] | null = null
+
+  // Handle drag start - capture snapshot for undo batching
+  const handleDragStart = () => {
+    valueScrubCreatedKeyframesRef.current.clear()
+    promotedVectorDragIdsRef.current.clear()
+    dragSnapshot = captureSnapshot()
+    dragSelectionSnapshot = [...useKeyframeSelectionStore.getState().selectedKeyframes]
+  }
+
+  // Handle drag end - commit undo entry with pre-captured snapshot
+  const handleDragEnd = () => {
+    const beforeSnapshot = dragSnapshot
+    if (beforeSnapshot) {
+      if (!snapshotsEqual(beforeSnapshot, captureSnapshot())) {
+        useTimelineCommandStore
+          .getState()
+          .addUndoEntry({ type: 'MOVE_KEYFRAME_GRAPH', payload: {} }, beforeSnapshot)
+        useTimelineSettingsStore.getState().markDirty()
+      }
+      dragSnapshot = null
+      valueScrubCreatedKeyframesRef.current.clear()
+      promotedVectorDragIdsRef.current.clear()
+    }
+    dragSelectionSnapshot = null
+  }
+
+  // Pointer cancellation is not a commit: restore the exact pre-drag data and
+  // ephemeral keyframe selection without adding an undo entry.
+  const handleDragCancel = () => {
+    const beforeSnapshot = dragSnapshot
+    const beforeSelection = dragSelectionSnapshot
+    if (beforeSnapshot) restoreSnapshot(beforeSnapshot)
+    if (beforeSelection) selectKeyframes(beforeSelection)
+    dragSnapshot = null
+    dragSelectionSnapshot = null
+    valueScrubCreatedKeyframesRef.current.clear()
+    promotedVectorDragIdsRef.current.clear()
+  }
+
+  // Handle keyframe move in graph editor (no undo per call - batched via drag start/end)
+  const handleKeyframeMove = (ref: KeyframeRef, newFrame: number, newValue: number) => {
+    const vector = ensureVectorKeyframeForLiveEdit(ref)
+    if (vector) {
+      const clampedFrame = clampFrameToBlockedRanges(
+        Math.max(0, Math.round(newFrame)),
+        vector.keyframe.frame,
+        transitionBlockedRanges,
+      )
+      useKeyframesStore
+        .getState()
+        ._updateVectorKeyframe(ref.itemId, vector.property, vector.keyframe.id, {
+          frame: clampedFrame,
+          value: { ...vector.keyframe.value, [vector.axis]: newValue },
+        })
+      return
+    }
+
+    const existingKeyframe = selectedItemKeyframes?.properties
+      .find((property) => property.property === ref.property)
+      ?.keyframes.find((keyframe) => keyframe.id === ref.keyframeId)
+    const initialFrame = existingKeyframe?.frame ?? newFrame
+    const clampedFrame = clampFrameToBlockedRanges(
+      Math.max(0, Math.round(newFrame)),
+      initialFrame,
+      transitionBlockedRanges,
+    )
+
+    _updateKeyframe(ref.itemId, ref.property, ref.keyframeId, {
+      frame: clampedFrame,
+      value: newValue,
+    })
+  }
+
+  const handleKeyframesMove = (entries: KeyframeMoveEntry[]) => {
+    if (!selectedItemForEditor || !vectorBaseTransform || entries.length === 0) return
+
+    const storedIdByDragKey = new Map(promotedVectorDragIdsRef.current)
+    let remappedSelection = useKeyframeSelectionStore.getState().selectedKeyframes
+    let selectionChanged = false
+
+    // Promote every legacy vector lane before applying any frame updates.
+    // Otherwise promoting the next selected legacy key replaces the lane and
+    // resets the key that was just moved earlier in the same drag commit.
+    for (const entry of entries) {
+      const identityRemap = promoteLegacyVectorEntryForMove({
+        entry,
+        itemId: selectedItemForEditor.id,
+        itemKeyframes: selectedItemKeyframes,
+        baseTransform: vectorBaseTransform,
+        keyframesByProperty,
+        selectedKeyframes: remappedSelection,
+        storedIdByDragKey,
+        promotedDragIds: promotedVectorDragIdsRef.current,
+      })
+      if (!identityRemap) continue
+      remappedSelection = identityRemap.selectedKeyframes
+      selectionChanged = true
+    }
+
+    if (selectionChanged) selectKeyframes(remappedSelection)
+
+    const vectorUpdates = new Map<string, PendingVectorMove>()
+    const currentItemKeyframes =
+      useKeyframesStore.getState().keyframesByItemId[selectedItemForEditor.id]
+
+    for (const entry of entries) {
+      applyKeyframeMoveEntry({
+        entry,
+        itemKeyframes: currentItemKeyframes,
+        selectedItemKeyframes,
+        blockedRanges: transitionBlockedRanges,
+        storedIdByDragKey,
+        pendingMoves: vectorUpdates,
+        updateKeyframe: _updateKeyframe,
+      })
+    }
+
+    for (const update of vectorUpdates.values()) {
+      useKeyframesStore
+        .getState()
+        ._updateVectorKeyframe(selectedItemForEditor.id, update.property, update.keyframeId, {
+          frame: update.frame,
+          value: update.value,
+        })
+    }
+  }
+
+  const handleBezierHandleMove = (ref: KeyframeRef, bezier: BezierControlPoints) => {
+    const vector = ensureVectorKeyframeForLiveEdit(ref)
+    if (vector) {
+      const nextEasing = vector.keyframe.easing
+      useKeyframesStore
+        .getState()
+        ._updateVectorKeyframe(ref.itemId, vector.property, vector.keyframe.id, {
+          easing: getBezierEditorEasing(nextEasing),
+          easingConfig: { type: 'cubic-bezier', bezier },
+        })
+      return
+    }
+
+    const existingKeyframe = selectedItemKeyframes?.properties
+      .find((property) => property.property === ref.property)
+      ?.keyframes.find((keyframe) => keyframe.id === ref.keyframeId)
+    const nextEasing = existingKeyframe?.easing
+
+    _updateKeyframe(ref.itemId, ref.property, ref.keyframeId, {
+      easing: getBezierEditorEasing(nextEasing),
+      easingConfig: {
+        type: 'cubic-bezier',
+        bezier,
+      },
+    })
+  }
+
+  // Apply an easing change from the dopesheet's per-segment popover to explicit
+  // keyframe refs. Live drag frames (`commit: false`) go through the no-undo
+  // path and are bracketed by handleDragStart/handleDragEnd; everything else
+  // commits its own undo entry.
+  const handleSegmentEasingChange = (
+    refs: KeyframeRef[],
+    updates: { easing: EasingType; easingConfig?: EasingConfig },
+    options?: { commit?: boolean },
+  ) => {
+    if (refs.length === 0) return
+
+    if (options?.commit === false) {
+      for (const ref of refs) {
+        if (applyVectorKeyframeUpdates(ref, updates, false)) continue
+        _updateKeyframe(ref.itemId, ref.property, ref.keyframeId, updates)
+      }
+      return
+    }
+
+    const scalarRefs = refs.filter((ref) => !applyVectorKeyframeUpdates(ref, updates, true))
+    if (scalarRefs.length === 0) return
+    timelineActions.updateKeyframes(
+      scalarRefs.map((ref) => ({
+        itemId: ref.itemId,
+        property: ref.property,
+        keyframeId: ref.keyframeId,
+        updates,
+      })),
+    )
+  }
+
+  // Handle selection change in graph editor
+  const handleSelectionChange = (keyframeIds: Set<string>) => {
+    if (!selectedItemForEditor) return
+
+    const refs: KeyframeRef[] = []
+    for (const id of keyframeIds) {
+      for (const property of allAvailableProperties) {
+        if (keyframesByProperty[property]?.some((keyframe) => keyframe.id === id)) {
+          refs.push({
+            itemId: selectedItemForEditor.id,
+            property,
+            keyframeId: id,
+          })
+          break
+        }
+      }
+    }
+
+    if (refs.length === 0) {
+      clearKeyframeSelection()
+    } else if (refs.length === 1 && refs[0]) {
+      selectKeyframe(refs[0])
+    } else if (refs.length > 1) {
+      selectKeyframes(refs)
+    }
+  }
+
+  // Handle property change in graph editor
+  const handlePropertyChange = (property: AnimatableProperty | null) => {
+    setSelectedProperty(property)
+  }
+
+  const handleCopyKeyframes = () => {
+    if (selectedEditorKeyframes.length === 0) return
+    copySelectedKeyframes()
+  }
+
+  const handleCutKeyframes = () => {
+    if (selectedEditorKeyframes.length === 0) return
+    cutSelectedKeyframes()
+  }
+
+  const handleSelectedKeyframeEasingChange = (value: string, easingConfig?: EasingConfig) => {
+    if (selectedEditorKeyframes.length === 0) return
+
+    const easing = value as EasingType
+    const scalarUpdates = selectedEditorKeyframes.flatMap(({ ref, keyframe }) => {
+      const updates = {
+        easing,
+        easingConfig: easingConfig ?? buildEasingConfig(easing, keyframe.easingConfig),
+      }
+      if (applyVectorKeyframeUpdates(ref, updates, true)) return []
+      return [
+        {
+          itemId: ref.itemId,
+          property: ref.property,
+          keyframeId: ref.keyframeId,
+          updates,
+        },
+      ]
+    })
+    if (scalarUpdates.length > 0) timelineActions.updateKeyframes(scalarUpdates)
+  }
+
+  const handlePasteKeyframes = () => {
+    if (!selectedItemForEditor) return
+    if (!keyframeClipboard?.keyframes.length) return
+
+    const anchorFrame = Math.max(
+      0,
+      Math.min(selectedItemForEditor.durationInFrames - 1, relativeFrame),
+    )
+    const pastePlan = buildKeyframePastePlan({
+      clipboard: keyframeClipboard,
+      item: selectedItemForEditor,
+      anchorFrame,
+      availableProperties,
+      blockedRanges: transitionBlockedRanges,
+      supportsVectors: Boolean(vectorBaseTransform),
+      itemKeyframes: selectedItemKeyframes,
+    })
+    const skippedCount = pastePlan.skippedUnsupported + pastePlan.skippedBlocked
+    const skipReasons = buildPasteSkipReasons(
+      t,
+      pastePlan.skippedUnsupported,
+      pastePlan.skippedBlocked,
+    )
+
+    if (isKeyframeClipboardCut && skippedCount > 0) {
+      toast.warning(t('timeline.keyframeEditor.unableToPasteCut'), {
+        description: t('timeline.keyframeEditor.unableToPasteCutDescription', {
+          reasons: skipReasons.join('. '),
+        }),
+      })
+      return
+    }
+
+    if (pastePlan.scalarPayloads.length + pastePlan.vectorPayloads.length === 0) {
+      toast.warning(t('timeline.keyframeEditor.noKeyframesPasted'), {
+        description: skipReasons.join('. '),
+      })
+      return
+    }
+
+    const insertedVectorRefs = insertVectorPastePayloads({
+      vectorPayloads: pastePlan.vectorPayloads,
+      item: selectedItemForEditor,
+      baseTransform: vectorBaseTransform,
+      canvas,
+      allItemsById,
+      allKeyframesByItemId,
+    })
+
+    const insertedIds = timelineActions.addKeyframes(pastePlan.scalarPayloads)
+    const insertedRefs = insertedIds.map((keyframeId, index) => ({
+      itemId: selectedItemForEditor.id,
+      property: pastePlan.scalarPayloads[index]!.property,
+      keyframeId,
+    }))
+
+    const nextSelection = [...insertedVectorRefs, ...insertedRefs]
+    if (nextSelection.length > 0) {
+      selectKeyframes(nextSelection)
+    } else {
+      clearKeyframeSelection()
+    }
+
+    if (isKeyframeClipboardCut) {
+      clearKeyframeClipboard()
+    }
+
+    reportPasteOutcome({
+      t,
+      isCut: isKeyframeClipboardCut,
+      pastedCount: nextSelection.length,
+      skippedCount,
+      skipReasons,
+    })
+  }
+
+  // Handle removing keyframes
+  const handleRemoveKeyframes = (refs: KeyframeRef[]) => {
+    if (!selectedItemForEditor) {
+      timelineActions.removeKeyframes(refs)
+      return
+    }
+    if (!vectorBaseTransform) {
+      timelineActions.removeKeyframes(refs)
+      return
+    }
+    const scalarRefs: KeyframeRef[] = []
+    const removedVectorKeys = new Set<string>()
+    for (const ref of refs) {
+      const proxy = getEditableVectorProxy(ref.property, selectedItemKeyframes)
+      if (!proxy) {
+        scalarRefs.push(ref)
+        continue
+      }
+      const removalContext = {
+        ref,
+        proxy,
+        itemKeyframes: selectedItemKeyframes ?? undefined,
+        removedKeys: removedVectorKeys,
+      }
+      if (removeStoredVectorRef(removalContext)) continue
+      if (
+        promoteAndRemoveLegacyVectorRef({
+          ...removalContext,
+          keyframesByProperty,
+          baseTransform: vectorBaseTransform,
+        })
+      )
+        continue
+      scalarRefs.push(ref)
+    }
+    if (scalarRefs.length > 0) timelineActions.removeKeyframes(scalarRefs)
+  }
+
+  // Handle navigation to a keyframe - convert clip-relative frame to absolute
+  const handleNavigateToKeyframe = (clipRelativeFrame: number) => {
+    if (!selectedItemForEditor) return
+    const absoluteFrame = selectedItemForEditor.from + clipRelativeFrame
+    usePlaybackStore.getState().setCurrentFrame(absoluteFrame)
+  }
+
+  return {
+    handleDragStart,
+    handleDragEnd,
+    handleDragCancel,
+    handleKeyframeMove,
+    handleKeyframesMove,
+    handleBezierHandleMove,
+    handleSegmentEasingChange,
+    handleSelectionChange,
+    handlePropertyChange,
+    handleCopyKeyframes,
+    handleCutKeyframes,
+    handleSelectedKeyframeEasingChange,
+    handlePasteKeyframes,
+    handleRemoveKeyframes,
+    handleNavigateToKeyframe,
+  }
+}
