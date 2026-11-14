@@ -69,7 +69,12 @@ The bar is FreeCut's editor as it is: same markup, same Tailwind classes, same b
 - **`*ClassName` props are `*Class`** (`triggerClassName` → `triggerClass`, `handleClassName` → `handleClass`), like `className` → `class`.
 - **No whitespace where JSX has none.** Svelte keeps one space between sibling elements on separate lines; JSX drops it. In inline contexts (text, `inline-flex` text content), write siblings adjacent (`</span><span>`).
 - **Types exported from a component's `<script module>` are invisible to oxlint**: put shared prop types in a `.ts` beside the component (`window-portal/types.ts`).
+- **A selector that reads props is `$derived(select(...))`**, read as `.current`: `select` captures its selector once, so one closing over a prop (`selectedItemIds.current`, an `itemId`) must be recreated when it changes.
+- **A tooltip- or popover-wrapped button merges its props**: `{...mergeProps(props, { onclick })}` from bits-ui, since spreading `props` after `onclick` would replace the trigger's handler or the other way round.
+- **Tab contents render only for the active tab**, as Radix's unmounting `TabsContent` did: gate them on the tab value, so hidden panels don't subscribe to stores.
+- **Outside-click and target checks use `event.composedPath()[0]`**: in a shadow root, `event.target` seen from `document` is the shadow host.
 - **Tests** port the React tests that check behavior (`*.test.tsx` → `*.test.ts` with `@testing-library/svelte`), at about the same density. Snippets in tests come from `createRawSnippet`; a test that composes components renders a `<name>.harness.svelte` beside it.
+- **Mocked components are `<name>.stub.svelte`** beside the test, swapped in with `vi.mock(path, async () => ({ default: (await import('./x.stub.svelte')).default }))`. What a stub records for the test lives in a `<test>.test-state.ts` both import, since `vi.mock` factories can't close over the test's variables.
 - Formatting: oxfmt from inside `ui/` (`npx vp fmt src`), never from the repo root, which has no config. oxfmt skips `.svelte` files: format those by hand, as the surrounding code is.
 
 ## Primitives
