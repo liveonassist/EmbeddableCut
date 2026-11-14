@@ -13,6 +13,25 @@ import type { Project } from '@/types/project'
 export const CURRENT_SCHEMA_VERSION = 15
 
 /**
+ * A project written by a newer editor than this one. Loading it would drop
+ * whatever the newer version added the moment it's saved again, so it's
+ * refused instead.
+ */
+export class ProjectSchemaTooNewError extends Error {
+  readonly projectVersion: number
+  readonly supportedVersion: number
+
+  constructor(projectVersion: number) {
+    super(
+      `This project was saved by a newer editor (schema v${projectVersion}); this one reads up to v${CURRENT_SCHEMA_VERSION}.`,
+    )
+    this.name = 'ProjectSchemaTooNewError'
+    this.projectVersion = projectVersion
+    this.supportedVersion = CURRENT_SCHEMA_VERSION
+  }
+}
+
+/**
  * A migration function transforms a project from version N to N+1.
  * Migrations should be pure functions that don't modify the input.
  */

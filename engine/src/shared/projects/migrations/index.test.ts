@@ -2,7 +2,7 @@
 
 import { describe, expect, it } from 'vite-plus/test'
 import type { Project, ProjectTimeline } from '@/types/project'
-import { CURRENT_SCHEMA_VERSION, migrateProject } from './index'
+import { CURRENT_SCHEMA_VERSION, ProjectSchemaTooNewError, migrateProject } from './index'
 import { getMigrationsToApply } from './migrations'
 
 function createTrack(
@@ -688,5 +688,16 @@ describe('migration v6: legacy effects → GPU shader effects', () => {
     const gpu = { type: 'gpu-effect', gpuEffectType: 'gpu-sepia', params: { amount: 0.4 } }
     const project = applyV6(v5ProjectWithEffects([{ id: 'e1', enabled: false, effect: gpu }]))
     expect(effectsOf(project)[0]!.effect).toEqual(gpu)
+  })
+})
+
+describe('migrateProject version guard', () => {
+  it('refuses a project from a newer schema instead of loading what it can', () => {
+    const project = {
+      ...createBaseProject({ tracks: [], items: [] }),
+      schemaVersion: CURRENT_SCHEMA_VERSION + 1,
+    }
+
+    expect(() => migrateProject(project)).toThrow(ProjectSchemaTooNewError)
   })
 })

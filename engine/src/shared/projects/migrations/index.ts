@@ -18,7 +18,7 @@
 
 import type { Project } from '@/types/project'
 import type { MigrationResult, ProjectWarning } from './types'
-import { CURRENT_SCHEMA_VERSION } from './types'
+import { CURRENT_SCHEMA_VERSION, ProjectSchemaTooNewError } from './types'
 import { getMigrationsToApply } from './migrations'
 import { normalizeProject, didNormalizationChange } from './normalize'
 import { createLogger } from '@/shared/logging/logger'
@@ -26,7 +26,7 @@ import { createLogger } from '@/shared/logging/logger'
 const log = createLogger('Migrations')
 
 // Re-export types and constants
-export { CURRENT_SCHEMA_VERSION } from './types'
+export { CURRENT_SCHEMA_VERSION, ProjectSchemaTooNewError } from './types'
 export type { ProjectWarning } from './types'
 
 /**
@@ -58,8 +58,12 @@ function runMigrations(project: Project): {
   const fromVersion = getSchemaVersion(project)
   const appliedMigrations: number[] = []
 
+  if (fromVersion > CURRENT_SCHEMA_VERSION) {
+    throw new ProjectSchemaTooNewError(fromVersion)
+  }
+
   // Already at current version
-  if (fromVersion >= CURRENT_SCHEMA_VERSION) {
+  if (fromVersion === CURRENT_SCHEMA_VERSION) {
     return { project, appliedMigrations, fromVersion }
   }
 

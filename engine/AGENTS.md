@@ -24,6 +24,7 @@ Or from anywhere: `just engine check`, `just engine test [filter]`.
 - `src/infrastructure/` — platform adapters: `gpu-*` (effects, transitions, compositor, masks, text, scopes), `storage/` (the workspace folder, OPFS, legacy IndexedDB), `analysis/`, `audio/`, `browser/`, `lottie/`, `upscale/`.
 - `src/runtime/renderer/` — the canvas/WebGPU render engine (`client-render-engine.ts`), export (`render-pipeline.ts`, `canvas-render-orchestrator.ts`) and its workers.
 - `src/runtime/player/clock/Clock.ts` — the frame clock; `runtime/composition-runtime/utils/` — scene assembly, video timing and preview audio primitives.
+- `src/schema/` — EmbeddableCut's portable formats: the project document, asset records, `SCHEMA_VERSIONS`, and the JSON Schema committed in `schemas/`.
 - `src/headless/` — `window.freecut`, the page API the render package drives.
 - `src/i18n/` — i18next and every locale. `scripts/check-locale-coverage.mjs` reports what a locale lacks (`just engine locale-coverage <code>`).
 
@@ -53,7 +54,8 @@ Don't break these without an architecture discussion in the PR description.
 - i18next is initialized here without a UI plugin; a UI binds it itself (`setI18n` for react-i18next).
 - Edits go through the actions in `features/timeline/stores/actions/`, each wrapped in `execute(type, fn)` so undo captures a whole-timeline snapshot before it. A store's `_`-prefixed mutators are for actions only.
 - `timeline-persistence.ts` is the only bridge between the stores and a saved `Project`: `buildTimelineFromStores()` out, `hydrateTimelineStoresFromProject()` in.
-- Persisted projects carry `schemaVersion`; `migrateProject()` runs every migration in `shared/projects/migrations/` on load. A change to the persisted shape bumps `CURRENT_SCHEMA_VERSION` and adds a migration.
+- Persisted projects carry `schemaVersion`; `migrateProject()` runs every migration in `shared/projects/migrations/` on load, and throws `ProjectSchemaTooNewError` for a project from a newer editor. The project schema is FreeCut's: EmbeddableCut adds no project migrations of its own.
+- A change to a format EmbeddableCut owns (`src/schema/`) bumps its version, adds a migration and regenerates `schemas/` (`npx vp test run src/schema -u`); `docs/SCHEMAS.md` is the checklist.
 
 ### Rendering
 

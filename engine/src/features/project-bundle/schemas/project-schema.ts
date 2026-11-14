@@ -732,7 +732,7 @@ const projectResolutionSchema = z.object({
 // Project Schema
 // ============================================================================
 
-const projectSchema = z
+export const projectSchema = z
   .object({
     id: z.string().min(1),
     name: z.string().min(1).max(100),
