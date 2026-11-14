@@ -175,7 +175,10 @@
 {:else if openError}
   <RouteErrorScreen error={openError} reset={() => openAttempt++} />
 {:else if openedProjectId === projectId}
-  <EditorView />
+  <!-- FreeCut's editor fills the viewport; the editor itself fills its container. -->
+  <div class="h-screen">
+    <EditorView />
+  </div>
 {:else}
   <div class="min-h-screen bg-background" aria-hidden="true"></div>
 {/if}
