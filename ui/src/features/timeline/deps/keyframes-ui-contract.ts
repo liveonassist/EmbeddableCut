@@ -1,11 +1,10 @@
 // SPDX-License-Identifier: MIT
 
 /**
- * UI half of `keyframes-contract`: the components and hooks that stay with the app.
+ * UI half of `keyframes-contract`: the components and hooks that stay with the UI.
  */
 
-export { default as DopesheetEditor } from '@/features/keyframes/components/dopesheet-editor/index.svelte'
-export type { DopesheetEditorProps } from '@/features/keyframes/components/dopesheet-editor/dopesheet-editor-props'
+export { DopesheetEditor } from '@/features/keyframes/components/dopesheet-editor'
 export { default as PickWhipIcon } from '@/features/keyframes/components/dopesheet-editor/pick-whip-icon.svelte'
 export { default as PropertyLinkPickWhipOverlay } from '@/features/keyframes/components/property-link-pick-whip-overlay.svelte'
 export {

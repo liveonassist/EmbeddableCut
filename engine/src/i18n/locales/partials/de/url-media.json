@@ -1,0 +1,17 @@
+{
+  "media": {
+    "urlMedia": {
+      "streamTitle": "Medien von URL hinzufügen",
+      "streamDescription": "Eine Mediendatei direkt von einer URL streamen. Nichts wird in den Arbeitsbereich heruntergeladen.",
+      "streamHint": "Der Server muss CORS erlauben und sollte Range-Anfragen unterstützen.",
+      "modeLabel": "Wie hinzufügen",
+      "modeStream": "Streamen",
+      "modeStreamHint": "Direkt von der Quelle lesen",
+      "modeDownload": "Herunterladen",
+      "modeDownloadHint": "In den Arbeitsbereich kopieren",
+      "add": "Hinzufügen",
+      "addFailed": "Medien konnten nicht von der URL hinzugefügt werden",
+      "streamsFromUrl": "Wird von URL gestreamt"
+    }
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "media": {
+    "urlMedia": {
+      "streamTitle": "从 URL 添加媒体",
+      "streamDescription": "直接从 URL 流式读取媒体文件，不会下载到工作区。",
+      "streamHint": "服务器必须允许 CORS，并应支持范围请求。",
+      "modeLabel": "添加方式",
+      "modeStream": "流式读取",
+      "modeStreamHint": "原地读取",
+      "modeDownload": "下载",
+      "modeDownloadHint": "复制到工作区",
+      "add": "添加",
+      "addFailed": "无法从 URL 添加媒体",
+      "streamsFromUrl": "从 URL 流式读取"
+    }
+  }
+}

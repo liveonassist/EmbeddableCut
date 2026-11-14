@@ -1,0 +1,17 @@
+{
+  "media": {
+    "urlMedia": {
+      "streamTitle": "Ajouter un média depuis une URL",
+      "streamDescription": "Diffuser un fichier média directement depuis une URL. Rien n'est téléchargé dans l'espace de travail.",
+      "streamHint": "Le serveur doit autoriser CORS et devrait prendre en charge les requêtes de plage.",
+      "modeLabel": "Comment l'ajouter",
+      "modeStream": "Diffuser",
+      "modeStreamHint": "Lire sur place",
+      "modeDownload": "Télécharger",
+      "modeDownloadHint": "Copier dans l'espace de travail",
+      "add": "Ajouter",
+      "addFailed": "Impossible d'ajouter le média depuis l'URL",
+      "streamsFromUrl": "Diffusé depuis une URL"
+    }
+  }
+}

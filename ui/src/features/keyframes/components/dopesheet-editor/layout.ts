@@ -1,5 +1,4 @@
 // SPDX-License-Identifier: MIT
-// placeholder: ported elsewhere
 
 interface Viewport {
   startFrame: number
@@ -8,8 +7,7 @@ interface Viewport {
 
 const KEYFRAME_BUTTON_SIZE = 12
 export const KEYFRAME_DIAMOND_SIDE_PX = 8
-export const KEYFRAME_DIAMOND_RENDERED_WIDTH_PX =
-  Math.SQRT2 * KEYFRAME_DIAMOND_SIDE_PX
+export const KEYFRAME_DIAMOND_RENDERED_WIDTH_PX = Math.SQRT2 * KEYFRAME_DIAMOND_SIDE_PX
 export const KEYFRAME_EDGE_INSET = Math.ceil((Math.sqrt(2) * KEYFRAME_BUTTON_SIZE) / 2)
 
 function getFrameRange(viewport: Viewport): number {

@@ -1,5 +1,4 @@
 <!-- SPDX-License-Identifier: MIT -->
-<!-- placeholder: ported elsewhere -->
 <script lang="ts">
   import PickWhipOverlay from '@/shared/ui/pick-whip-overlay.svelte'
   import type { MotionPickWhipPresentation } from '@/shared/hooks/use-pick-whip-drag.svelte'

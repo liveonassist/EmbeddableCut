@@ -1,5 +1,4 @@
 <!-- SPDX-License-Identifier: MIT -->
-<!-- placeholder: ported elsewhere -->
 <script lang="ts">
   import type { SVGAttributes } from 'svelte/elements'
 

@@ -7,12 +7,12 @@
 
 import type { Project } from '@/types/project'
 import {
-  ProjectSnapshot,
-  SnapshotImportOptions,
-  SnapshotImportResult,
-  SnapshotValidationResult,
-  SnapshotValidationError,
-  SnapshotValidationWarning,
+  type ProjectSnapshot,
+  type SnapshotImportOptions,
+  type SnapshotImportResult,
+  type SnapshotValidationResult,
+  type SnapshotValidationError,
+  type SnapshotValidationWarning,
   SNAPSHOT_VERSION,
 } from '../types/snapshot'
 import {

@@ -36,6 +36,11 @@ function layeredSourceAliasPlugin(): Plugin {
   }
 }
 
+// `vp build` builds the editor page iframes load (`embed.html`);
+// `vp build --mode lib` builds the library hosts import (`mountEditor`, ...),
+// with the editor's stylesheet inside it.
+const libraryBuild = process.argv.includes('lib')
+
 export default defineConfig({
   lint: {
     ...oxlintConfig,
@@ -67,6 +72,25 @@ export default defineConfig({
   worker: {
     format: 'es',
   },
+  build: libraryBuild
+    ? {
+        target: 'esnext',
+        outDir: 'dist/lib',
+        sourcemap: true,
+        lib: {
+          entry: fileURLToPath(new URL('./src/index.ts', import.meta.url)),
+          formats: ['es'],
+          fileName: 'embeddablecut',
+        },
+      }
+    : {
+        target: 'esnext',
+        outDir: 'dist/embed',
+        sourcemap: true,
+        rollupOptions: {
+          input: { embed: fileURLToPath(new URL('./embed.html', import.meta.url)) },
+        },
+      },
   server: {
     headers: {
       'Cross-Origin-Embedder-Policy': 'require-corp',

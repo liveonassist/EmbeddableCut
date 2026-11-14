@@ -1,5 +1,4 @@
 // SPDX-License-Identifier: MIT
-// placeholder: ported elsewhere
 
 import type { Snippet } from 'svelte'
 import type {
@@ -7,12 +6,10 @@ import type {
   BezierControlPoints,
   DirectLinkableProperty,
   DirectPropertyLink,
-  EasingConfig,
   EasingType,
   Keyframe,
   KeyframeRef,
   PropertyExpression,
-  VectorAnimatableProperty,
 } from '@/types/keyframe'
 import type { MotionModifier } from '@/types/motion'
 import type { TextMotionSlot } from '@/types/text-motion'
@@ -20,56 +17,10 @@ import type { TextMotionTimelineBand } from '@/shared/timeline/text-motion-timel
 import type { BlockedFrameRange } from '@/features/keyframes/utils/transition-region'
 import type { ExpressionValue } from '@/features/keyframes/utils/property-expression'
 import type { ProceduralPreviewInput } from '@/features/keyframes/utils/procedural-preview'
+import type { CompoundPropertyInputConfig } from './compound-property-inputs'
+import type { DopesheetDimensionSeparationControl } from './dopesheet-group-options-menu'
+import type { SegmentEasingChange } from './segment-easing-popover'
 import type { Viewport } from './dopesheet-types'
-
-// The real port takes these from `compound-property-inputs`,
-// `dopesheet-group-options-menu` and `segment-easing-popover`.
-export interface CompoundPropertyLiveValueSource {
-  subscribe: (listener: () => void) => () => void
-  getSnapshot: () => { x: number; y: number } | null
-}
-
-export interface CompoundPropertyInputConfig {
-  label: string
-  value: { x: number; y: number }
-  liveValueSource?: CompoundPropertyLiveValueSource
-  preExpressionValue?: { x: number; y: number }
-  unit: string
-  linkProperty?: VectorAnimatableProperty
-  showAxisLabels?: boolean
-  linked?: boolean
-  disabled?: boolean
-  allowCreateOnBlur?: boolean
-  axisLink?: {
-    linked: boolean
-    onChange: (linked: boolean) => void
-  }
-  onCommit: (axis: 'x' | 'y', value: number, options: { allowCreate: boolean }) => boolean | void
-  onScrubStart?: (axis: 'x' | 'y') => void
-  onScrubPreview?: (axis: 'x' | 'y', value: number) => void
-  onScrubEnd?: (axis: 'x' | 'y', value: number) => void
-  onScrubCancel?: (axis: 'x' | 'y') => void
-  scrubStep?: number
-  decimals?: number
-}
-
-export interface DopesheetDimensionSeparationControl {
-  label: string
-  separated: boolean
-  disabled?: boolean
-  onChange: (separated: boolean) => void
-}
-
-export interface SegmentEasingUpdate {
-  easing: EasingType
-  easingConfig?: EasingConfig
-}
-
-export type SegmentEasingChange = (
-  refs: KeyframeRef[],
-  updates: SegmentEasingUpdate,
-  options?: { commit?: boolean },
-) => void
 
 export interface DopesheetEditorProps {
   /** Shared time viewport when split mode needs synchronized frame zoom/pan */
@@ -152,7 +103,7 @@ export interface DopesheetEditorProps {
   /** Exact shared-axis mapper for an absolute timeline frame. */
   globalFrameToPixels?: (globalFrame: number) => number
   /** Main Edit timeline scroll surface used for same-frame playhead positioning. */
-  timelineScrollContainer?: HTMLDivElement | null
+  timelineScrollContainer?: HTMLElement | null
   /** Scroll position used to render the current keyframe geometry snapshot. */
   timelinePanBaseScrollLeft?: number
   /** Pixels-per-second used to render the current keyframe geometry snapshot. */
