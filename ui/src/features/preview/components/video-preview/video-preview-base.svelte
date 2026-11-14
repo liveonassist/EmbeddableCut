@@ -52,6 +52,11 @@
     itemsSnapshot: PreviewItemsSnapshot
   } = $props()
   const previewRuntimeRefs = usePreviewRuntimeRefs()
+  // The overlays derive their coordinates from this; a new object on every
+  // update of `project` would re-run each overlay's effects.
+  const projectWidth = $derived(project.width)
+  const projectHeight = $derived(project.height)
+  const projectSize = $derived({ width: projectWidth, height: projectHeight })
   const colorGradeComparisonMode = select(useGizmoStore, (s) => s.colorGradeComparisonMode)
   const colorGradeSplitPosition = select(useGizmoStore, (s) => s.colorGradeSplitPosition)
   const setColorGradeSplitPosition = useGizmoStore.getState().setColorGradeSplitPosition
@@ -838,7 +843,7 @@
         itemsSnapshot={itemsSnapshot.items}
         containerRect={playerContainerRect}
         {playerSize}
-        projectSize={{ width: project.width, height: project.height }}
+        {projectSize}
         {zoom}
         hitArea={backgroundElement}
       />
@@ -847,7 +852,7 @@
       <MaskEditorContainer
         containerRect={playerContainerRect}
         {playerSize}
-        projectSize={{ width: project.width, height: project.height }}
+        {projectSize}
         {zoom}
       />
     {/if}
@@ -855,7 +860,7 @@
       <CornerPinContainer
         containerRect={playerContainerRect}
         {playerSize}
-        projectSize={{ width: project.width, height: project.height }}
+        {projectSize}
         {zoom}
       />
     {/if}
@@ -863,7 +868,7 @@
       <PowerWindowOverlayContainer
         containerRect={playerContainerRect}
         {playerSize}
-        projectSize={{ width: project.width, height: project.height }}
+        {projectSize}
         {zoom}
       />
     {/if}
@@ -871,7 +876,7 @@
       <SpatialEffectPointOverlayContainer
         containerRect={playerContainerRect}
         {playerSize}
-        projectSize={{ width: project.width, height: project.height }}
+        {projectSize}
         {zoom}
       />
     {/if}

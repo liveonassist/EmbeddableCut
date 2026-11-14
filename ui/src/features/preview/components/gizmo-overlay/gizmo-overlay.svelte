@@ -440,7 +440,11 @@
   // screen pixels) convert to the correct canvas-pixel distance at any zoom.
   $effect(() => {
     if (!coordParams) return
-    setCanvasScale(getEffectiveScale(coordParams))
+    const scale = getEffectiveScale(coordParams)
+    // The store notifies on every set, even of the same value, and its
+    // subscribers' updates can rebuild coordParams.
+    const stored = scale > 0 ? scale : 1
+    if (untrack(() => useGizmoStore.getState().canvasScale) !== stored) setCanvasScale(scale)
   })
 
   const canvasMediaDrop = useCanvasMediaDrop(() => ({
