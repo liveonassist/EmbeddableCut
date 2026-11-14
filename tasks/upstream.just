@@ -14,12 +14,12 @@ fetch:
 status ref="upstream/main":
     scripts/tasks/upstream.sh status {{ ref }}
 
-# Merge upstream, then file anything it added under src/ into engine/ or web/.
+# Merge upstream, then file engine code it left under src/ into engine/ and list UI to port.
 [working-directory('..')]
 merge ref="upstream/main":
     scripts/tasks/upstream.sh merge {{ ref }}
 
-# File paths under src/ (left by a merge) into engine/src or web/src.
+# File engine code under src/ (left by a merge) into engine/src; list UI files to port into ui/src.
 [working-directory('..')]
 place:
     node scripts/tasks/place-upstream-files.mjs

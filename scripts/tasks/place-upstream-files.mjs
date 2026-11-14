@@ -2,12 +2,17 @@
 // SPDX-License-Identifier: MIT
 
 /**
- * Files what a merge from FreeCut left under src/ into engine/src or web/src.
+ * Files what a merge from FreeCut left under src/: engine code into
+ * engine/src, and FreeCut's React UI listed for porting into ui/src.
  *
  * A file goes where its directory already lives. In a directory both packages
- * share, a component (`.tsx`), a hook, or anything importing React or the app's
- * UI kit belongs to the app; the rest is engine. `just check engine` then
- * catches an engine file that reaches into the app.
+ * share, a component (`.tsx`), a hook, or anything importing React or the
+ * React UI kit is UI; the rest is engine. `just check engine` then catches an
+ * engine file that reaches into the UI.
+ *
+ * UI files stay under src/: a new React file, or upstream's version of one
+ * the Svelte UI replaced (a modify/delete conflict leaves it there). Each is
+ * ported into its twin under ui/src (docs/UPSTREAM.md), then removed.
  */
 
 import fs from 'node:fs'
@@ -27,26 +32,38 @@ function walk(dir, out = []) {
   return out
 }
 
-function destination(rel) {
+function isUi(rel) {
   for (let dir = path.dirname(rel); dir !== '.'; dir = path.dirname(dir)) {
     const inEngine = fs.existsSync(path.join(ROOT, 'engine', 'src', dir))
-    const inWeb = fs.existsSync(path.join(ROOT, 'web', 'src', dir))
-    if (inEngine !== inWeb) return inEngine ? 'engine' : 'web'
-    if (inEngine && inWeb) break
+    const inUi = fs.existsSync(path.join(ROOT, 'ui', 'src', dir))
+    if (inEngine !== inUi) return inUi
+    if (inEngine && inUi) break
   }
   const source = fs.readFileSync(path.join(ROOT, 'src', rel), 'utf8')
-  if (rel.endsWith('.tsx') || /(^|\/)(hooks|components|contexts)\//.test(rel) || UI_IMPORT.test(source)) {
-    return 'web'
-  }
-  return 'engine'
+  return rel.endsWith('.tsx') || /(^|\/)(hooks|components|contexts)\//.test(rel) || UI_IMPORT.test(source)
+}
+
+/** The Svelte port of a React file: same path, as a component, hook, module or folder. */
+function uiTwin(rel) {
+  const stem = rel.replace(/\.(tsx|ts)$/, '')
+  const candidates = [`${stem}.svelte`, `${stem}.svelte.ts`, `${stem}.ts`, `${stem}.svelte.test.ts`, stem]
+  return candidates.map((c) => path.join('ui', 'src', c)).find((c) => fs.existsSync(path.join(ROOT, c)))
 }
 
 const files = walk(path.join(ROOT, 'src')).map((f) => path.relative(path.join(ROOT, 'src'), f))
+const toPort = []
 for (const rel of files) {
-  const pkg = destination(rel)
-  const target = path.join(pkg, 'src', rel)
+  if (isUi(rel)) {
+    toPort.push(rel)
+    continue
+  }
+  const target = path.join('engine', 'src', rel)
   fs.mkdirSync(path.dirname(target), { recursive: true })
   execFileSync('git', ['mv', path.join('src', rel), target], { stdio: 'inherit' })
   console.log(`src/${rel} -> ${target}`)
+}
+if (toPort.length > 0) {
+  console.log('\nFreeCut UI to port into ui/src, then `git rm` from src/:')
+  for (const rel of toPort) console.log(`  src/${rel} -> ${uiTwin(rel) ?? `ui/src/${rel} (new)`}`)
 }
 if (files.length === 0) console.log('Nothing under src/ to place.')

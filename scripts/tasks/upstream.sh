@@ -24,23 +24,37 @@ status)
   echo "Upstream commits not merged into $(git rev-parse --abbrev-ref HEAD):"
   git log --oneline --no-merges "HEAD..$ref" | head -50
   echo
-  echo "Files they change that have no counterpart here (ported or retired):"
+  echo "UI files they change, to port into ui/src, and files with no counterpart here:"
   base="$(git merge-base HEAD "$ref")"
   git diff --name-only "$base" "$ref" -- src | while read -r path; do
     rel="${path#src/}"
-    [ -e "engine/src/$rel" ] || [ -e "web/src/$rel" ] || echo "  $path"
+    stem="${rel%.ts}"
+    stem="${stem%.tsx}"
+    [ -e "engine/src/$rel" ] && continue
+    twin=""
+    for candidate in "$stem.svelte" "$stem.svelte.ts" "$stem.ts" "$stem"; do
+      if [ -e "ui/src/$candidate" ]; then
+        twin="ui/src/$candidate"
+        break
+      fi
+    done
+    echo "  $path${twin:+ -> $twin}"
   done
   ;;
 merge)
   ref="${2:-upstream/main}"
   ensure_remote
-  # Rename detection follows FreeCut's src/ into engine/src and web/src; a
-  # high limit keeps it from giving up on a release-sized diff.
+  # Rename detection follows FreeCut's src/ into engine/src; a high limit
+  # keeps it from giving up on a release-sized diff. FreeCut's React UI was
+  # ported to ui/src and removed, so a change to it is a modify/delete
+  # conflict that leaves upstream's file under src/.
   git -c merge.renameLimit=20000 merge --no-ff --no-edit "$ref" || {
     echo
     echo "Resolve the conflicts. A \"file location\" conflict is a file upstream added in a"
-    echo "directory that moved here: git has already put it in engine/ or web/, so check"
-    echo "the package is right and \`git add\` it. Then run: just upstream place && just check all"
+    echo "directory that moved here: git has already put it in engine/, so check it isn't UI"
+    echo "and \`git add\` it. A modify/delete conflict is a React file the Svelte UI replaced:"
+    echo "\`git add\` it under src/. Then run: just upstream place, port what it lists, and"
+    echo "just check all."
     exit 1
   }
   node scripts/tasks/place-upstream-files.mjs
