@@ -1,8 +1,7 @@
 // SPDX-License-Identifier: MIT
-// placeholder: ported elsewhere
 
-import { toast } from 'svelte-sonner'
 import { t } from '$lib/i18n.svelte'
+import { toast } from 'svelte-sonner'
 import type { DirectLinkableProperty } from '@/types/keyframe'
 import { areDirectLinkPropertiesCompatible, isDirectLinkableProperty } from '@/types/keyframe'
 import {
@@ -18,6 +17,13 @@ interface PropertyEndpoint {
   property: DirectLinkableProperty
 }
 
+/** The editor may live in a shadow root: hit-test and query in the active pick-whip's root. */
+let activeRoot: Document | ShadowRoot = document
+
+function elementFromPoint(clientX: number, clientY: number): Element | null {
+  return activeRoot.elementFromPoint(clientX, clientY)
+}
+
 function resolvePropertyCandidateElement(element: Element | null, origin: PropertyEndpoint) {
   const row = element?.closest<HTMLElement>('[data-expression-item-id][data-expression-property]')
   const itemId = row?.dataset.expressionItemId
@@ -29,20 +35,16 @@ function resolvePropertyCandidateElement(element: Element | null, origin: Proper
 }
 
 function resolvePropertyCandidate(clientX: number, clientY: number, origin: PropertyEndpoint) {
-  const candidate = resolvePropertyCandidateElement(
-    document.elementFromPoint(clientX, clientY),
-    origin,
-  )
+  const candidate = resolvePropertyCandidateElement(elementFromPoint(clientX, clientY), origin)
   return candidate ? { status: 'valid' as const, ...candidate } : null
 }
 
 function resolveEligiblePropertyRows(origin: PropertyEndpoint): HTMLElement[] {
   return Array.from(
-    document.querySelectorAll<HTMLElement>('[data-expression-item-id][data-expression-property]'),
+    activeRoot.querySelectorAll<HTMLElement>('[data-expression-item-id][data-expression-property]'),
   ).filter((row) => resolvePropertyCandidateElement(row, origin) !== null)
 }
 
-/** Call while a component initializes; read `drag` from the returned object, never destructure it. */
 export function usePropertyLinkPickWhip() {
   const commit = (target: PropertyEndpoint, source: PropertyEndpoint) => {
     const keyframesByItemId = useKeyframesStore.getState().keyframesByItemId
@@ -67,7 +69,7 @@ export function usePropertyLinkPickWhip() {
       timeOffsetFrames: 0,
     })
   }
-  const pickWhip = useMotionPickWhipDrag<PropertyEndpoint, PropertyEndpoint>(() => ({
+  const pickWhip = useMotionPickWhipDrag(() => ({
     hoverAttribute: 'data-expression-link-hover',
     eligibleAttribute: 'data-expression-link-eligible',
     resolveEligibleRows: resolveEligiblePropertyRows,
@@ -79,30 +81,36 @@ export function usePropertyLinkPickWhip() {
     event: PointerEvent & { currentTarget: HTMLElement },
     itemId: string,
     property: DirectLinkableProperty,
-  ) => pickWhip.begin(event, { itemId, property })
+  ) => {
+    activeRoot = event.currentTarget.getRootNode() as Document | ShadowRoot
+    pickWhip.begin(event, { itemId, property })
+  }
   const remove = (itemId: string, property: DirectLinkableProperty) => {
     removeDirectPropertyLink(itemId, property)
   }
+  const drag = $derived.by(() => {
+    const genericDrag = pickWhip.drag
+    return genericDrag
+      ? {
+          pointerId: genericDrag.pointerId,
+          targetItemId: genericDrag.origin.itemId,
+          targetProperty: genericDrag.origin.property,
+          startX: genericDrag.startX,
+          startY: genericDrag.startY,
+          currentX: genericDrag.currentX,
+          currentY: genericDrag.currentY,
+          moved: genericDrag.moved,
+          sourceItemId: genericDrag.candidate?.value.itemId ?? null,
+          sourceProperty: genericDrag.candidate?.value.property ?? null,
+          clipBounds: genericDrag.clipBounds,
+          presentation: genericDrag.presentation,
+        }
+      : null
+  })
 
   return {
     get drag() {
-      const genericDrag = pickWhip.drag
-      return genericDrag
-        ? {
-            pointerId: genericDrag.pointerId,
-            targetItemId: genericDrag.origin.itemId,
-            targetProperty: genericDrag.origin.property,
-            startX: genericDrag.startX,
-            startY: genericDrag.startY,
-            currentX: genericDrag.currentX,
-            currentY: genericDrag.currentY,
-            moved: genericDrag.moved,
-            sourceItemId: genericDrag.candidate?.value.itemId ?? null,
-            sourceProperty: genericDrag.candidate?.value.property ?? null,
-            clipBounds: genericDrag.clipBounds,
-            presentation: genericDrag.presentation,
-          }
-        : null
+      return drag
     },
     begin,
     remove,

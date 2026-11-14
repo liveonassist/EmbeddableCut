@@ -1,0 +1,93 @@
+// SPDX-License-Identifier: MIT
+
+import { cleanup, fireEvent, render } from '@testing-library/svelte'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vite-plus/test'
+import { useEditorStore } from '@/shared/state/editor'
+import { useSelectionStore } from '@/shared/state/selection'
+import type { TimelineItem } from '@/types/timeline'
+import { useLinkedEditPreviewStore } from '@/features/timeline/stores/linked-edit-preview-store'
+import Harness from './timeline-density-overview.harness.svelte'
+
+const overviewItems: TimelineItem[] = [
+  {
+    id: 'overview-1',
+    type: 'video',
+    trackId: 'track-1',
+    from: 0,
+    durationInFrames: 30,
+    label: 'One',
+    mediaId: 'media-1',
+    src: 'blob:one',
+  },
+  {
+    id: 'overview-2',
+    type: 'video',
+    trackId: 'track-1',
+    from: 30,
+    durationInFrames: 30,
+    label: 'Two',
+    mediaId: 'media-2',
+    src: 'blob:two',
+  },
+]
+
+describe('TimelineDensityOverview', () => {
+  beforeEach(() => {
+    useSelectionStore.getState().selectItems([])
+    useSelectionStore.getState().setActiveTool('select')
+    useEditorStore.setState({ linkedSelectionEnabled: false })
+    useLinkedEditPreviewStore.getState().clear()
+    vi.stubGlobal('requestAnimationFrame', () => 1)
+  })
+
+  afterEach(() => {
+    cleanup()
+    vi.unstubAllGlobals()
+  })
+
+  it('resolves a bucket press back to an editable clip selection', async () => {
+    const view = render(Harness, { items: overviewItems })
+    const bucket = view.container.querySelector('[data-timeline-density-bucket]')
+    expect(bucket).not.toBeNull()
+
+    await fireEvent.mouseDown(bucket!, { button: 0, clientX: 0, clientY: 10 })
+    await fireEvent.mouseUp(bucket!, { button: 0, clientX: 0, clientY: 10 })
+    await fireEvent.click(bucket!, { button: 0, clientX: 0, clientY: 10 })
+
+    expect(useSelectionStore.getState().selectedItemIds).toEqual(['overview-1'])
+  })
+
+  it('uses the same percentage geometry channel as native timeline items', () => {
+    const view = render(Harness, { items: overviewItems })
+    const buckets = view.container.querySelectorAll<HTMLElement>('[data-timeline-density-bucket]')
+
+    expect(buckets[0]?.style.left).toContain('--timeline-percent-per-frame')
+    expect(buckets[0]?.style.width).toContain('--timeline-percent-per-frame')
+  })
+
+  it('culls density shells to linked edit preview geometry', () => {
+    useLinkedEditPreviewStore.getState().setUpdates([{ id: 'overview-1', durationInFrames: 12 }])
+
+    const view = render(Harness, {
+      items: overviewItems,
+      selectedItemIds: new Set(['overview-1']),
+    })
+    const bucket = view.container.querySelector<HTMLElement>('[data-timeline-density-bucket]')
+
+    expect(bucket?.style.width).toBe('calc(12 * var(--timeline-percent-per-frame, 0%))')
+    expect(bucket?.className).toContain('ring-primary')
+  })
+
+  it('replays a razor click onto the promoted native clip', async () => {
+    useSelectionStore.getState().setActiveTool('razor')
+    const nativeClick = vi.fn()
+    const view = render(Harness, { items: overviewItems, onNativeClick: nativeClick })
+    const bucket = view.container.querySelector('[data-timeline-density-bucket]')!
+
+    await fireEvent.mouseDown(bucket, { button: 0, clientX: 0, clientY: 10 })
+    await fireEvent.mouseUp(bucket, { button: 0, clientX: 0, clientY: 10 })
+    await fireEvent.click(bucket, { button: 0, clientX: 0, clientY: 10 })
+
+    expect(nativeClick).toHaveBeenCalledOnce()
+  })
+})

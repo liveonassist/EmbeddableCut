@@ -12,10 +12,10 @@ export { useSilenceRemovalDialogStore } from '@/features/timeline/stores/silence
 
 export const importTimeline = () => import('@/features/timeline/components/timeline.svelte')
 export const importBentoLayoutDialog = () =>
-  import('@/features/timeline/components/bento-layout-dialog.svelte')
+  import('@/features/timeline/components/bento-layout-dialog/bento-layout-dialog.svelte')
 export const importFillerRemovalDialog = () =>
-  import('@/features/timeline/components/filler-removal-dialog.svelte')
+  import('@/features/timeline/components/filler-removal-dialog/filler-removal-dialog.svelte')
 export const importReverseConformDialog = () =>
   import('@/features/timeline/components/reverse-conform-dialog.svelte')
 export const importSilenceRemovalDialog = () =>
-  import('@/features/timeline/components/silence-removal-dialog.svelte')
+  import('@/features/timeline/components/silence-removal-dialog/silence-removal-dialog.svelte')

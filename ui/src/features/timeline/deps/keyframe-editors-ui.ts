@@ -19,3 +19,4 @@ export {
   getPropertyAccordionGroups,
   getPropertyDisplayGroups,
 } from './keyframes-ui-contract'
+export type { DopesheetEditorProps } from './keyframes-ui-contract'

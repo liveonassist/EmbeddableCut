@@ -1,27 +1,41 @@
 // SPDX-License-Identifier: MIT
 
 /**
- * Keyboard shortcuts, the port of react-hotkeys-hook's `useHotkeys`: the same
- * key strings (`space`, `mod+z`, `shift+arrowleft`, comma-separated
- * alternatives) and options. Call it while a component initializes; it
- * listens while the component is mounted.
+ * Keyboard shortcuts, the port of react-hotkeys-hook 5's `useHotkeys` with its
+ * matching rules, so FreeCut's key strings (`space`, `mod+z`,
+ * `shift+bracketleft`, comma-separated alternatives) and options behave as
+ * they do there:
+ * - Keys match by physical position (`event.code`), not by layout.
+ * - `mod` is satisfied by Ctrl or Cmd on every platform; otherwise Ctrl, Cmd,
+ *   Alt and Shift must match exactly.
+ * - Form fields, and elements with a form role (slider, menuitem, textbox, …),
+ *   don't trigger shortcuts unless `enableOnFormTags` allows them;
+ *   contenteditable doesn't unless `enableOnContentEditable`.
+ * - A matched shortcut prevents the default action (with `preventDefault`)
+ *   even when `enabled` returns false, and then stops the event.
  *
- * An embedded editor scopes shortcuts to itself (`setHotkeyScope`), so keys
- * pressed in the host page around it never reach the editor.
+ * Call it while a component initializes; it listens while the component is
+ * mounted. An embedded editor scopes shortcuts to itself (`setHotkeyScope`),
+ * so keys pressed in the host page never reach it. Form checks look at the
+ * event's composed target, so fields inside a shadow root count as fields.
  */
 
+type HotkeyPredicate = (event: KeyboardEvent) => boolean
+
 export interface HotkeyOptions {
-  enabled?: boolean
-  /** Fire inside inputs, textareas, selects and contenteditable too. */
-  enableOnFormTags?: boolean
-  preventDefault?: boolean
+  /** `false` stops listening; a function decides per matched event. */
+  enabled?: boolean | HotkeyPredicate
+  /** Fire inside form fields too, or only in those with these tag names or roles. */
+  enableOnFormTags?: boolean | readonly string[]
+  enableOnContentEditable?: boolean
+  preventDefault?: boolean | HotkeyPredicate
   keyup?: boolean
   keydown?: boolean
+  eventListenerOptions?: AddEventListenerOptions
 }
 
 type MaybeGetter<T> = T | (() => T)
 
-const isMac = typeof navigator !== 'undefined' && /mac|iphone|ipad/i.test(navigator.platform)
 let scope: Node | null = null
 
 /** Limits every shortcut to events from inside `root`; `null` listens to the whole page. */
@@ -29,23 +43,50 @@ export function setHotkeyScope(root: Node | null): void {
   scope = root
 }
 
+const MODIFIERS = ['shift', 'alt', 'meta', 'mod', 'ctrl', 'control']
+const MODIFIER_KEYS = ['shift', 'alt', 'meta', 'os', 'ctrl', 'control', 'unknown']
+
 const ALIASES: Record<string, string> = {
-  space: ' ',
   esc: 'escape',
   return: 'enter',
-  del: 'delete',
   left: 'arrowleft',
   right: 'arrowright',
   up: 'arrowup',
   down: 'arrowdown',
-  plus: '+',
-  comma: ',',
-  period: '.',
-  slash: '/',
+  ShiftLeft: 'shift',
+  ShiftRight: 'shift',
+  AltLeft: 'alt',
+  AltRight: 'alt',
+  MetaLeft: 'meta',
+  MetaRight: 'meta',
+  OSLeft: 'meta',
+  OSRight: 'meta',
+  ControlLeft: 'ctrl',
+  ControlRight: 'ctrl',
+}
+
+const FORM_TAGS_AND_ROLES = [
+  'input',
+  'textarea',
+  'select',
+  'searchbox',
+  'slider',
+  'spinbutton',
+  'menuitem',
+  'menuitemcheckbox',
+  'menuitemradio',
+  'option',
+  'radio',
+  'textbox',
+]
+
+/** A key string or an `event.code` in react-hotkeys-hook's names (`KeyZ` → `z`). */
+function keyName(key: string): string {
+  return (ALIASES[key.trim()] ?? key.trim()).toLowerCase().replace(/key|digit|numpad/, '')
 }
 
 interface Combo {
-  key: string
+  keys: string[]
   mod: boolean
   ctrl: boolean
   meta: boolean
@@ -55,59 +96,56 @@ interface Combo {
 
 function parse(keys: string): Combo[] {
   return keys
+    .toLowerCase()
     .split(',')
-    .map((combo) => combo.trim().toLowerCase())
-    .filter(Boolean)
+    .filter((combo) => combo.trim())
     .map((combo) => {
-      const parts = combo.split('+')
-      // A trailing '+' means the plus key itself.
-      const key = combo.endsWith('++') ? '+' : (parts.pop() ?? '')
-      const has = (name: string) => parts.includes(name)
+      const parts = combo.trim().split('+').map(keyName)
       return {
-        key: ALIASES[key] ?? key,
-        mod: has('mod'),
-        ctrl: has('ctrl') || has('control'),
-        meta: has('meta') || has('cmd') || has('command'),
-        shift: has('shift'),
-        alt: has('alt') || has('option'),
+        keys: parts.filter((part) => !MODIFIERS.includes(part)),
+        mod: parts.includes('mod'),
+        ctrl: parts.includes('ctrl') || parts.includes('control'),
+        meta: parts.includes('meta'),
+        shift: parts.includes('shift'),
+        alt: parts.includes('alt'),
       }
     })
 }
 
-/** The key an event names, by layout (`event.key`) and by position (`event.code`). */
-function keysOf(event: KeyboardEvent): string[] {
-  const names = [event.key.toLowerCase()]
-  const code = event.code
-  if (code.startsWith('Key')) names.push(code.slice(3).toLowerCase())
-  else if (code.startsWith('Digit')) names.push(code.slice(5))
-  else if (code) names.push(code.toLowerCase())
-  return names
-}
-
 function matches(combo: Combo, event: KeyboardEvent): boolean {
-  const wantCtrl = combo.ctrl || (combo.mod && !isMac)
-  const wantMeta = combo.meta || (combo.mod && isMac)
-  if (event.ctrlKey !== wantCtrl || event.metaKey !== wantMeta || event.altKey !== combo.alt)
-    return false
-  // Shifted symbols ('?') arrive with shift held; only letters and named keys care.
+  const key = keyName(event.code)
+  if (!combo.keys.includes(key) && !MODIFIER_KEYS.includes(key)) return false
   if (
-    combo.shift !== event.shiftKey &&
-    (combo.shift || combo.key.length > 1 || /[a-z0-9]/.test(combo.key))
+    (combo.alt !== event.altKey && key !== 'alt') ||
+    (combo.shift !== event.shiftKey && key !== 'shift')
+  )
+    return false
+  if (combo.mod) {
+    if (!event.metaKey && !event.ctrlKey) return false
+  } else if (
+    (combo.meta !== event.metaKey && key !== 'meta' && key !== 'os') ||
+    (combo.ctrl !== event.ctrlKey && key !== 'ctrl' && key !== 'control')
   ) {
     return false
   }
-  return keysOf(event).includes(combo.key)
+  return combo.keys.length === 1 ? combo.keys[0] === key : combo.keys.length === 0
 }
 
-function isFormTarget(event: KeyboardEvent): boolean {
-  const target = event.composedPath()[0]
-  if (!(target instanceof HTMLElement)) return false
-  return (
-    target.isContentEditable ||
-    target instanceof HTMLInputElement ||
-    target instanceof HTMLTextAreaElement ||
-    target instanceof HTMLSelectElement
-  )
+function composedTarget(event: KeyboardEvent): EventTarget | null {
+  return event.composedPath()[0] ?? event.target
+}
+
+function isFormTarget(target: EventTarget | null, tags: readonly string[]): boolean {
+  if (!(target instanceof Element)) return false
+  const tag = target.tagName.toLowerCase()
+  const role = target.getAttribute('role')
+  return tags.some((entry) => entry.toLowerCase() === tag || entry === role)
+}
+
+function stop(event: KeyboardEvent): void {
+  event.stopPropagation()
+  event.preventDefault()
+  event.stopImmediatePropagation()
 }
 
 export function useHotkeys(
@@ -120,20 +158,45 @@ export function useHotkeys(
     const combos = parse(Array.isArray(value) ? value.join(',') : (value as string))
     const opts = typeof options === 'function' ? options() : options
     if (opts.enabled === false || combos.length === 0) return
+
     const listen = (event: KeyboardEvent) => {
       if (scope && !event.composedPath().includes(scope)) return
-      if (!opts.enableOnFormTags && isFormTarget(event)) return
+      const target = composedTarget(event)
+      const formTags = opts.enableOnFormTags
+      if (
+        isFormTarget(target, FORM_TAGS_AND_ROLES) &&
+        !(formTags === true || (Array.isArray(formTags) && isFormTarget(target, formTags)))
+      )
+        return
+      if (
+        target instanceof HTMLElement &&
+        target.isContentEditable &&
+        !opts.enableOnContentEditable
+      )
+        return
       if (!combos.some((combo) => matches(combo, event))) return
-      if (opts.preventDefault) event.preventDefault()
+      const prevent = opts.preventDefault
+      if (prevent === true || (typeof prevent === 'function' && prevent(event)))
+        event.preventDefault()
+      const enabled = opts.enabled
+      if (typeof enabled === 'function' && !enabled(event)) {
+        stop(event)
+        return
+      }
       handler(event)
     }
-    const types = [
-      ...(opts.keydown !== false ? ['keydown'] : []),
-      ...(opts.keyup ? ['keyup'] : []),
-    ] as const
-    for (const type of types) window.addEventListener(type, listen as EventListener)
+    const onKeydown = (event: KeyboardEvent) => {
+      if ((opts.keydown === undefined && opts.keyup !== true) || opts.keydown) listen(event)
+    }
+    const onKeyup = (event: KeyboardEvent) => {
+      if (opts.keyup) listen(event)
+    }
+    const listenerOptions = opts.eventListenerOptions
+    document.addEventListener('keydown', onKeydown, listenerOptions)
+    document.addEventListener('keyup', onKeyup, listenerOptions)
     return () => {
-      for (const type of types) window.removeEventListener(type, listen as EventListener)
+      document.removeEventListener('keydown', onKeydown, listenerOptions)
+      document.removeEventListener('keyup', onKeyup, listenerOptions)
     }
   })
 }
