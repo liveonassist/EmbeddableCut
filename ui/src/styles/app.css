@@ -16,6 +16,9 @@
 /* react-colorful's stylesheet, for the color picker's ported HexColorPicker */
 @import '../shared/ui/property-controls/hex-color-picker.css';
 
+/* The Motion library's animated preset thumbnails */
+@import '../features/editor/components/animate-workspace/motion-preset-thumbnail.css';
+
 :is(body, .ec-root).canvas-translate-cursor-not-allowed,
 :is(body, .ec-root).canvas-translate-cursor-not-allowed * {
   cursor: not-allowed !important;
