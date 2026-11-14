@@ -4,7 +4,7 @@
   import type { HTMLButtonAttributes } from 'svelte/elements'
   import type { VariantProps } from 'class-variance-authority'
   import { cn } from '$lib/cn'
-  import { buttonVariants } from './button-variants'
+  import { buttonVariants } from '../button-variants'
 
   type Props = HTMLButtonAttributes &
     VariantProps<typeof buttonVariants> & {
