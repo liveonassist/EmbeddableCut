@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: MIT
+// oxlint-disable react/immutability, react/refs -- React Compiler rules: these $state writes and ref reads run in handlers and $effects, not a render
 
 import { untrack } from 'svelte'
 import { blobUrlManager } from '@/infrastructure/browser/blob-url-manager'

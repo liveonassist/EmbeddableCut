@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: MIT
+// oxlint-disable react/immutability, react/refs -- React Compiler rules: these $state writes and ref reads run in handlers and $effects, not a render
 
 import type { TimelineItem, TimelineTrack } from '@/types/timeline'
 import type { DragState, UseTimelineDragReturn, SnapTarget } from '@/features/timeline/types/drag'
