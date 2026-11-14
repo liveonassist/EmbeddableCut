@@ -12,6 +12,8 @@ vi.mock('@/shared/utils/github-stars', () => ({
 }))
 
 let mounted: MountedApp | null = null
+// Routes load their pages lazily; under a full parallel run, transforming them takes seconds.
+const ROUTE_LOAD = { timeout: 10_000 }
 
 beforeAll(() => {
   // jsdom has no constructable stylesheets.
@@ -37,14 +39,16 @@ describe('mountApp', () => {
     mounted = await mountApp(target)
 
     expect(target.querySelector('.ec-root')?.getAttribute('data-theme')).toBe('dark')
-    expect(await screen.findByRole('heading', { level: 1 })).toHaveTextContent(
+    expect(await screen.findByRole('heading', { level: 1 }, ROUTE_LOAD)).toHaveTextContent(
       'Edit videos. In your browser.',
     )
 
     const [docsLink] = await screen.findAllByRole('link', { name: 'Docs' })
     await fireEvent.click(docsLink!)
 
-    expect(await screen.findByRole('heading', { name: 'FreeCut User Guide' })).toBeInTheDocument()
+    expect(
+      await screen.findByRole('heading', { name: 'FreeCut User Guide' }, ROUTE_LOAD),
+    ).toBeInTheDocument()
     expect(window.location.pathname).toBe('/docs')
   })
 
@@ -54,7 +58,9 @@ describe('mountApp', () => {
     window.history.replaceState(null, '', '/docs/getting-started')
 
     const app = await mountApp(target)
-    expect(await screen.findByRole('heading', { name: 'Getting Started' })).toBeInTheDocument()
+    expect(
+      await screen.findByRole('heading', { name: 'Getting Started' }, ROUTE_LOAD),
+    ).toBeInTheDocument()
 
     await app.unmount()
     expect(target.querySelector('.ec-root')).toBeNull()
