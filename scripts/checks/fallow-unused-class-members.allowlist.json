@@ -500,6 +500,11 @@
         },
         {
           "parentName": "Editor",
+          "memberName": "mediaSources",
+          "kind": "class_method"
+        },
+        {
+          "parentName": "Editor",
           "memberName": "project",
           "kind": "class_method"
         },
