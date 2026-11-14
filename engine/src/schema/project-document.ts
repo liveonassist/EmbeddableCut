@@ -12,20 +12,20 @@
  * upstream migration never renumbers the envelope or the other way round.
  */
 
-import { z } from "zod";
-import type { Project } from "@/types/project";
-import { projectSchema } from "@/features/project-bundle/schemas/project-schema";
+import { z } from 'zod'
+import type { Project } from '@/types/project'
+import { projectSchema } from '@/features/project-bundle/schemas/project-schema'
 import {
   CURRENT_SCHEMA_VERSION,
   ProjectSchemaTooNewError,
   migrateProject,
   type ProjectWarning,
-} from "@/shared/projects/migrations";
-import { assetRecordSchema, type AssetRecord } from "./asset";
-import { SchemaError, type SchemaIssue } from "./errors";
-import { PROJECT_DOCUMENT_SCHEMA_VERSION } from "./versions";
+} from '@/shared/projects/migrations'
+import { assetRecordSchema, type AssetRecord } from './asset'
+import { SchemaError, type SchemaIssue } from './errors'
+import { PROJECT_DOCUMENT_SCHEMA_VERSION } from './versions'
 
-export const PROJECT_DOCUMENT_FORMAT = "embeddablecut.project";
+export const PROJECT_DOCUMENT_FORMAT = 'embeddablecut.project'
 
 /**
  * Something a document can't be rendered faithfully without. Built-in
@@ -34,10 +34,10 @@ export const PROJECT_DOCUMENT_FORMAT = "embeddablecut.project";
  */
 export const extensionRequirementSchema = z
   .object({
-    kind: z.enum(["effect", "transition", "media-provider"]),
+    kind: z.enum(['effect', 'transition', 'media-provider']),
     id: z.string().min(1),
   })
-  .strict();
+  .strict()
 
 export const projectDocumentSchema = z
   .object({
@@ -49,48 +49,48 @@ export const projectDocumentSchema = z
     /** What wrote the document, for diagnostics only; readers never branch on it. */
     generator: z.object({ name: z.string(), version: z.string() }).strict().optional(),
   })
-  .strict();
+  .strict()
 
-export type ExtensionRequirement = z.infer<typeof extensionRequirementSchema>;
-export type ProjectDocument = z.infer<typeof projectDocumentSchema>;
+export type ExtensionRequirement = z.infer<typeof extensionRequirementSchema>
+export type ProjectDocument = z.infer<typeof projectDocumentSchema>
 
 /** A finding the reader repaired or that a consumer should know about; never fatal. */
 export type DocumentWarning =
   | ProjectWarning
-  | { code: "ASSET_MISSING"; message: string; itemIds: string[]; mediaId: string };
+  | { code: 'ASSET_MISSING'; message: string; itemIds: string[]; mediaId: string }
 
 export interface ReadProjectDocumentResult {
-  document: ProjectDocument;
+  document: ProjectDocument
   /** True when the project inside was migrated or normalized on the way in. */
-  migrated: boolean;
-  warnings: DocumentWarning[];
+  migrated: boolean
+  warnings: DocumentWarning[]
 }
 
-function issuesOf(error: z.ZodError, prefix = ""): SchemaIssue[] {
+function issuesOf(error: z.ZodError, prefix = ''): SchemaIssue[] {
   return error.issues.map((issue) => ({
-    path: [prefix, ...issue.path.map(String)].filter(Boolean).join("."),
+    path: [prefix, ...issue.path.map(String)].filter(Boolean).join('.'),
     message: issue.message,
-  }));
+  }))
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
+  return typeof value === 'object' && value !== null && !Array.isArray(value)
 }
 
 /** Every `mediaId` an item uses, root timeline and compositions alike. */
 function referencedMedia(project: Project): Map<string, string[]> {
-  const byMedia = new Map<string, string[]>();
+  const byMedia = new Map<string, string[]>()
   const visit = (items: ReadonlyArray<{ id: string; mediaId?: string }> | undefined) => {
     for (const item of items ?? []) {
-      if (!item.mediaId) continue;
-      const ids = byMedia.get(item.mediaId) ?? [];
-      ids.push(item.id);
-      byMedia.set(item.mediaId, ids);
+      if (!item.mediaId) continue
+      const ids = byMedia.get(item.mediaId) ?? []
+      ids.push(item.id)
+      byMedia.set(item.mediaId, ids)
     }
-  };
-  visit(project.timeline?.items);
-  for (const composition of project.timeline?.compositions ?? []) visit(composition.items);
-  return byMedia;
+  }
+  visit(project.timeline?.items)
+  for (const composition of project.timeline?.compositions ?? []) visit(composition.items)
+  return byMedia
 }
 
 /**
@@ -104,68 +104,68 @@ function referencedMedia(project: Project): Map<string, string[]> {
 export function readProjectDocument(data: unknown): ReadProjectDocumentResult {
   if (!isRecord(data) || data.format !== PROJECT_DOCUMENT_FORMAT) {
     throw new SchemaError(
-      "SCHEMA_UNKNOWN_FORMAT",
+      'SCHEMA_UNKNOWN_FORMAT',
       `Not an EmbeddableCut project document (expected format "${PROJECT_DOCUMENT_FORMAT}").`,
-    );
+    )
   }
-  const version = data.schemaVersion;
-  if (typeof version !== "number" || !Number.isInteger(version) || version < 1) {
-    throw new SchemaError("SCHEMA_INVALID", "The document has no valid schemaVersion.", [
-      { path: "schemaVersion", message: "Expected a positive integer" },
-    ]);
+  const version = data.schemaVersion
+  if (typeof version !== 'number' || !Number.isInteger(version) || version < 1) {
+    throw new SchemaError('SCHEMA_INVALID', 'The document has no valid schemaVersion.', [
+      { path: 'schemaVersion', message: 'Expected a positive integer' },
+    ])
   }
   if (version > PROJECT_DOCUMENT_SCHEMA_VERSION) {
     throw new SchemaError(
-      "SCHEMA_TOO_NEW",
+      'SCHEMA_TOO_NEW',
       `The document is schema v${version}; this engine reads up to v${PROJECT_DOCUMENT_SCHEMA_VERSION}.`,
-    );
+    )
   }
   if (!isRecord(data.project)) {
-    throw new SchemaError("SCHEMA_INVALID", "The document has no project.", [
-      { path: "project", message: "Expected an object" },
-    ]);
+    throw new SchemaError('SCHEMA_INVALID', 'The document has no project.', [
+      { path: 'project', message: 'Expected an object' },
+    ])
   }
 
-  let migration: ReturnType<typeof migrateProject>;
+  let migration: ReturnType<typeof migrateProject>
   try {
-    migration = migrateProject(data.project as unknown as Project);
+    migration = migrateProject(data.project as unknown as Project)
   } catch (error) {
     if (error instanceof ProjectSchemaTooNewError) {
-      throw new SchemaError("SCHEMA_TOO_NEW", error.message);
+      throw new SchemaError('SCHEMA_TOO_NEW', error.message)
     }
     throw new SchemaError(
-      "SCHEMA_MIGRATION_FAILED",
+      'SCHEMA_MIGRATION_FAILED',
       error instanceof Error ? error.message : String(error),
-    );
+    )
   }
 
-  const parsed = projectDocumentSchema.safeParse({ ...data, project: migration.project });
+  const parsed = projectDocumentSchema.safeParse({ ...data, project: migration.project })
   if (!parsed.success) {
     throw new SchemaError(
-      "SCHEMA_INVALID",
-      "The project document does not match its schema.",
+      'SCHEMA_INVALID',
+      'The project document does not match its schema.',
       issuesOf(parsed.error),
-    );
+    )
   }
 
-  const warnings: DocumentWarning[] = [...migration.warnings];
-  const assetIds = new Set(parsed.data.assets.map((asset) => asset.id));
+  const warnings: DocumentWarning[] = [...migration.warnings]
+  const assetIds = new Set(parsed.data.assets.map((asset) => asset.id))
   for (const [mediaId, itemIds] of referencedMedia(parsed.data.project as Project)) {
-    if (assetIds.has(mediaId)) continue;
+    if (assetIds.has(mediaId)) continue
     warnings.push({
-      code: "ASSET_MISSING",
+      code: 'ASSET_MISSING',
       message: `Items reference media ${mediaId}, which the document has no asset record for.`,
       itemIds,
       mediaId,
-    });
+    })
   }
 
-  return { document: parsed.data, migrated: migration.migrated, warnings };
+  return { document: parsed.data, migrated: migration.migrated, warnings }
 }
 
 export interface WriteProjectDocumentOptions {
-  requires?: ExtensionRequirement[];
-  generator?: { name: string; version: string };
+  requires?: ExtensionRequirement[]
+  generator?: { name: string; version: string }
 }
 
 /**
@@ -185,12 +185,12 @@ export function writeProjectDocument(
 ): ProjectDocument {
   if (project.schemaVersion !== undefined && project.schemaVersion !== CURRENT_SCHEMA_VERSION) {
     throw new SchemaError(
-      "SCHEMA_INVALID",
+      'SCHEMA_INVALID',
       `The project is schema v${project.schemaVersion}; migrate it to v${CURRENT_SCHEMA_VERSION} before writing a document.`,
-      [{ path: "project.schemaVersion", message: `Expected ${CURRENT_SCHEMA_VERSION}` }],
-    );
+      [{ path: 'project.schemaVersion', message: `Expected ${CURRENT_SCHEMA_VERSION}` }],
+    )
   }
-  const { rootFolderHandle: _handle, ...persisted } = project;
+  const { rootFolderHandle: _handle, ...persisted } = project
   const document = {
     format: PROJECT_DOCUMENT_FORMAT,
     schemaVersion: PROJECT_DOCUMENT_SCHEMA_VERSION,
@@ -198,14 +198,14 @@ export function writeProjectDocument(
     assets: [...assets],
     requires: options.requires ?? [],
     ...(options.generator ? { generator: options.generator } : {}),
-  };
-  const parsed = projectDocumentSchema.safeParse(document);
+  }
+  const parsed = projectDocumentSchema.safeParse(document)
   if (!parsed.success) {
     throw new SchemaError(
-      "SCHEMA_INVALID",
-      "The project does not match the document schema.",
+      'SCHEMA_INVALID',
+      'The project does not match the document schema.',
       issuesOf(parsed.error),
-    );
+    )
   }
-  return parsed.data;
+  return parsed.data
 }

@@ -7,18 +7,18 @@
  * without probing first.
  */
 
-import { z } from "zod";
-import type { MediaMetadata } from "@/types/storage";
+import { z } from 'zod'
+import type { MediaMetadata } from '@/types/storage'
 
 /**
  * Where an asset's bytes are. Credentials never live here: a host supplies
  * them when the asset is opened, and renews signed URLs through its resolver.
  */
-export const assetSourceSchema = z.discriminatedUnion("type", [
+export const assetSourceSchema = z.discriminatedUnion('type', [
   z
     .object({
       /** Fetched over HTTP(S), with range requests where the server allows them. */
-      type: z.literal("url"),
+      type: z.literal('url'),
       url: z.string().url(),
       /** Epoch milliseconds after which `url` must be renewed before use (signed URLs). */
       expiresAt: z.number().int().nonnegative().optional(),
@@ -29,18 +29,18 @@ export const assetSourceSchema = z.discriminatedUnion("type", [
   z
     .object({
       /** Held by the editor's own storage (the workspace folder), keyed by asset id. */
-      type: z.literal("workspace"),
+      type: z.literal('workspace'),
     })
     .strict(),
   z
     .object({
       /** A file on the user's own disk, referenced but not copied; relinked on another machine. */
-      type: z.literal("file"),
+      type: z.literal('file'),
       fileName: z.string().min(1),
       lastModified: z.number().int().nonnegative().optional(),
     })
     .strict(),
-]);
+])
 
 export const assetRecordSchema = z
   .object({
@@ -60,28 +60,28 @@ export const assetRecordSchema = z
     contentHash: z.string().optional(),
     source: assetSourceSchema,
   })
-  .strict();
+  .strict()
 
-export type AssetSource = z.infer<typeof assetSourceSchema>;
-export type AssetRecord = z.infer<typeof assetRecordSchema>;
+export type AssetSource = z.infer<typeof assetSourceSchema>
+export type AssetRecord = z.infer<typeof assetRecordSchema>
 
 function sourceOf(media: MediaMetadata): AssetSource {
-  if (media.storageType === "url" && media.remote) {
+  if (media.storageType === 'url' && media.remote) {
     return {
-      type: "url",
+      type: 'url',
       url: media.remote.url,
       ...(media.remote.expiresAt === undefined ? {} : { expiresAt: media.remote.expiresAt }),
       ...(media.remote.key === undefined ? {} : { key: media.remote.key }),
-    };
+    }
   }
-  if (media.storageType === "handle") {
+  if (media.storageType === 'handle') {
     return {
-      type: "file",
+      type: 'file',
       fileName: media.fileName,
       ...(media.fileLastModified === undefined ? {} : { lastModified: media.fileLastModified }),
-    };
+    }
   }
-  return { type: "workspace" };
+  return { type: 'workspace' }
 }
 
 /** The portable record for a media library entry. */
@@ -100,7 +100,7 @@ export function assetRecordFromMedia(media: MediaMetadata): AssetRecord {
     bitrate: media.bitrate,
     ...(media.contentHash === undefined ? {} : { contentHash: media.contentHash }),
     source: sourceOf(media),
-  };
+  }
 }
 
 /**
@@ -108,11 +108,11 @@ export function assetRecordFromMedia(media: MediaMetadata): AssetRecord {
  * without its handle, so the editor shows it offline until it's relinked.
  */
 export function mediaFromAssetRecord(asset: AssetRecord, now = Date.now()): MediaMetadata {
-  const { source } = asset;
+  const { source } = asset
   return {
     id: asset.id,
-    storageType: source.type === "url" ? "url" : source.type === "file" ? "handle" : "workspace",
-    ...(source.type === "url"
+    storageType: source.type === 'url' ? 'url' : source.type === 'file' ? 'handle' : 'workspace',
+    ...(source.type === 'url'
       ? {
           remote: {
             url: source.url,
@@ -121,7 +121,7 @@ export function mediaFromAssetRecord(asset: AssetRecord, now = Date.now()): Medi
           },
         }
       : {}),
-    ...(source.type === "file" && source.lastModified !== undefined
+    ...(source.type === 'file' && source.lastModified !== undefined
       ? { fileLastModified: source.lastModified }
       : {}),
     fileName: asset.fileName,
@@ -138,5 +138,5 @@ export function mediaFromAssetRecord(asset: AssetRecord, now = Date.now()): Medi
     tags: [],
     createdAt: now,
     updatedAt: now,
-  };
+  }
 }

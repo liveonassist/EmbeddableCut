@@ -9,16 +9,16 @@
  * `apiVersion`: a new SDK release that writes the same data keeps them.
  */
 
-import { CURRENT_SCHEMA_VERSION } from "@/shared/projects/migrations/types";
-import { WORKSPACE_SCHEMA_VERSION } from "@/infrastructure/storage/workspace-fs/paths";
-import { BUNDLE_VERSION } from "@/features/project-bundle/types/bundle";
-import { SNAPSHOT_VERSION } from "@/features/project-bundle/types/snapshot";
+import { CURRENT_SCHEMA_VERSION } from '@/shared/projects/migrations/types'
+import { WORKSPACE_SCHEMA_VERSION } from '@/infrastructure/storage/workspace-fs/paths'
+import { BUNDLE_VERSION } from '@/features/project-bundle/types/bundle'
+import { SNAPSHOT_VERSION } from '@/features/project-bundle/types/snapshot'
 
 /** The portable project document's envelope: project, assets, required extensions. */
-export const PROJECT_DOCUMENT_SCHEMA_VERSION = 1;
+export const PROJECT_DOCUMENT_SCHEMA_VERSION = 1
 
 /** The portable media asset record inside a project document. */
-export const ASSET_SCHEMA_VERSION = 1;
+export const ASSET_SCHEMA_VERSION = 1
 
 export const SCHEMA_VERSIONS = {
   /** `Project`, owned by FreeCut: `shared/projects/migrations/`. */
@@ -33,4 +33,4 @@ export const SCHEMA_VERSIONS = {
   bundle: BUNDLE_VERSION,
   /** FreeCut's JSON snapshot export, owned by FreeCut: `features/project-bundle/`. */
   snapshot: SNAPSHOT_VERSION,
-} as const;
+} as const

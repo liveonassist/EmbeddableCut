@@ -6,8 +6,8 @@
  * so an SDK host can render with it without a global appearing in its page.
  */
 
-import { createLogger } from "@/shared/logging/logger";
-import { editProject } from "./edit";
+import { createLogger } from '@/shared/logging/logger'
+import { editProject } from './edit'
 import {
   createProjectForHeadless,
   dumpLayout,
@@ -16,25 +16,25 @@ import {
   renderFrame,
   renderProject,
   renderTimeline,
-} from "./main";
+} from './main'
 
-const log = createLogger("Headless");
+const log = createLogger('Headless')
 
 interface FreecutHeadlessApi {
-  ready: true;
-  renderTimeline: typeof renderTimeline;
-  renderProject: typeof renderProject;
-  renderFrame: typeof renderFrame;
-  dumpLayout: typeof dumpLayout;
-  editProject: typeof editProject;
-  normalizeProject: typeof normalizeProjectForHeadless;
-  probeMedia: typeof probeMedia;
-  createProject: typeof createProjectForHeadless;
+  ready: true
+  renderTimeline: typeof renderTimeline
+  renderProject: typeof renderProject
+  renderFrame: typeof renderFrame
+  dumpLayout: typeof dumpLayout
+  editProject: typeof editProject
+  normalizeProject: typeof normalizeProjectForHeadless
+  probeMedia: typeof probeMedia
+  createProject: typeof createProjectForHeadless
 }
 
 declare global {
   interface Window {
-    freecut: FreecutHeadlessApi;
+    freecut: FreecutHeadlessApi
   }
 }
 
@@ -48,5 +48,5 @@ window.freecut = {
   normalizeProject: normalizeProjectForHeadless,
   probeMedia,
   createProject: createProjectForHeadless,
-};
-log.info("Headless harness ready");
+}
+log.info('Headless harness ready')
