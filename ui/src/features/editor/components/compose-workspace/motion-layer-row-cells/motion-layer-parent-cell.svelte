@@ -66,19 +66,22 @@
   >
     <PickWhipIcon class="h-3.5 w-3.5" />
   </button>
+  <!-- Controlled by the item: a rejected parent leaves the select on the current one. -->
   <Select
     disabled={isLayerLocked}
-    value={parentItemId ?? NO_TRANSFORM_PARENT}
-    onValueChange={(value) =>
-      applyTransformParentMenuSelection({
-        value,
-        currentParentItemId: parentItemId,
-        childItemId: item.id,
-        itemById,
-        keyframesByItemId,
-        canvas,
-        t,
-      })}
+    bind:value={
+      () => parentItemId ?? NO_TRANSFORM_PARENT,
+      (value) =>
+        applyTransformParentMenuSelection({
+          value: value ?? NO_TRANSFORM_PARENT,
+          currentParentItemId: parentItemId,
+          childItemId: item.id,
+          itemById,
+          keyframesByItemId,
+          canvas,
+          t,
+        })
+    }
   >
     <SelectTrigger
       aria-label={t('editor.compose.parentForLayer', {
