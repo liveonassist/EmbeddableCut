@@ -16,6 +16,12 @@ sdk:
     npm run check
     npx vp test run
 
+# Lint, svelte-check and test the editor UI.
+[working-directory('../ui')]
+ui:
+    npm run check
+    npx vp test run
+
 # Lint, type-check and test the editor app, and build it.
 [working-directory('../web')]
 web:
@@ -48,4 +54,4 @@ nix:
     nix flake check
 
 # Run every gate but `just check nix`.
-all: tasks architecture engine sdk web render
+all: tasks architecture engine sdk ui web render

@@ -1,0 +1,43 @@
+{
+  "name": "@embeddablecut/ui",
+  "version": "0.1.0",
+  "private": true,
+  "license": "MIT",
+  "type": "module",
+  "description": "EmbeddableCut's editor UI in Svelte 5: the full editor to mount in any app, and its components.",
+  "exports": {
+    ".": "./src/index.ts",
+    "./styles.css": "./src/styles/app.css"
+  },
+  "scripts": {
+    "check": "vp lint src vite.config.ts && node scripts/svelte-check.mjs",
+    "lint": "vp lint src vite.config.ts",
+    "format": "vp fmt src vite.config.ts",
+    "test": "vp test run",
+    "dev": "vp dev",
+    "build": "vp build"
+  },
+  "dependencies": {
+    "@embeddablecut/engine": "0.0.0",
+    "@embeddablecut/sdk": "0.1.0",
+    "@tanstack/svelte-virtual": "3.13.24",
+    "bits-ui": "2.20.2",
+    "class-variance-authority": "0.7.1",
+    "clsx": "2.1.1",
+    "i18next": "25.6.0",
+    "lucide-svelte": "0.468.0",
+    "paneforge": "1.0.2",
+    "svelte": "5.57.3",
+    "svelte-sonner": "1.2.3",
+    "tailwind-merge": "2.6.1",
+    "tailwindcss-animate": "1.0.7"
+  },
+  "devDependencies": {
+    "@sveltejs/vite-plugin-svelte": "7.3.1",
+    "@tailwindcss/vite": "4.2.2",
+    "@testing-library/svelte": "5.4.2",
+    "svelte-check": "4.7.7",
+    "tailwindcss": "4.2.2",
+    "typescript6": "npm:typescript@6.0.3"
+  }
+}

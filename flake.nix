@@ -44,6 +44,10 @@
             ./.oxfmtrc.json
             (lib.fileset.difference ./engine (lib.fileset.maybeMissing ./engine/node_modules))
             (lib.fileset.difference ./sdk (lib.fileset.maybeMissing ./sdk/node_modules))
+            (lib.fileset.difference ./ui (lib.fileset.unions (map lib.fileset.maybeMissing [
+              ./ui/node_modules
+              ./ui/dist
+            ])))
             (lib.fileset.difference ./web (lib.fileset.unions (map lib.fileset.maybeMissing [
               ./web/node_modules
               ./web/dist

@@ -12,6 +12,7 @@ import type {
   CompositionItem,
 } from '@/types/timeline'
 import { useMediaLibraryStore } from '@/runtime/composition-runtime/deps/media-library-store'
+import type * as CSS from 'csstype'
 
 function buildCssTransform(rotation: number, transform?: TransformProperties): string | undefined {
   const transforms: string[] = []
@@ -125,7 +126,7 @@ export function toTransformStyle(
   resolved: ResolvedTransform,
   canvas: CanvasSettings,
   transform?: TransformProperties,
-): React.CSSProperties {
+): CSS.Properties<string | number> {
   const centerX = canvas.width / 2
   const centerY = canvas.height / 2
 

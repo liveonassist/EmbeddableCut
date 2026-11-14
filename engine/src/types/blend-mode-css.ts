@@ -5,9 +5,10 @@
  * Unsupported modes fall back to the closest available option.
  */
 import type { BlendMode } from './blend-modes'
+import type * as CSS from 'csstype'
 
 /** Map blend mode to CSS mix-blend-mode value */
-export const BLEND_MODE_CSS: Record<BlendMode, React.CSSProperties['mixBlendMode']> = {
+export const BLEND_MODE_CSS: Record<BlendMode, CSS.Properties['mixBlendMode']> = {
   normal: 'normal',
   dissolve: 'normal', // no CSS equivalent
   darken: 'darken',

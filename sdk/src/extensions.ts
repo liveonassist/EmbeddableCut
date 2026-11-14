@@ -100,6 +100,17 @@ export function requirementsOf(project: Project): ExtensionRequirement[] {
 /** The editor's installed extensions, over the engine's realm-wide registries. */
 export class ExtensionHost {
   private readonly installed = new Map<string, { extension: Extension; undo: Array<() => void> }>()
+  private readonly listeners = new Set<() => void>()
+
+  /** Calls `listener` after every install and uninstall, so a UI can show what extensions add. */
+  subscribe(listener: () => void): () => void {
+    this.listeners.add(listener)
+    return () => this.listeners.delete(listener)
+  }
+
+  private changed(): void {
+    for (const listener of this.listeners) listener()
+  }
 
   /**
    * Registers everything `extension` contributes, all or nothing.
@@ -148,6 +159,7 @@ export class ExtensionHost {
       )
     }
     this.installed.set(extension.id, { extension, undo })
+    this.changed()
     return () => this.uninstall(extension.id)
   }
 
@@ -156,6 +168,7 @@ export class ExtensionHost {
     if (!entry) return false
     for (const step of entry.undo.reverse()) step()
     this.installed.delete(id)
+    this.changed()
     return true
   }
 

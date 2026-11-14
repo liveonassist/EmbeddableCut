@@ -51,6 +51,6 @@ export interface UseTimelineDragReturn {
   isDragging: boolean
   /** Pixel offset for visual drag preview (CSS transform) */
   dragOffset: { x: number; y: number }
-  /** Handler to start dragging */
-  handleDragStart: (e: React.MouseEvent) => void
+  /** Handler to start dragging; any UI's pointer event has the coordinates it reads. */
+  handleDragStart(e: { clientX: number; clientY: number }): void
 }

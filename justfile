@@ -8,6 +8,9 @@
 default:
     @just --list --list-submodules
 
+# The editor UI in Svelte 5, mountable in any page.
+mod ui "tasks/ui.just"
+
 # The editor app: FreeCut's browser editor.
 mod web "tasks/web.just"
 

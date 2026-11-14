@@ -7,7 +7,8 @@ EmbeddableCut is an embeddable video editing SDK built from [FreeCut](https://gi
 Each project subdirectory owns an `AGENTS.md` describing its stack, commands, and conventions. **Always read the `AGENTS.md` of every directory you work in** — including nested ones — before making changes. This root file deliberately does not duplicate those details.
 
 - [`engine/AGENTS.md`](engine/AGENTS.md) — the engine: state, editing, media, effects, playback, rendering, architecture invariants.
-- [`sdk/AGENTS.md`](sdk/AGENTS.md) — the SDK: the public API, extensions, one editor per page.
+- [`sdk/AGENTS.md`](sdk/AGENTS.md) — the SDK: the public API, extensions, the bridge, one editor per page.
+- [`ui/AGENTS.md`](ui/AGENTS.md) — the Svelte 5 editor UI: mounting, theming, contributions, porting from React.
 - [`web/AGENTS.md`](web/AGENTS.md) — the editor app.
 - [`render/AGENTS.md`](render/AGENTS.md) — headless rendering: CLIs, the HTTP service, the container.
 
@@ -25,6 +26,7 @@ Each project subdirectory owns an `AGENTS.md` describing its stack, commands, an
 
 - `engine/` — `@embeddablecut/engine`: everything that runs without a UI framework. Its `src/` mirrors FreeCut's `src/`.
 - `sdk/` — `@embeddablecut/sdk`: the public API over the engine, which hosts and the editor UI use alike.
+- `ui/` — `@embeddablecut/ui`: the editor in Svelte 5, mountable in any page; its `src/` mirrors `web/src/`.
 - `web/` — `@embeddablecut/web`: the editor app, FreeCut's React UI, built as a static PWA plus the headless harness page. Its `src/` mirrors FreeCut's `src/` too.
 - `render/` — `@embeddablecut/render`: FreeCut's headless renderer (formerly `headless/`), driving the harness in Chrome.
 - `schemas/` — generated JSON Schema for the portable formats; [`docs/SCHEMAS.md`](docs/SCHEMAS.md) is the policy.
@@ -38,7 +40,7 @@ Each project subdirectory owns an `AGENTS.md` describing its stack, commands, an
 - **FreeCut is upstream, and every path keeps its upstream twin.** A file at FreeCut's `src/<path>` lives at `engine/src/<path>` or `web/src/<path>`, never both, so merges follow the renames. Don't move a file within a tree without a reason that outweighs that.
 - Merge upstream with `just upstream merge`; [`docs/UPSTREAM.md`](docs/UPSTREAM.md) is the procedure. Never push to the `upstream` remote; its push URL is disabled.
 - Code that only EmbeddableCut has goes in new files where it can, so upstream's edits to theirs merge cleanly.
-- Never reformat an upstream file wholesale: upstream isn't format-clean, and the noise would conflict with every merge. Format what you write.
+- Never reformat an upstream file wholesale: upstream isn't format-clean, and the noise would conflict with every merge. Format what you write, from inside its package (`cd engine && npx vp fmt src/...`): the repo root has no Vite config, and oxfmt there falls back to its defaults.
 
 ## Domain
 
@@ -81,6 +83,7 @@ just check tasks          # justfiles, task scripts, flake formatting
 just check architecture   # FreeCut's boundary, seam, dead-code and edge-budget ratchets
 just check engine         # lint, type-check and test the engine on its own
 just check sdk            # lint, type-check and test the SDK
+just check ui             # lint, svelte-check and test the editor UI
 just check web            # lint, type-check, test and build the editor
 just check render         # render contracts and the portable Chrome suites (after a web build)
 nix flake check           # the packages and the flake's formatting

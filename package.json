@@ -6,6 +6,7 @@
   "workspaces": [
     "engine",
     "sdk",
+    "ui",
     "web",
     "render"
   ],
@@ -40,7 +41,10 @@
     "esbuild": "0.28.1",
     "typescript": "7.0.2",
     "vite": "npm:@voidzero-dev/vite-plus-core@1.1.0",
-    "vitest": "5.0.3"
+    "vitest": "5.0.3",
+    "@sveltejs/vite-plugin-svelte": {
+      "vite": "npm:@voidzero-dev/vite-plus-core@1.1.0"
+    }
   },
   "packageManager": "npm@11.8.0"
 }

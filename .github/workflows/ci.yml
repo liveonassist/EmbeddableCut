@@ -51,6 +51,7 @@ jobs:
       - run: nix develop --command npm ci --ignore-scripts
       - run: nix develop --command sh -c 'cd engine && npm run check && npm run test:coverage'
       - run: nix develop --command sh -c 'cd sdk && npm run check && npx vp test run'
+      - run: nix develop --command sh -c 'cd ui && npm run check && npx vp test run'
 
   web:
     if: github.event_name != 'schedule'
