@@ -1,0 +1,17 @@
+{
+  "media": {
+    "urlMedia": {
+      "streamTitle": "Añadir medios desde URL",
+      "streamDescription": "Reproduce un archivo multimedia directamente desde una URL. No se descarga nada en el espacio de trabajo.",
+      "streamHint": "El servidor debe permitir CORS y debería admitir solicitudes de rango.",
+      "modeLabel": "Cómo añadirlo",
+      "modeStream": "Transmitir",
+      "modeStreamHint": "Leer en su ubicación",
+      "modeDownload": "Descargar",
+      "modeDownloadHint": "Copiar al espacio de trabajo",
+      "add": "Añadir",
+      "addFailed": "No se pudo añadir el medio desde la URL",
+      "streamsFromUrl": "Se transmite desde una URL"
+    }
+  }
+}
