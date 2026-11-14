@@ -576,9 +576,9 @@
           <FadeEnvelopeOverlay
             itemType={item.type}
             isVisualFadeItem={fadeEditors.isVisualFadeItem}
-            bind:videoControls={fadeEditors.videoControls}
-            bind:audioControls={fadeEditors.audioControls}
-            bind:volumeLine={fadeEditors.volumeLine}
+            videoControlsRef={fadeEditors.videoControlsRef}
+            audioControlsRef={fadeEditors.audioControlsRef}
+            volumeLineRef={fadeEditors.volumeLineRef}
             videoFadeInRatio={fadeMath.videoFadeInRatio}
             videoFadeOutRatio={fadeMath.videoFadeOutRatio}
             videoFadeInPath={fadeMath.videoFadeInPath}
@@ -659,7 +659,7 @@
           fadeInCurvePoint={fadeMath.audioFadeInCurvePoint}
           fadeOutCurvePoint={fadeMath.audioFadeOutCurvePoint}
           volumeEditLabel={audioVolumeEditLabel.current}
-          bind:volumeEditLabelElement={fadeEditors.audioVolumeEditLabelElement}
+          volumeEditLabelRef={fadeEditors.audioVolumeEditLabelRef}
           onFadeHandleMouseDown={fadeEditors.handleAudioFadeHandleMouseDown}
           onFadeHandleDoubleClick={fadeEditors.handleAudioFadeHandleDoubleClick}
           onFadeCurveDotMouseDown={fadeEditors.handleAudioFadeCurveDotMouseDown}
