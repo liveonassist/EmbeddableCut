@@ -366,7 +366,18 @@
   })
 
   $effect(() => {
-    void [audioSlice, fps, frame, isPreviewScrubbing, mediaId, playbackRate, playing, sourceFps, src, trimBefore]
+    void [
+      audioSlice,
+      fps,
+      frame,
+      isPreviewScrubbing,
+      mediaId,
+      playbackRate,
+      playing,
+      sourceFps,
+      src,
+      trimBefore,
+    ]
     if (playing || isPreviewScrubbing) {
       if (pausedSeekPrefetchTimerRef.current !== null) {
         clearTimeout(pausedSeekPrefetchTimerRef.current)
