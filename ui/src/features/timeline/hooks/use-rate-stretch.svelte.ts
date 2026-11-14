@@ -1,5 +1,4 @@
 // SPDX-License-Identifier: MIT
-// oxlint-disable react/immutability, react/refs -- React Compiler rules: these $state writes and ref reads run in handlers and $effects, not a render
 
 import { select } from '$lib/store.svelte'
 import type { TimelineItem } from '@/types/timeline'

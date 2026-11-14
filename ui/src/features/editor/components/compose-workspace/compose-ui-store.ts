@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-import { create } from 'zustand'
+import { create } from '@/shared/state/bound-store'
 
 interface ComposeUiState {
   expandedLayerIdsByComposition: Record<string, string[]>

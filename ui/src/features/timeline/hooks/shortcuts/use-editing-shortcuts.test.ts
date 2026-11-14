@@ -1,5 +1,4 @@
 // SPDX-License-Identifier: MIT
-// oxlint-disable react-hooks/rules-of-hooks -- hooks run in an effect root, not a component
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vite-plus/test'
 import { HOTKEYS } from '@/config/hotkeys'

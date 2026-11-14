@@ -44,6 +44,31 @@ const libraryBuild = process.argv.includes('lib')
 export default defineConfig({
   lint: {
     ...oxlintConfig,
+    // React's rules read Svelte's runes and mutable refs as render-time code.
+    plugins: [],
+    rules: {
+      ...Object.fromEntries(
+        Object.entries(oxlintConfig.rules ?? {}).filter(([rule]) => !rule.startsWith('react/')),
+      ),
+      // The UI is Svelte: React and its libraries have Svelte counterparts
+      // (ui/AGENTS.md), and zustand's React entries import React.
+      'no-restricted-imports': [
+        'error',
+        {
+          paths: [
+            { name: 'zustand', message: 'Use `create` from @/shared/state/bound-store.' },
+            { name: 'zustand/shallow', message: 'Use `shallow` from $lib/store.svelte.' },
+            { name: 'sonner', message: 'Use svelte-sonner.' },
+          ],
+          patterns: [
+            {
+              group: ['react', 'react/*', 'react-*', '@radix-ui/*', 'lucide-react', '@tanstack/react-*', 'zustand/react*'],
+              message: 'The UI is Svelte; see the porting table in ui/AGENTS.md.',
+            },
+          ],
+        },
+      ],
+    },
     ignorePatterns: toolIgnorePatterns,
     options: {
       ...(oxlintConfig.options ?? {}),

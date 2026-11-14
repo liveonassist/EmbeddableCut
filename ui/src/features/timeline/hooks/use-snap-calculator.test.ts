@@ -1,5 +1,4 @@
 // SPDX-License-Identifier: MIT
-// oxlint-disable react-hooks/rules-of-hooks -- the hook keeps no component state, so tests call it directly
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vite-plus/test'
 import { makeTimelineTrack, makeTimelineVideoItem } from '@/features/timeline/test-helpers'

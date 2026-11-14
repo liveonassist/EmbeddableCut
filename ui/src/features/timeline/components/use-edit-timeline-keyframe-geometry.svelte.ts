@@ -92,7 +92,6 @@ export function useEditTimelineKeyframeGeometry(params: () => EditTimelineKeyfra
     const pixelsPerSecond = useZoomStore.getState().pixelsPerSecond
     const viewportWidth = useTimelineViewportStore.getState().viewportWidth
     const contentDuration = Math.max(maxItemEndFrame / editTimelineFps.current, 10)
-    // oxlint-disable-next-line react/immutability -- a DOM element, scrolled as FreeCut does
     container.scrollLeft = getContentBoundedEdgeScrollLeft({
       contentWidth: contentDuration * pixelsPerSecond,
       viewportWidth,

@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vite-plus/test'
-import { waitFor } from '@testing-library/react'
+import { waitFor } from '@testing-library/dom'
 import type { MediaTranscript } from '@/types/storage'
 import type { TimelineItem, TimelineTrack, VideoItem } from '@/types/timeline'
 

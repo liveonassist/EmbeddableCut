@@ -1,5 +1,4 @@
 // SPDX-License-Identifier: MIT
-// oxlint-disable react-hooks/rules-of-hooks -- hooks run in an effect root, not a component
 
 /**
  * Render isolation of the docked editor: the React test counted panel renders;

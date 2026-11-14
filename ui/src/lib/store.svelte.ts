@@ -8,7 +8,7 @@
 
 import { createSubscriber } from 'svelte/reactivity'
 
-export { shallow } from 'zustand/shallow'
+export { shallow } from 'zustand/vanilla/shallow'
 
 interface ReadableStore<S> {
   getState(): S

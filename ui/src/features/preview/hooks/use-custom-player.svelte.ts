@@ -188,7 +188,6 @@ export function useCustomPlayer(
         playback.pause()
       }
       // Mount-only: intentionally no deps.
-      // eslint-disable-next-line react-hooks/exhaustive-deps
     }),
   )
 
