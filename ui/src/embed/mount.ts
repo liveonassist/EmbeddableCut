@@ -72,7 +72,7 @@ export async function mountEditor(
   if (isolation === 'shadow') {
     host = document.createElement('div')
     host.className = 'ec-host'
-    host.style.cssText = 'display:block;width:100%;height:100%;contain:content'
+    host.style.cssText = 'display:block;width:100%;height:100%;isolation:isolate'
     target.append(host)
     const shadow = host.attachShadow({ mode: 'open' })
     const sheet = new CSSStyleSheet()
