@@ -48,6 +48,20 @@ export function bindStoreHook(binding: StoreHookBinding | null): void {
   hookBinding = binding
 }
 
+type ListenerScope = (run: () => void) => void
+
+let listenerScope: ListenerScope = (run) => run()
+
+/**
+ * Runs every store listener inside `scope`. Stores notify synchronously,
+ * inside whatever wrote them; a UI framework that tracks reads (Svelte's
+ * `untrack`) keeps a listener's reads from becoming dependencies of the effect
+ * that wrote the store, which would re-run it on its own notification.
+ */
+export function bindListenerScope(scope: ListenerScope | null): void {
+  listenerScope = scope ?? ((run) => run())
+}
+
 const identity = <T>(value: T): T => value
 
 const createdStores = new Set<StoreApi<unknown>>()
@@ -68,6 +82,23 @@ function createBoundStore<T, Mos extends [StoreMutatorIdentifier, unknown][]>(
 ): UseBoundStore<Mutate<StoreApi<T>, Mos>> {
   const api = createStore(initializer)
   createdStores.add(api as StoreApi<unknown>)
+  // Listeners, and the selectors subscribeWithSelector takes, run in the bound
+  // scope; the scope is read on each notification, so binding it late works.
+  const subscribe = api.subscribe as (...args: unknown[]) => () => void
+  api.subscribe = ((...args: unknown[]) =>
+    subscribe(
+      ...args.map((arg) =>
+        typeof arg === 'function'
+          ? (...params: unknown[]) => {
+              let result: unknown
+              listenerScope(() => {
+                result = (arg as (...p: unknown[]) => unknown)(...params)
+              })
+              return result
+            }
+          : arg,
+      ),
+    )) as typeof api.subscribe
   const useBoundStore = <U>(selector: (state: T) => U = identity as (state: T) => U): U => {
     if (!hookBinding) {
       throw new Error(

@@ -6,9 +6,16 @@
  * re-renders whatever read it when the selected slice changes.
  */
 
+import { untrack } from 'svelte'
 import { createSubscriber } from 'svelte/reactivity'
+import { bindListenerScope } from '@/shared/state/bound-store'
 
 export { shallow } from 'zustand/vanilla/shallow'
+
+// Store listeners run inside whatever effect wrote the store; untracked, what
+// they read (a selector's props, a version counter) never becomes that
+// effect's dependency, so a write can't re-run its own writer.
+bindListenerScope(untrack)
 
 interface ReadableStore<S> {
   getState(): S
