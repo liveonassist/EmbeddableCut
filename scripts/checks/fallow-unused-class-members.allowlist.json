@@ -488,6 +488,129 @@
           "kind": "class_method"
         }
       ]
+    },
+    {
+      "path": "sdk/src/editor.ts",
+      "reason": "Public SDK API: hosts call it; nothing inside the repository has to.",
+      "members": [
+        {
+          "parentName": "Editor",
+          "memberName": "version",
+          "kind": "class_property"
+        },
+        {
+          "parentName": "Editor",
+          "memberName": "on",
+          "kind": "class_method"
+        },
+        {
+          "parentName": "Editor",
+          "memberName": "project",
+          "kind": "class_method"
+        },
+        {
+          "parentName": "Editor",
+          "memberName": "createProject",
+          "kind": "class_method"
+        },
+        {
+          "parentName": "Editor",
+          "memberName": "timeline",
+          "kind": "class_method"
+        },
+        {
+          "parentName": "Editor",
+          "memberName": "operations",
+          "kind": "class_method"
+        },
+        {
+          "parentName": "Editor",
+          "memberName": "apply",
+          "kind": "class_method"
+        },
+        {
+          "parentName": "Editor",
+          "memberName": "undo",
+          "kind": "class_method"
+        },
+        {
+          "parentName": "Editor",
+          "memberName": "redo",
+          "kind": "class_method"
+        },
+        {
+          "parentName": "Editor",
+          "memberName": "canUndo",
+          "kind": "class_method"
+        },
+        {
+          "parentName": "Editor",
+          "memberName": "canRedo",
+          "kind": "class_method"
+        },
+        {
+          "parentName": "Editor",
+          "memberName": "playing",
+          "kind": "class_method"
+        },
+        {
+          "parentName": "Editor",
+          "memberName": "play",
+          "kind": "class_method"
+        },
+        {
+          "parentName": "Editor",
+          "memberName": "pause",
+          "kind": "class_method"
+        },
+        {
+          "parentName": "Editor",
+          "memberName": "seek",
+          "kind": "class_method"
+        },
+        {
+          "parentName": "Editor",
+          "memberName": "renderFrame",
+          "kind": "class_method"
+        },
+        {
+          "parentName": "Editor",
+          "memberName": "export",
+          "kind": "class_method"
+        }
+      ]
+    },
+    {
+      "path": "sdk/src/extensions.ts",
+      "reason": "Public SDK API: hosts call it; nothing inside the repository has to.",
+      "members": [
+        {
+          "parentName": "ExtensionHost",
+          "memberName": "mediaProviders",
+          "kind": "class_method"
+        }
+      ]
+    },
+    {
+      "path": "sdk/src/media.ts",
+      "reason": "Public SDK API: hosts call it; nothing inside the repository has to.",
+      "members": [
+        {
+          "parentName": "MediaApi",
+          "memberName": "get",
+          "kind": "class_method"
+        },
+        {
+          "parentName": "MediaApi",
+          "memberName": "importFiles",
+          "kind": "class_method"
+        },
+        {
+          "parentName": "MediaApi",
+          "memberName": "remove",
+          "kind": "class_method"
+        }
+      ]
     }
   ]
 }

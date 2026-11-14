@@ -140,6 +140,21 @@ function applyOpTracked(
   }
 }
 
+/**
+ * Applies ops in order to the live timeline stores, resolving each op's
+ * `$ref`s against earlier results and honoring a per-op `linked` override.
+ * Stops at the first failure, which throws; the results so far are on the
+ * error's message only, as `editProject` reports them.
+ */
+export function applyEditOperations(ops: EditOp[]): HeadlessEditResult['results'] {
+  const results: HeadlessEditResult['results'] = []
+  const prior = new Map<string, HeadlessEditResult['results'][number]>()
+  const callerIds = ops.map((op) => asString(op.callerId)).filter(Boolean) as string[]
+  if (new Set(callerIds).size !== callerIds.length) throw new Error('Duplicate edit callerId')
+  for (const rawOp of ops) applyOpTracked(rawOp, prior, results)
+  return results
+}
+
 export async function editProject(input: HeadlessEditInput): Promise<HeadlessEditResult> {
   const { project: migrated } = migrateProject(input.project)
   setEditCanvas({
@@ -152,11 +167,7 @@ export async function editProject(input: HeadlessEditInput): Promise<HeadlessEdi
 
   log.info('Headless edit starting', { ops: input.ops.length })
 
-  const results: HeadlessEditResult['results'] = []
-  const prior = new Map<string, HeadlessEditResult['results'][number]>()
-  const callerIds = input.ops.map((op) => asString(op.callerId)).filter(Boolean) as string[]
-  if (new Set(callerIds).size !== callerIds.length) throw new Error('Duplicate edit callerId')
-  for (const rawOp of input.ops) applyOpTracked(rawOp, prior, results)
+  const results = applyEditOperations(input.ops)
 
   const timeline = buildTimelineFromStores()
   log.info('Headless edit complete', { applied: results.length })

@@ -1,0 +1,20 @@
+{
+  "name": "@embeddablecut/sdk",
+  "version": "0.1.0",
+  "private": true,
+  "license": "MIT",
+  "type": "module",
+  "description": "EmbeddableCut's SDK: drive FreeCut's editing engine headless, or mount the full editor, from any app.",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "check": "vp check --no-fmt src vite.config.ts",
+    "lint": "vp lint src vite.config.ts",
+    "format": "vp fmt src vite.config.ts",
+    "test": "vp test run"
+  },
+  "dependencies": {
+    "@embeddablecut/engine": "0.0.0"
+  }
+}

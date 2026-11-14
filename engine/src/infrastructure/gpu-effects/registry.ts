@@ -39,12 +39,44 @@ function registerEffects(effects: Record<string, unknown>) {
   })
 }
 
+/**
+ * Adds an effect from outside the built-in set (an SDK extension). Pipelines
+ * already running compile it the first time a frame uses it.
+ *
+ * @throws when `id` is already registered: an extension can't replace a
+ *   built-in or another extension.
+ */
+export function registerGpuEffect(effect: GpuEffectDefinition): void {
+  if (GPU_EFFECT_REGISTRY.has(effect.id)) {
+    throw new Error(`GPU effect "${effect.id}" is already registered`)
+  }
+  GPU_EFFECT_REGISTRY.set(effect.id, effect)
+  GPU_EFFECT_CATEGORIES[effect.category]?.push(effect)
+}
+
+/** Removes an effect `registerGpuEffect` added; built-ins stay. Returns whether it was there. */
+export function unregisterGpuEffect(id: string): boolean {
+  const effect = GPU_EFFECT_REGISTRY.get(id)
+  if (!effect || BUILT_IN_GPU_EFFECT_IDS.has(id)) return false
+  GPU_EFFECT_REGISTRY.delete(id)
+  const category = GPU_EFFECT_CATEGORIES[effect.category]
+  category?.splice(category.indexOf(effect), 1)
+  return true
+}
+
 registerEffects(colorEffects)
 registerEffects(lutEffects)
 registerEffects(blurEffects)
 registerEffects(distortEffects)
 registerEffects(stylizeEffects)
 registerEffects(keyingEffects)
+
+const BUILT_IN_GPU_EFFECT_IDS = new Set(GPU_EFFECT_REGISTRY.keys())
+
+/** Whether `id` names one of FreeCut's own effects rather than an extension's. */
+export function isBuiltInGpuEffect(id: string): boolean {
+  return BUILT_IN_GPU_EFFECT_IDS.has(id)
+}
 
 export function getGpuEffect(id: string): GpuEffectDefinition | undefined {
   return GPU_EFFECT_REGISTRY.get(id)

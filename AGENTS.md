@@ -7,6 +7,7 @@ EmbeddableCut is an embeddable video editing SDK built from [FreeCut](https://gi
 Each project subdirectory owns an `AGENTS.md` describing its stack, commands, and conventions. **Always read the `AGENTS.md` of every directory you work in** — including nested ones — before making changes. This root file deliberately does not duplicate those details.
 
 - [`engine/AGENTS.md`](engine/AGENTS.md) — the engine: state, editing, media, effects, playback, rendering, architecture invariants.
+- [`sdk/AGENTS.md`](sdk/AGENTS.md) — the SDK: the public API, extensions, one editor per page.
 - [`web/AGENTS.md`](web/AGENTS.md) — the editor app.
 - [`render/AGENTS.md`](render/AGENTS.md) — headless rendering: CLIs, the HTTP service, the container.
 
@@ -23,6 +24,7 @@ Each project subdirectory owns an `AGENTS.md` describing its stack, commands, an
 ## Layout
 
 - `engine/` — `@embeddablecut/engine`: everything that runs without a UI framework. Its `src/` mirrors FreeCut's `src/`.
+- `sdk/` — `@embeddablecut/sdk`: the public API over the engine, which hosts and the editor UI use alike.
 - `web/` — `@embeddablecut/web`: the editor app, FreeCut's React UI, built as a static PWA plus the headless harness page. Its `src/` mirrors FreeCut's `src/` too.
 - `render/` — `@embeddablecut/render`: FreeCut's headless renderer (formerly `headless/`), driving the harness in Chrome.
 - `schemas/` — generated JSON Schema for the portable formats; [`docs/SCHEMAS.md`](docs/SCHEMAS.md) is the policy.
@@ -78,6 +80,7 @@ CI runs these; run them before committing (details in each subdirectory's `AGENT
 just check tasks          # justfiles, task scripts, flake formatting
 just check architecture   # FreeCut's boundary, seam, dead-code and edge-budget ratchets
 just check engine         # lint, type-check and test the engine on its own
+just check sdk            # lint, type-check and test the SDK
 just check web            # lint, type-check, test and build the editor
 just check render         # render contracts and the portable Chrome suites (after a web build)
 nix flake check           # the packages and the flake's formatting

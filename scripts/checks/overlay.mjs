@@ -56,6 +56,8 @@ if (!script) {
 fs.rmSync(OVERLAY, { recursive: true, force: true })
 mergeInto(path.join(OVERLAY, 'src'), SOURCE_ROOTS)
 mergeInto(path.join(OVERLAY, 'scripts'), [CHECKS_DIR])
+// EmbeddableCut's packages over the engine, so the engine exports they use count as used.
+mergeInto(path.join(OVERLAY, 'sdk', 'src'), [path.join(REPO_ROOT, 'sdk', 'src')])
 mergeInto(path.join(OVERLAY, 'headless'), [path.join(REPO_ROOT, 'render')])
 fs.symlinkSync(path.join(REPO_ROOT, 'node_modules'), path.join(OVERLAY, 'node_modules'))
 fs.linkSync(path.join(REPO_ROOT, '.fallowrc.json'), path.join(OVERLAY, '.fallowrc.json'))
@@ -65,7 +67,11 @@ for (const file of ['vite.config.ts', 'index.html', 'headless.html', 'tsr.config
 }
 fs.writeFileSync(
   path.join(OVERLAY, 'tsconfig.json'),
-  JSON.stringify({ extends: '../../web/tsconfig.json', compilerOptions: { paths: { '@/*': ['./src/*'] } }, include: ['src'] }),
+  JSON.stringify({
+    extends: '../../web/tsconfig.json',
+    compilerOptions: { paths: { '@/*': ['./src/*'], '@embeddablecut/engine/*': ['./src/*'] } },
+    include: ['src', 'sdk/src'],
+  }),
 )
 fs.writeFileSync(
   path.join(OVERLAY, 'package.json'),

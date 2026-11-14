@@ -10,6 +10,12 @@ engine:
     npm run check
     npx vp test run
 
+# Lint, type-check and test the SDK.
+[working-directory('../sdk')]
+sdk:
+    npm run check
+    npx vp test run
+
 # Lint, type-check and test the editor app, and build it.
 [working-directory('../web')]
 web:
@@ -42,4 +48,4 @@ nix:
     nix flake check
 
 # Run every gate but `just check nix`.
-all: tasks architecture engine web render
+all: tasks architecture engine sdk web render

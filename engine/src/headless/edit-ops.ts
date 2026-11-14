@@ -469,10 +469,42 @@ const OP_HANDLERS: Record<EditOperationName, (op: EditOp) => unknown> = {
   setTransform: applySetTransform,
 }
 
+/** Ops added by SDK extensions, beside the built-in table. */
+const EXTENSION_HANDLERS = new Map<string, (op: Record<string, unknown>) => unknown>()
+
+/**
+ * Adds an edit op an SDK extension defines. Its handler follows the built-ins'
+ * contract: validate the op's fields, drive the timeline actions, return a
+ * JSON-serializable result, throw on bad input.
+ *
+ * @throws when `name` is a built-in op or already registered.
+ */
+export function registerEditOperation(
+  name: string,
+  handler: (op: Record<string, unknown>) => unknown,
+): void {
+  if (Object.hasOwn(OP_HANDLERS, name) || EXTENSION_HANDLERS.has(name)) {
+    throw new Error(`Edit op "${name}" is already registered`)
+  }
+  EXTENSION_HANDLERS.set(name, handler)
+}
+
+/** Removes an op `registerEditOperation` added. Returns whether it was there. */
+export function unregisterEditOperation(name: string): boolean {
+  return EXTENSION_HANDLERS.delete(name)
+}
+
+/** Every op name `applyOp` accepts right now, built-ins first. */
+export function editOperationNames(): string[] {
+  return [...Object.keys(OP_HANDLERS), ...EXTENSION_HANDLERS.keys()]
+}
+
 /** Apply a single op by driving the real timeline action modules. Throws on bad input. */
 export function applyOp(op: EditOp): unknown {
-  const handler = OP_HANDLERS[op.op]
-  if (!Object.hasOwn(OP_HANDLERS, op.op) || !handler) {
+  const handler = Object.hasOwn(OP_HANDLERS, op.op)
+    ? OP_HANDLERS[op.op]
+    : EXTENSION_HANDLERS.get(op.op)
+  if (!handler) {
     throw new Error(`Unknown edit op: ${String(op.op)}`)
   }
   return handler(op)

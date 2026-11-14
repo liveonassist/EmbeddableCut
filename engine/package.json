@@ -6,7 +6,7 @@
   "type": "module",
   "description": "EmbeddableCut's framework-independent editing engine: timeline, media, effects, playback and rendering.",
   "exports": {
-    "./*": "./src/*"
+    "./*": "./src/*.ts"
   },
   "scripts": {
     "check": "vp check --no-fmt src vite.config.ts",

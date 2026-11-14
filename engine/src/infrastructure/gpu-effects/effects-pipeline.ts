@@ -472,6 +472,27 @@ export class EffectsPipeline {
     }
   }
 
+  /**
+   * Compiles an effect registered after this device's pipelines were built
+   * (an SDK extension), and shares it with the device's other renderers.
+   */
+  private ensureEffectPipeline(id: string, effect: GpuEffectDefinition): void {
+    if (effect.compute ? this.computePipelines.has(id) : this.pipelines.has(id)) return
+    if (effect.compute) this.createComputeEffectPipeline(id, effect)
+    else this.createEffectPipeline(id, effect)
+    const shared = EffectsPipeline.sharedPipelineState.get(this.device)
+    if (!shared) return
+    for (const [from, to] of [
+      [this.pipelines, shared.pipelines],
+      [this.bindGroupLayouts, shared.bindGroupLayouts],
+      [this.computePipelines, shared.computePipelines],
+      [this.computeBindGroupLayouts, shared.computeBindGroupLayouts],
+    ] as const) {
+      const entry = (from as Map<string, unknown>).get(id)
+      if (entry) (to as Map<string, unknown>).set(id, entry)
+    }
+  }
+
   private createEffectPipeline(id: string, effect: GpuEffectDefinition): void {
     try {
       const shaderCode = `${COMMON_WGSL}\n${effect.shader}`
@@ -754,6 +775,7 @@ export class EffectsPipeline {
       const effect = plannedPass.effect
       const definition = getGpuEffect(effect.type)
       if (!definition) continue
+      this.ensureEffectPipeline(effect.type, definition)
 
       const uniformData = definition.packUniforms(effect.params, w, h, effect.timelineTimeSeconds ?? 0)
       let uniformBuffer: GPUBuffer | undefined

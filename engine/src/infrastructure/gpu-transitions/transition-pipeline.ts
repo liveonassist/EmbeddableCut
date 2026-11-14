@@ -86,6 +86,20 @@ export class TransitionPipeline {
     this.initialized = true
   }
 
+  /**
+   * The pipeline for `id`, compiling one registered after this device's
+   * pipelines were built (an SDK extension) and sharing it with the device's
+   * other sessions.
+   */
+  private ensureTransitionPipeline(id: string, def: GpuTransitionDefinition) {
+    const existing = this.pipelines.get(id)
+    if (existing) return existing
+    this.createTransitionPipeline(id, def)
+    const created = this.pipelines.get(id)
+    if (created) TransitionPipeline.sharedPipelines.get(this.device)?.set(id, created)
+    return created
+  }
+
   private createTransitionPipeline(id: string, def: GpuTransitionDefinition): void {
     try {
       const shaderCode = `${TRANSITION_COMMON_WGSL}\n${def.shader}`
@@ -328,8 +342,8 @@ export class TransitionPipeline {
     direction?: string,
     properties?: Record<string, unknown>,
   ): boolean {
-    const record = this.pipelines.get(transitionId)
     const def = getGpuTransition(transitionId)
+    const record = def ? this.ensureTransitionPipeline(transitionId, def) : undefined
     if (!record || !def) return false
 
     const uniformBuffer = this.writeUniforms(
@@ -468,8 +482,8 @@ export class TransitionPipeline {
     direction?: string,
     properties?: Record<string, unknown>,
   ): boolean {
-    const record = this.pipelines.get(transitionId)
     const def = getGpuTransition(transitionId)
+    const record = def ? this.ensureTransitionPipeline(transitionId, def) : undefined
     if (!record || !def) return false
     if (width < 2 || height < 2) return false
     if (

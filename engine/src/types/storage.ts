@@ -12,8 +12,22 @@
  *                imported by older builds, and the repair sweep mirrors them
  *                into the workspace folder. OPFS remains the store for
  *                regenerable caches (proxies, waveforms, decoded audio).
+ * - 'url':       remote bytes at `remote.url`, never copied; read with range
+ *                requests, renewed through the host's resolver (EmbeddableCut).
  */
-export type MediaStorageType = 'handle' | 'workspace' | 'opfs'
+export type MediaStorageType = 'handle' | 'workspace' | 'opfs' | 'url'
+
+/**
+ * Where a 'url' media's bytes are. Credentials never live here: the host's
+ * resolver supplies headers and renews `url` from `key` when it expires.
+ */
+export interface RemoteMediaSource {
+  url: string
+  /** Epoch milliseconds after which `url` must be renewed before use. */
+  expiresAt?: number
+  /** Stable key a host's resolver renews `url` from. */
+  key?: string
+}
 
 /**
  * Provenance + usage terms for media imported from a third-party provider.
@@ -44,6 +58,8 @@ export interface MediaMetadata {
    * - 'opfs':      legacy Origin Private File System copy (origin-scoped)
    */
   storageType: MediaStorageType
+  /** The remote source, when `storageType === 'url'`. */
+  remote?: RemoteMediaSource
   /**
    * FileSystemFileHandle for direct disk access (when storageType === 'handle')
    * Stored in IndexedDB - requires permission re-request on new sessions

@@ -1,8 +1,8 @@
 /**
  * Headless render harness.
  *
- * This is a dedicated Vite entry (loaded by `headless.html`) that exposes a
- * small `window.freecut` API so a Node/Playwright driver can render projects to
+ * The render API behind the harness page: `harness.ts` (the entry
+ * `headless.html` loads) exposes it as a small `window.freecut` API so a Node/Playwright driver can render projects to
  * video inside a real (headless) Chrome — reusing the exact same render engine
  * the editor uses, with no React UI, router, or workspace gate mounted.
  *
@@ -56,7 +56,6 @@ import {
   useCompositionsStore,
   type SubComposition,
 } from '@/features/export/deps/timeline-compositions'
-import { editProject } from './edit'
 import { seedMediaLibrary } from './seed-media'
 import {
   buildMediaMetadataMap,
@@ -203,7 +202,13 @@ async function prepareFonts(
   ]
 }
 
-interface HeadlessMediaSource {
+/** Receives render progress; the harness forwards it to the Node driver. */
+export type ProgressSink = (progress: RenderProgress) => void
+
+/** Takes a finished render; the harness hands it to the driver as a download. */
+export type RenderDelivery = (blob: Blob, fileName: string) => void
+
+export interface HeadlessMediaSource {
   mediaId: string
   /** Same-origin (or CORS+CORP) URL the harness can fetch the full media bytes from. */
   url: string
@@ -216,7 +221,7 @@ interface HeadlessMediaSource {
 }
 
 /** Render from already-extracted timeline data (no Project schema required). */
-interface HeadlessTimelineInput {
+export interface HeadlessTimelineInput {
   tracks: TimelineTrack[]
   items: TimelineItem[]
   transitions?: Transition[]
@@ -237,10 +242,14 @@ interface HeadlessTimelineInput {
   strict?: boolean
   /** Load-time validation findings collected by the caller (renderProject). */
   validationWarnings?: HeadlessRenderWarning[]
+  /** Defaults to the driver's `__freecutProgress` binding. */
+  onProgress?: ProgressSink
+  /** Defaults to a download the driver catches. */
+  deliver?: RenderDelivery
 }
 
 /** Render a full Project object (runs migrations, then extracts the timeline). */
-interface HeadlessProjectInput {
+export interface HeadlessProjectInput {
   project: Project
   settings: ClientExportSettings
   media?: HeadlessMediaSource[]
@@ -256,9 +265,11 @@ interface HeadlessProjectInput {
   outputFileName?: string
   /** Fail before rendering if any validation warning was collected. */
   strict?: boolean
+  onProgress?: ProgressSink
+  deliver?: RenderDelivery
 }
 
-interface HeadlessRenderSummary {
+export interface HeadlessRenderSummary {
   ok: true
   mimeType: string
   fileSize: number
@@ -270,7 +281,7 @@ interface HeadlessRenderSummary {
   warnings: HeadlessRenderWarning[]
 }
 
-interface HeadlessRenderWarning {
+export interface HeadlessRenderWarning {
   code:
     | 'CODEC_FALLBACK'
     | 'WEBGPU_TRANSITION_FALLBACK'
@@ -420,8 +431,6 @@ function reportValidationWarnings(
     )
   }
 }
-
-type ProgressSink = (progress: RenderProgress) => void
 
 function reportProgress(progress: RenderProgress): void {
   const sink = (globalThis as unknown as { __freecutProgress?: ProgressSink }).__freecutProgress
@@ -589,7 +598,7 @@ async function adaptVideoSettings(
   return { settings, warnings: [warning] }
 }
 
-async function renderTimeline(input: HeadlessTimelineInput): Promise<HeadlessRenderSummary> {
+export async function renderTimeline(input: HeadlessTimelineInput): Promise<HeadlessRenderSummary> {
   const {
     tracks,
     items,
@@ -668,11 +677,11 @@ async function renderTimeline(input: HeadlessTimelineInput): Promise<HeadlessRen
 
   const result =
     settings.mode === 'audio'
-      ? await renderAudioOnly({ settings, composition, onProgress: reportProgress })
-      : await renderComposition({ settings, composition, onProgress: reportProgress })
+      ? await renderAudioOnly({ settings, composition, onProgress: input.onProgress ?? reportProgress })
+      : await renderComposition({ settings, composition, onProgress: input.onProgress ?? reportProgress })
 
   const fileName = effectiveFileName(input.outputFileName, settings)
-  triggerDownload(result.blob, fileName)
+  ;(input.deliver ?? triggerDownload)(result.blob, fileName)
 
   log.info('Headless render complete', {
     mimeType: result.mimeType,
@@ -692,7 +701,7 @@ async function renderTimeline(input: HeadlessTimelineInput): Promise<HeadlessRen
   }
 }
 
-async function renderProject(input: HeadlessProjectInput): Promise<HeadlessRenderSummary> {
+export async function renderProject(input: HeadlessProjectInput): Promise<HeadlessRenderSummary> {
   const { project: rawProject, settings, media, renderWholeProject = true, outputFileName } = input
   const { project, warnings: projectWarnings } = migrateProject(rawProject)
   const timeline = project.timeline
@@ -732,6 +741,8 @@ async function renderProject(input: HeadlessProjectInput): Promise<HeadlessRende
     outputFileName,
     strict: input.strict,
     validationWarnings: projectWarningsToHeadless(projectWarnings),
+    onProgress: input.onProgress,
+    deliver: input.deliver,
   })
 }
 
@@ -740,7 +751,7 @@ async function renderProject(input: HeadlessProjectInput): Promise<HeadlessRende
 // ---------------------------------------------------------------------------
 
 /** Grab one frame from a Project as an image (default: full-res PNG). */
-interface HeadlessFrameInput {
+export interface HeadlessFrameInput {
   project: Project
   media?: HeadlessMediaSource[]
   /** Project-frame index to render. Takes precedence over `atSeconds`. */
@@ -755,9 +766,10 @@ interface HeadlessFrameInput {
   outputFileName?: string
   /** Fail before rendering if any validation warning was collected. */
   strict?: boolean
+  deliver?: RenderDelivery
 }
 
-interface HeadlessFrameSummary {
+export interface HeadlessFrameSummary {
   ok: true
   frame: number
   atSeconds: number
@@ -771,7 +783,7 @@ interface HeadlessFrameSummary {
 }
 
 /** Inspect the computed on-canvas layout (bounding boxes) at a frame. */
-interface HeadlessLayoutInput {
+export interface HeadlessLayoutInput {
   project: Project
   media?: HeadlessMediaSource[]
   frame?: number
@@ -847,7 +859,7 @@ interface LayoutBox {
   textLayout?: TextLayoutInfo
 }
 
-interface HeadlessLayoutResult {
+export interface HeadlessLayoutResult {
   frame: number
   atSeconds: number
   canvas: { width: number; height: number; fps: number }
@@ -928,7 +940,7 @@ function buildComposition(view: MigratedTimelineView): CompositionInputProps {
  */
 // Browser-harness driver; exercised end-to-end by the headless chrome contract suite
 // fallow-ignore-next-line complexity
-async function renderFrame(input: HeadlessFrameInput): Promise<HeadlessFrameSummary> {
+export async function renderFrame(input: HeadlessFrameInput): Promise<HeadlessFrameSummary> {
   const view = extractTimeline(input.project)
   const gpuAvailable = await detectWebGpuOnce()
   const frame = resolveTargetFrame(view, input)
@@ -969,7 +981,7 @@ async function renderFrame(input: HeadlessFrameInput): Promise<HeadlessFrameSumm
   })
   const ext = format === 'image/jpeg' ? 'jpg' : format === 'image/webp' ? 'webp' : 'png'
   const fileName = input.outputFileName ?? `freecut-frame-${frame}.${ext}`
-  triggerDownload(blob, fileName)
+  ;(input.deliver ?? triggerDownload)(blob, fileName)
 
   log.info('Headless frame grab complete', {
     frame,
@@ -1079,7 +1091,7 @@ function computeTextLayout(
  */
 // Browser-harness driver; exercised end-to-end by the headless chrome contract suite
 // fallow-ignore-next-line complexity
-async function dumpLayout(input: HeadlessLayoutInput): Promise<HeadlessLayoutResult> {
+export async function dumpLayout(input: HeadlessLayoutInput): Promise<HeadlessLayoutResult> {
   const view = extractTimeline(input.project)
   const gpuAvailable = await detectWebGpuOnce()
   const frame = resolveTargetFrame(view, input)
@@ -1191,19 +1203,7 @@ async function dumpLayout(input: HeadlessLayoutInput): Promise<HeadlessLayoutRes
   }
 }
 
-interface FreecutHeadlessApi {
-  ready: true
-  renderTimeline: typeof renderTimeline
-  renderProject: typeof renderProject
-  renderFrame: typeof renderFrame
-  dumpLayout: typeof dumpLayout
-  editProject: typeof editProject
-  normalizeProject: typeof normalizeProjectForHeadless
-  probeMedia: typeof probeMedia
-  createProject: typeof createProjectForHeadless
-}
-
-function createProjectForHeadless(input: {
+export function createProjectForHeadless(input: {
   id?: string
   name: string
   description?: string
@@ -1233,7 +1233,7 @@ function createProjectForHeadless(input: {
   return validated.data as Project
 }
 
-async function normalizeProjectForHeadless(raw: unknown): Promise<Project> {
+export async function normalizeProjectForHeadless(raw: unknown): Promise<Project> {
   const validated = validateProject(raw)
   if (!validated.success || !validated.data) {
     throw new Error(
@@ -1246,7 +1246,7 @@ async function normalizeProjectForHeadless(raw: unknown): Promise<Project> {
   return current.data as Project
 }
 
-async function probeMedia(input: { url: string; fileName: string; mimeType?: string }) {
+export async function probeMedia(input: { url: string; fileName: string; mimeType?: string }) {
   const response = await fetch(input.url)
   if (!response.ok) throw new Error(`Media fetch failed: HTTP ${response.status}`)
   if (!response.body || typeof navigator.storage?.getDirectory !== 'function') {
@@ -1272,22 +1272,3 @@ async function probeMedia(input: { url: string; fileName: string; mimeType?: str
     await root.removeEntry(tempName).catch(() => {})
   }
 }
-
-declare global {
-  interface Window {
-    freecut: FreecutHeadlessApi
-  }
-}
-
-window.freecut = {
-  ready: true,
-  renderTimeline,
-  renderProject,
-  renderFrame,
-  dumpLayout,
-  editProject,
-  normalizeProject: normalizeProjectForHeadless,
-  probeMedia,
-  createProject: createProjectForHeadless,
-}
-log.info('Headless harness ready')

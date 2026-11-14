@@ -4,8 +4,10 @@
     "src/index.{ts,tsx,js,jsx}",
     "src/main.{ts,tsx,js,jsx}",
     "src/test/setup.ts",
-    // EmbeddableCut's public engine surfaces, consumed by the SDK package.
+    // EmbeddableCut's public engine surface, and the SDK over it (assembled
+    // beside FreeCut's tree by scripts/checks/overlay.mjs).
     "src/schema/index.ts",
+    "sdk/src/index.ts",
     "headless/probe.mjs",
     "headless/smoke.mjs",
     "headless/media-smoke.mjs"
