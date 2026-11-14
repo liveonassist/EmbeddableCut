@@ -125,6 +125,30 @@ describe('Editor', () => {
     expect(screen.getByTestId('host-timeline').parentElement?.parentElement).toContainElement(panel)
   })
 
+  it('renders an inspector panel beside the properties sidebar', async () => {
+    await mountWith({
+      panels: [
+        {
+          id: 'brand',
+          title: 'Brand kit',
+          region: 'inspector',
+          content: {
+            render(container) {
+              container.textContent = 'Logo and colors'
+            },
+          },
+        },
+      ],
+      components: { 'properties-sidebar': probe('properties-sidebar') },
+    })
+
+    const panel = screen.getByRole('region', { name: 'Brand kit' })
+    expect(panel).toHaveTextContent('Brand kit')
+    expect(panel).toHaveTextContent('Logo and colors')
+    const sidebar = screen.getByTestId('host-properties-sidebar')
+    expect(sidebar.compareDocumentPosition(panel) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+  })
+
   it('drops the timeline and both sidebars in the color workspace', async () => {
     useEditorStore.setState({ workspace: 'color', propertiesFullColumn: true })
     await mountWith({

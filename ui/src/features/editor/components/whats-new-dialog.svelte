@@ -3,6 +3,7 @@
   import Sparkles from 'lucide-svelte/icons/sparkles'
   import Bug from 'lucide-svelte/icons/bug'
   import Zap from 'lucide-svelte/icons/zap'
+  import ArrowRight from 'lucide-svelte/icons/arrow-right'
   import { i18n } from '@/i18n'
   import changelogData from '@/data/changelog.json'
   import type {
@@ -68,6 +69,9 @@
   import { Separator } from '@/components/ui/separator'
   import { cn } from '@/shared/ui/cn'
   import { markChangelogSeen } from './whats-new-seen'
+  import { Link, findRouter } from '@/app/router'
+
+  const router = findRouter()
 
   let { open = $bindable(), onOpenChange }: WhatsNewDialogProps = $props()
 
@@ -164,13 +168,19 @@
       </ScrollArea>
     </div>
     <Separator />
-    <!-- FreeCut links its /changelog route here; an embedded editor has no routes. -->
     <div class="px-6 py-3 flex justify-between items-center text-xs text-muted-foreground">
       <span>
         {latestReleaseVersion
           ? t('editor.whatsNew.released', { version: latestReleaseVersion })
           : t('editor.whatsNew.preRelease')}
       </span>
+      <!-- The app's changelog page; a mounted editor has no pages. -->
+      {#if router}
+        <Link to="/changelog" class="flex items-center gap-1 hover:text-foreground hover:underline">
+          {t('editor.whatsNew.fullChangelog')}
+          <ArrowRight class="h-3 w-3" />
+        </Link>
+      {/if}
     </div>
   </DialogContent>
 </Dialog>

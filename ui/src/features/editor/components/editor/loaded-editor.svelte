@@ -48,7 +48,8 @@
   import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '@/components/ui/resizable'
   import ErrorBoundary from '@/components/error-boundary.svelte'
   import Contribution from '@/components/contribution.svelte'
-  import type { ReplaceableSlot } from '../../../../extensions/contributions'
+  import type { PanelContribution, ReplaceableSlot } from '../../../../extensions/contributions'
+  import ContributionIcon from '@/components/contribution-icon.svelte'
   import Toolbar from '../toolbar.svelte'
   import MediaSidebar from '../media-sidebar.svelte'
   import PropertiesSidebar from '../properties-sidebar/index.svelte'
@@ -126,6 +127,7 @@
 
   const replacement = (slot: ReplaceableSlot) => contributions?.replacement(slot) ?? null
   const bottomPanels = $derived(contributions?.panels('bottom') ?? [])
+  const inspectorPanels = $derived(contributions?.panels('inspector') ?? [])
 
   // Initialize transition chain subscription (pre-computes chains from timeline data)
   // This subscription recomputes chains when items/transitions change - deferred to idle
@@ -343,6 +345,38 @@
       {@render slot('properties-sidebar', propertiesSidebarDefault)}
     </ErrorBoundary>
   </InteractionLockRegion>
+  <!-- Host inspector panels stack in a column beside the properties sidebar. -->
+  {#if inspectorPanels.length > 0}
+    <InteractionLockRegion locked={isMaskEditingActive.current}>
+      <aside class="flex h-full w-72 shrink-0 flex-col overflow-hidden border-l border-border bg-background">
+        {#each inspectorPanels as panel (panel.id)}
+          <section
+            class="flex min-h-0 flex-1 flex-col border-b border-border last:border-b-0"
+            aria-label={panel.title}
+            data-panel-id={panel.id}
+          >
+            {@render contributedPanel(panel)}
+          </section>
+        {/each}
+      </aside>
+    </InteractionLockRegion>
+  {/if}
+{/snippet}
+
+{#snippet contributedPanel(panel: PanelContribution)}
+  {#if editorUi}
+    <div class="panel-header flex h-8 shrink-0 items-center gap-2 border-b border-border px-3 text-xs font-medium">
+      {#if panel.icon}<ContributionIcon icon={panel.icon} class="h-3.5 w-3.5 text-muted-foreground" />{/if}
+      <span class="truncate">{panel.title}</span>
+    </div>
+    <ErrorBoundary level="component">
+      <Contribution
+        content={panel.content}
+        context={{ editor: editorUi.editor }}
+        class="min-h-0 flex-1 overflow-auto"
+      />
+    </ErrorBoundary>
+  {/if}
 {/snippet}
 
 {#snippet propertiesSidebarDefault()}
@@ -464,21 +498,15 @@
                     {@render slot('timeline', timelineDefault)}
                   {/if}
                 </div>
-                {#if editorUi}
-                  {#each bottomPanels as panel (panel.id)}
-                    <section
-                      class="flex h-full w-72 shrink-0 flex-col overflow-hidden border-l border-border"
-                      aria-label={panel.title}
-                      data-panel-id={panel.id}
-                    >
-                      <Contribution
-                        content={panel.content}
-                        context={{ editor: editorUi.editor }}
-                        class="min-h-0 flex-1 overflow-auto"
-                      />
-                    </section>
-                  {/each}
-                {/if}
+                {#each bottomPanels as panel (panel.id)}
+                  <section
+                    class="flex h-full w-72 shrink-0 flex-col overflow-hidden border-l border-border"
+                    aria-label={panel.title}
+                    data-panel-id={panel.id}
+                  >
+                    {@render contributedPanel(panel)}
+                  </section>
+                {/each}
                 <AudioMeterPanel />
               </div>
             </ErrorBoundary>

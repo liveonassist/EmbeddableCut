@@ -11,6 +11,7 @@
 </script>
 
 <script lang="ts">
+  import ArrowLeft from 'lucide-svelte/icons/arrow-left'
   import BookOpen from 'lucide-svelte/icons/book-open'
   import Bug from 'lucide-svelte/icons/bug'
   import ChevronDown from 'lucide-svelte/icons/chevron-down'
@@ -43,6 +44,7 @@
   import ProjectDebugPanel from './project-debug-panel.svelte'
   import SettingsDialog from './settings-dialog.svelte'
   import ShortcutsDialog from './shortcuts-dialog.svelte'
+  import UnsavedChangesDialog from './unsaved-changes-dialog.svelte'
   import WorkspaceSwitcher from './workspace-switcher.svelte'
   import WhatsNewDialog from './whats-new-dialog.svelte'
   import { hasUnseenChangelog } from './whats-new-seen'
@@ -54,6 +56,7 @@
   import { useItemsStore, useTimelineSettingsStore } from '@/features/editor/deps/timeline-store'
   import { useMediaLibraryStore } from '@/features/editor/deps/media-library'
   import { maybeEditorUi } from '../editor-ui'
+  import { findRouter } from '@/app/router'
 
   interface ToolbarProps {
     projectId: string
@@ -82,6 +85,11 @@
   const centerItems = $derived(editorUi?.contributions.toolbar('center') ?? [])
   const rightItems = $derived(editorUi?.contributions.toolbar('right') ?? [])
 
+  // The app's projects page, when the editor runs inside the app; a
+  // mounted editor has no pages to go back to.
+  const router = findRouter()
+
+  let showUnsavedDialog = $state(false)
   let showShortcutsDialog = $state(false)
   let showSettingsDialog = $state(false)
   let showWhatsNewDialog = $state(false)
@@ -119,6 +127,14 @@
   function openWhatsNew() {
     hasUnseenWhatsNew = false
     showWhatsNewDialog = true
+  }
+
+  function handleBackClick() {
+    if (useTimelineSettingsStore.getState().isDirty) {
+      showUnsavedDialog = true
+    } else {
+      void router?.navigate({ to: '/projects' })
+    }
   }
 
   async function handleSave() {
@@ -254,6 +270,30 @@
     {#if projectMenu && editorUi}
       <Contribution content={projectMenu} context={{ editor: editorUi.editor }} class="flex items-center" />
     {:else}
+      {#if router}
+        <Button
+          variant="ghost"
+          size="icon"
+          class="h-8 w-8"
+          onclick={handleBackClick}
+          data-tooltip={t('toolbar.backToProjects')}
+          data-tooltip-side="right"
+          aria-label={t('toolbar.backToProjectsAria')}
+        >
+          <ArrowLeft class="h-4 w-4" />
+        </Button>
+
+        <UnsavedChangesDialog
+          open={showUnsavedDialog}
+          onOpenChange={(open) => (showUnsavedDialog = open)}
+          onSave={handleSave}
+          onLeave={() => void router.navigate({ to: '/projects' })}
+          projectName={project?.name}
+        />
+
+        <Separator orientation="vertical" class="h-5" />
+      {/if}
+
       <div class="flex flex-col -space-y-0.5">
         <h1 class="text-sm font-medium leading-none">
           {project?.name || t('common.untitledProject')}
