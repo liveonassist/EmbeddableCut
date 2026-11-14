@@ -68,7 +68,7 @@
 <!-- One element for both states: the resize observer stays on it, as React reused the node. -->
 <div
   bind:this={containerRef.current}
-  class={hasSize ? 'absolute inset-0 z-30 bg-black flex items-center' : 'absolute inset-0 z-30 bg-black'}
+  class={hasSize ? 'absolute inset-0 z-30 bg-preview-letterbox flex items-center' : 'absolute inset-0 z-30 bg-preview-letterbox'}
   style:gap={hasSize ? `${GAP}px` : undefined}
 >
   {#if hasSize}

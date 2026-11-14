@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: MIT */
-/* FreeCut's web/src/features/timeline/theme.css, with the body-level cursor and drag classes also matched on `.ec-root`. */
+/* FreeCut's web/src/features/timeline/theme.css, with the body-level cursor and drag classes also matched on `.ec-root`, and the preview background a theme token. */
 /**
  * Timeline Feature Theme Extension
  *
@@ -46,7 +46,7 @@
   --color-timeline-snap: #f97316; /* orange-500 - snap indicator */
   --color-timeline-join: #fb923c; /* orange-400 - join indicator */
 
-  --color-video-preview-background: oklch(0.1914 0 58);
+  /* --color-video-preview-background is the --preview-surround token (styles/app.css). */
 }
 
 /* Scissors cursor for razor/cut tool - uses Lucide scissors icon rotated to face up */

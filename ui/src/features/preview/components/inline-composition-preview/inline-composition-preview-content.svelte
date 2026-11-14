@@ -425,7 +425,7 @@
   </div>
 {:else if presentation === 'frame'}
   <div
-    class="relative w-full h-full bg-black"
+    class="relative w-full h-full bg-preview-letterbox"
     aria-label="Compound clip frame preview"
   >
     <canvas
@@ -454,7 +454,7 @@
     >
       <div class="relative">
         <div
-          class="relative shadow-2xl overflow-hidden bg-black"
+          class="relative shadow-2xl overflow-hidden bg-preview-letterbox"
           style:width={`${playerSize.width}px`}
           style:height={`${playerSize.height}px`}
           style:outline="2px solid hsl(var(--border))"

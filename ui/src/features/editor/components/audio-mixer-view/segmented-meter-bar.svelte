@@ -27,7 +27,7 @@
   }: SegmentedMeterBarProps = $props()
 </script>
 
-<div class="relative flex-1 rounded-[2px] bg-[#08090b] overflow-hidden {className}">
+<div class="relative flex-1 rounded-[2px] bg-meter-well overflow-hidden {className}">
   <!-- Unlit LED backdrop -->
   <div class="absolute inset-0 pointer-events-none" style:background={UNLIT_LED_BG}></div>
 

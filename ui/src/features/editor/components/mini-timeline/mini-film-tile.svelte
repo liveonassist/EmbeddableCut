@@ -66,7 +66,7 @@
   title={label}
 >
   <span
-    class="flex min-w-0 items-center gap-1 border-b border-black/40 bg-[#24252b] px-1.5 text-[10px] font-semibold text-zinc-200"
+    class="flex min-w-0 items-center gap-1 border-b border-black/40 bg-strip px-1.5 text-[10px] font-semibold text-zinc-200"
   >
     <span
       class={`rounded-[2px] border px-1 leading-3 ${
@@ -79,16 +79,16 @@
     <span class="ml-auto text-[9px] text-zinc-400">{trackName}</span>
   </span>
 
-  <span class="relative block min-h-0 overflow-hidden bg-black">
+  <span class="relative block min-h-0 overflow-hidden bg-preview-letterbox">
     {#if thumbnailUrl}
       <img src={thumbnailUrl} alt="" class="h-full w-full object-cover" style={imageStyle} {...imageDataAttributes} />
     {:else}
-      <span class="block h-full w-full bg-black" style={imageStyle}></span>
+      <span class="block h-full w-full bg-preview-letterbox" style={imageStyle}></span>
     {/if}
     {@render overlay?.()}
   </span>
 
-  <span class="truncate border-t border-black/40 bg-[#202127] px-1.5 text-[10px] font-medium text-zinc-300">
+  <span class="truncate border-t border-black/40 bg-strip-muted px-1.5 text-[10px] font-medium text-zinc-300">
     {label}
   </span>
 </button>

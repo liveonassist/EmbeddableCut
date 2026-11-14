@@ -180,7 +180,7 @@
 </script>
 
 <section
-  class="panel-bg shrink-0 overflow-hidden border-y border-border bg-[#24252b]"
+  class="panel-bg shrink-0 overflow-hidden border-y border-border bg-strip"
   aria-label={t('editor.colorTimeline.label')}
   data-testid="color-timeline-navigator"
   style:height="{STRIP_HEIGHT}px"
@@ -216,7 +216,7 @@
       {...scrubHandlers}
     >
       <div
-        class="relative shrink-0 border-b border-black/40 bg-[#202127]"
+        class="relative shrink-0 border-b border-black/40 bg-strip-muted"
         style:height="{MINI_TIMELINE_IO_LANE_HEIGHT}px"
       >
         <MiniTimelineIoLane

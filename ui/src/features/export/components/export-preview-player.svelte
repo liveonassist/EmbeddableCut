@@ -128,7 +128,7 @@
 <div
   bind:this={container}
   class="overflow-hidden {isFullscreen
-    ? 'flex flex-col h-full w-full bg-black'
+    ? 'flex flex-col h-full w-full bg-preview-letterbox'
     : 'rounded-lg border border-border bg-secondary/30'}"
 >
   <!-- Media element -->
@@ -138,7 +138,7 @@
       bind:this={media}
       {src}
       class="w-full object-contain cursor-pointer {isFullscreen
-        ? 'flex-1 min-h-0 bg-black'
+        ? 'flex-1 min-h-0 bg-preview-letterbox'
         : 'max-h-[280px] bg-background'}"
       onclick={togglePlay}
       preload="metadata"

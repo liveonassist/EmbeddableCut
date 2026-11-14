@@ -8,6 +8,7 @@ colors:
   panel-header: "oklch(0.14 0 0)"
   popover: "oklch(0.16 0 0)"
   timeline-bg: "oklch(0.12 0 0)"
+  preview-surround: "oklch(0.1914 0 58)"
   primary: "oklch(0.68 0.19 45)"
   primary-foreground: "oklch(0.12 0 0)"
   secondary: "oklch(0.22 0 0)"
@@ -180,6 +181,14 @@ edit landmark and must keep its meaning.
 - **Border** (`oklch(0.25 0 0)`): Subtle separators between panels.
 - **Ink** (`oklch(0.95 0 0)`): Primary text.
 - **Muted Ink** (`oklch(0.6 0 0)`): Secondary/disabled text and placeholders.
+
+### Surfaces around footage
+Tokens too, so a theme or host can recolor them; the light theme lightens only the preview surround, since light marks are drawn on the rest.
+- **Preview Surround** (`--preview-surround`, `oklch(0.1914 0 58)`): Around the preview canvas.
+- **Letterbox** (`--preview-letterbox`, black): Behind frames in trim views, monitors and players.
+- **Meter Well** (`--meter-well`, `#08090b`): Behind audio meter bars.
+- **Strip** (`--strip`, `#24252b`; `--strip-muted`, `#202127`): Film strips in the color navigator and mini timeline.
+- **Waveform Well** (`--waveform-well`, `#121316`; `--waveform-detail`, `#18191f`): The source monitor's waveform.
 
 ### Named Rules
 **The One Signal Rule.** Orange means active. Reserve `oklch(0.68 0.19 45)` for

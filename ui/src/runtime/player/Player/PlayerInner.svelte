@@ -198,7 +198,7 @@
 
 <div
   bind:this={container}
-  class="relative bg-black {className || ''}"
+  class="relative bg-preview-letterbox {className || ''}"
   style="{style ? `${style}; ` : ''}overflow: hidden;"
   data-player-container
 >

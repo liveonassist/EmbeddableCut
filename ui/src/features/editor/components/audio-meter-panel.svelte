@@ -1026,7 +1026,7 @@
             <div bind:this={meterVisualRoot} class="flex flex-1 gap-[3px]">
               {#each ['l', 'r'] as channel (channel)}
                 <div
-                  class="relative w-[14px] rounded-[2px] border border-border/50 bg-[#08090b] shadow-[inset_0_1px_2px_rgba(0,0,0,0.5)] overflow-hidden"
+                  class="relative w-[14px] rounded-[2px] border border-border/50 bg-meter-well shadow-[inset_0_1px_2px_rgba(0,0,0,0.5)] overflow-hidden"
                 >
                   <!-- Unlit LED backdrop -->
                   <div class="absolute inset-0 pointer-events-none" style:background={unlitLedBg}></div>

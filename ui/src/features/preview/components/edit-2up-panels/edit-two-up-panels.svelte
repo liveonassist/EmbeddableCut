@@ -52,7 +52,7 @@
 
 <div
   bind:this={containerRef.current}
-  class="absolute inset-0 z-30 bg-black flex items-center"
+  class="absolute inset-0 z-30 bg-preview-letterbox flex items-center"
   style:gap="{GAP}px"
 >
   <FramePanel

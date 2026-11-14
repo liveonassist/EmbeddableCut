@@ -232,7 +232,7 @@
   })
 </script>
 
-<div class="relative h-full w-full overflow-hidden bg-black" data-embedded-preview>
+<div class="relative h-full w-full overflow-hidden bg-preview-letterbox" data-embedded-preview>
   <HeadlessPlayer
     bind:ref={player}
     durationInFrames={preview.totalFrames}

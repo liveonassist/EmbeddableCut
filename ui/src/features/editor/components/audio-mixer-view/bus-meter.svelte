@@ -219,7 +219,7 @@
     <div class="flex-1 min-h-0 flex items-stretch gap-px py-1">
       <!-- Stereo segmented meter bars -->
       <div class="flex gap-[2px] w-[14px] shrink-0">
-        <div class="relative flex-1 rounded-[2px] bg-[#08090b] overflow-hidden">
+        <div class="relative flex-1 rounded-[2px] bg-meter-well overflow-hidden">
           <!-- Unlit LED backdrop -->
           <div class="absolute inset-0 pointer-events-none" style:background={UNLIT_LED_BG}></div>
           <!-- Active fill -->
@@ -235,7 +235,7 @@
             style:transition="height 100ms ease-out"
           ></div>
         </div>
-        <div class="relative flex-1 rounded-[2px] bg-[#08090b] overflow-hidden">
+        <div class="relative flex-1 rounded-[2px] bg-meter-well overflow-hidden">
           <!-- Unlit LED backdrop -->
           <div class="absolute inset-0 pointer-events-none" style:background={UNLIT_LED_BG}></div>
           <!-- Active fill -->

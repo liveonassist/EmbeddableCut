@@ -40,7 +40,7 @@
     {label}
   </span>
   <div
-    class="flex items-center justify-center shrink-0 bg-black"
+    class="flex items-center justify-center shrink-0 bg-preview-letterbox"
     style:width="{panelWidth}px"
     style:height="{areaHeight}px"
   >

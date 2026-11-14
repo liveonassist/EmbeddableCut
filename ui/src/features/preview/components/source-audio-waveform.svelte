@@ -277,7 +277,11 @@
     const scaleY = (size.visualHeight / size.layoutHeight) * dpr
     context.setTransform(scaleX, 0, 0, scaleY, 0, 0)
     context.clearRect(0, 0, size.layoutWidth, size.layoutHeight)
-    context.fillStyle = '#121316'
+    // The editor's surface tokens, read where the canvas sits so a theme reaches it.
+    const styles = getComputedStyle(canvas)
+    const token = (name: string, fallback: string) =>
+      styles.getPropertyValue(name).trim() || fallback
+    context.fillStyle = token('--waveform-well', '#121316')
     context.fillRect(0, 0, size.layoutWidth, size.layoutHeight)
 
     const waveformX = SOURCE_WAVEFORM_INSET_X
@@ -306,9 +310,9 @@
       endTimeSeconds: detailWindow.end,
     }
 
-    context.fillStyle = '#202127'
+    context.fillStyle = token('--strip-muted', '#202127')
     context.fillRect(0, 0, size.layoutWidth, SOURCE_WAVEFORM_OVERVIEW_HEIGHT)
-    context.fillStyle = '#18191f'
+    context.fillStyle = token('--waveform-detail', '#18191f')
     context.fillRect(0, detailRegion.y, size.layoutWidth, detailRegion.height)
     context.fillStyle = 'rgba(255, 255, 255, 0.08)'
     context.fillRect(
