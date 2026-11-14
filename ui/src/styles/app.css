@@ -13,6 +13,9 @@
 /* Feature-specific theme extensions */
 @import '../features/timeline/theme.css';
 
+/* react-colorful's stylesheet, for the color picker's ported HexColorPicker */
+@import '../shared/ui/property-controls/hex-color-picker.css';
+
 :is(body, .ec-root).canvas-translate-cursor-not-allowed,
 :is(body, .ec-root).canvas-translate-cursor-not-allowed * {
   cursor: not-allowed !important;
