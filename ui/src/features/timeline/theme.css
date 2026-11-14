@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: MIT */
-/* FreeCut's web/src/features/timeline/theme.css, with the drag cursors also set on `.ec-root`. */
+/* FreeCut's web/src/features/timeline/theme.css, with the body-level cursor and drag classes also matched on `.ec-root`. */
 /**
  * Timeline Feature Theme Extension
  *
@@ -194,26 +194,26 @@
 }
 
 /* Force cursor globally during timeline item drag (overrides per-item cursor classes). */
-body.timeline-item-drag-cursor-grabbing,
-body.timeline-item-drag-cursor-grabbing * {
+:is(body, .ec-root).timeline-item-drag-cursor-grabbing,
+:is(body, .ec-root).timeline-item-drag-cursor-grabbing * {
   cursor: grabbing !important;
 }
 
-body.timeline-item-drag-cursor-copy,
-body.timeline-item-drag-cursor-copy * {
+:is(body, .ec-root).timeline-item-drag-cursor-copy,
+:is(body, .ec-root).timeline-item-drag-cursor-copy * {
   cursor: copy !important;
 }
 
-body.timeline-item-drag-cursor-not-allowed,
-body.timeline-item-drag-cursor-not-allowed * {
+:is(body, .ec-root).timeline-item-drag-cursor-not-allowed,
+:is(body, .ec-root).timeline-item-drag-cursor-not-allowed * {
   cursor: not-allowed !important;
 }
 
 /* Route external media/composition drags through track drop zones instead of clip-level drag handlers. */
-body.timeline-external-media-drag [data-item-id],
-body.timeline-external-media-drag [data-item-id] *,
-body.timeline-external-media-drag [data-transition-id],
-body.timeline-external-media-drag [data-transition-id] * {
+:is(body, .ec-root).timeline-external-media-drag [data-item-id],
+:is(body, .ec-root).timeline-external-media-drag [data-item-id] *,
+:is(body, .ec-root).timeline-external-media-drag [data-transition-id],
+:is(body, .ec-root).timeline-external-media-drag [data-transition-id] * {
   pointer-events: none !important;
 }
 
