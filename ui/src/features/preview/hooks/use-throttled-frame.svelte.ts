@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 // placeholder: ported elsewhere
 
+import { select } from '$lib/store.svelte'
 import { usePlaybackStore } from '@/shared/state/playback'
 
 interface UseThrottledFrameOptions {
@@ -9,13 +10,10 @@ interface UseThrottledFrameOptions {
   throttleMs?: number
 }
 
-/** The current frame, read through; the real hook throttles it during playback. */
-export function useThrottledFrame(_options: () => UseThrottledFrameOptions = () => ({})): {
+/** The current frame, for property panels that show animated values. */
+export function useThrottledFrame(options: () => UseThrottledFrameOptions = () => ({})): {
   readonly current: number
 } {
-  return {
-    get current() {
-      return usePlaybackStore.getState().currentFrame
-    },
-  }
+  void options
+  return select(usePlaybackStore, (s) => s.currentFrame)
 }

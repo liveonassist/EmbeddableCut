@@ -1,5 +1,4 @@
 // SPDX-License-Identifier: MIT
-// placeholder: ported elsewhere
 
 import type { Keyframe } from '@/types/keyframe'
 

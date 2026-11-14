@@ -1,9 +1,7 @@
 // SPDX-License-Identifier: MIT
 
-// The changelog is the editor app's (web/src/data), appended by its release
-// scripts; the UI reads the same file rather than keeping a copy.
-import changelogData from '../../../../../web/src/data/changelog.json'
-import type { ChangelogFile } from '../../../../../web/src/data/changelog-types'
+import changelogData from '@/data/changelog.json'
+import type { ChangelogFile } from '@/data/changelog-types'
 
 const data = changelogData as ChangelogFile
 const LAST_SEEN_KEY = 'freecut:whatsNewLastSeen'

@@ -1,13 +1,16 @@
 <!-- SPDX-License-Identifier: MIT -->
-<script lang="ts">
-  import type { Snippet } from 'svelte'
-  import AlertTriangle from 'lucide-svelte/icons/triangle-alert'
-  import RefreshCw from 'lucide-svelte/icons/refresh-cw'
-  import { Button } from '@/components/ui/button'
+<script lang="ts" module>
   import { createLogger } from '@/shared/logging/logger'
-  import { i18n } from '@/i18n'
 
   const logger = createLogger('ErrorBoundary')
+</script>
+
+<script lang="ts">
+  import type { Snippet } from 'svelte'
+  import AlertTriangle from 'lucide-svelte/icons/alert-triangle'
+  import RefreshCw from 'lucide-svelte/icons/refresh-cw'
+  import { Button } from '@/components/ui/button'
+  import { i18n } from '@/i18n'
 
   interface Props {
     children: Snippet
@@ -18,23 +21,29 @@
 
   let { children, fallback, onError, level = 'component' }: Props = $props()
 
-  function handleError(error: unknown): void {
-    const err = error instanceof Error ? error : new Error(String(error))
+  function handleError(cause: unknown) {
+    const error = cause instanceof Error ? cause : new Error(String(cause))
+    // Log to console in development
     if (import.meta.env.DEV) {
-      logger.error('ErrorBoundary caught:', err)
+      logger.error('ErrorBoundary caught:', error)
     }
-    onError?.(err)
+
+    onError?.(error)
+  }
+
+  function asError(cause: unknown): Error | null {
+    return cause instanceof Error ? cause : null
   }
 </script>
 
 <svelte:boundary onerror={handleError}>
   {@render children()}
 
-  {#snippet failed(error, reset)}
+  {#snippet failed(cause, reset)}
+    {@const error = asError(cause)}
     {#if fallback}
       {@render fallback()}
     {:else}
-      {@const err = error instanceof Error ? error : null}
       <div class="flex flex-col items-center justify-center p-8 gap-4 text-center">
         <AlertTriangle class="h-12 w-12 text-destructive" />
         <div>
@@ -44,7 +53,7 @@
             {#if level === 'component'}{i18n.t('app.errorBoundary.componentError')}{/if}
           </h2>
           <p class="text-sm text-muted-foreground mt-1">
-            {err?.message || i18n.t('app.errorBoundary.unexpectedError')}
+            {error?.message || i18n.t('app.errorBoundary.unexpectedError')}
           </p>
         </div>
         <div class="flex gap-2">
@@ -58,9 +67,9 @@
             </Button>
           {/if}
         </div>
-        {#if import.meta.env.DEV && err?.stack}
+        {#if import.meta.env.DEV && error?.stack}
           <pre
-            class="mt-4 p-4 bg-muted rounded text-xs text-left overflow-auto max-w-full max-h-48">{err.stack}</pre>
+            class="mt-4 p-4 bg-muted rounded text-xs text-left overflow-auto max-w-full max-h-48">{error.stack}</pre>
         {/if}
       </div>
     {/if}

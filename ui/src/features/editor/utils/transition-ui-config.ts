@@ -128,7 +128,7 @@ export const TRANSITION_CATEGORY_ORDER: TransitionCategory[] = [
   'custom',
 ]
 
-/** Direction string → display label + icon name */
+/** Direction string â†’ display label + icon name */
 function createConfigsForDefinition(
   def: ReturnType<typeof transitionRegistry.getDefinitions>[number],
 ): PresentationConfig[] {

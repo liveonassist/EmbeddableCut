@@ -15,4 +15,4 @@ export type { CaptioningIntervalUnit } from '@/features/settings/stores/settings
 export { default as LocalInferenceUnloadControl } from '@/features/settings/components/local-inference-unload-control.svelte'
 export { default as LocalModelCacheControl } from '@/features/settings/components/local-model-cache-control.svelte'
 export { useResolvedHotkeys } from '@/features/settings/hooks/use-resolved-hotkeys.svelte'
-export { default as HotkeyEditor } from '@/features/settings/components/hotkey-editor.svelte'
+export { HotkeyEditor } from '@/features/settings/components/hotkey-editor'

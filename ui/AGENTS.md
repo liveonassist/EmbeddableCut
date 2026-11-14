@@ -22,7 +22,7 @@ npm run dev       # Vite dev server for embed.html
 - `src/extensions/` — what hosts and extensions contribute (`UiContributions`), and the `ContributionRegistry` the UI reads them from.
 - `src/theme/` — `ThemeController`: dark (FreeCut's), light, system, and token overrides.
 - `src/styles/app.css` — FreeCut's stylesheet, scoped for shadow roots, with the light theme.
-- `src/app/` — `editor-app.svelte` (the full editor `mountEditor` mounts) and `editor-root.svelte` (context, toaster).
+- `src/app/` — `editor-app.svelte` (the full editor `mountEditor` mounts: `editor-root.svelte` around `editor-view.svelte`), `editor-root.svelte` (context, tooltips, toaster), and the app around it: `app.svelte`, `mount-app.ts` (`mountApp`), `router/` (a history-API router with TanStack's route and option shapes) and `route-tree.ts`.
 
 ## Porting from React
 
@@ -66,10 +66,22 @@ The bar is FreeCut's editor as it is: same markup, same Tailwind classes, same b
 - **A React file exporting several components becomes a folder** named after it: one `.svelte` per component and an `index.ts` re-exporting them under the React names (`io-range-markers.tsx` → `io-range-markers/`, `shapes/components.tsx` → `shapes/components/`). The React file's barrels (`index.ts`) port as barrels of `.svelte` defaults.
 - **Element refs passed in become elements.** A `RefObject<El>` prop is the element itself, named without `Ref` (`positionSyncTargetRef` → `positionSyncTarget`, `scrollRef` → `scroll`), bound with `bind:this` to a `$state`. Mutable value refs (`suppressRefs`, `rafRef`) keep their `{ current }` shape.
 - **Hooks take getters and return getters.** A hook's arguments are getter functions (`useNaturalHeight(() => el)`), an options object is one getter (`useMarqueeSelection(() => ({ container, items, … }))`) read on every event, so handlers see the latest props. Reactive results come back as `{ current }` or an object with getters (`selection.isActive`, `pickWhip.drag`): never destructure them. React's `containerRef`/`hitAreaRef` options are `container`/`hitArea`.
+- **Callbacks passed to hooks are getters too** (`useRafCoalescedValue(() => onValue)`), so the hook calls the latest one. Split an options getter into one `$derived` per option before deriving from them, so each value recomputes only on the inputs React's `useMemo` listed.
+- **An element ref threaded through a state bag** (created in one component, attached in a deeper one) stays a reactive `{ current }` box, attached with `bind:this={ref.current}`.
+- **Types exported from a single-component `.tsx`** go in a `.ts` of the same name beside the `.svelte`, so importers keep their specifiers.
+- **An engine contract exposing React-style store hooks** gets a `deps/<name>-ui*.ts` twin here, never a file of the same name: one in `ui/src` would shadow the engine module for everything.
+- **Tagged translations** (react-i18next's `<Trans>`) are `$components/trans.svelte`: each tag renders through a snippet of the same name.
+- **`motion` animations** become `{#if}` blocks with `transition:`, or a spring with motion's stiffness, damping and mass; `useReducedMotion` is `MediaQuery('(prefers-reduced-motion: reduce)')`, and reduced motion is instant.
+- **A controlled dialog that may refuse to close** binds a getter/setter pair: `bind:open={() => open, setOpen}`.
 - **`*ClassName` props are `*Class`** (`triggerClassName` → `triggerClass`, `handleClassName` → `handleClass`), like `className` → `class`.
 - **No whitespace where JSX has none.** Svelte keeps one space between sibling elements on separate lines; JSX drops it. In inline contexts (text, `inline-flex` text content), write siblings adjacent (`</span><span>`).
 - **Types exported from a component's `<script module>` are invisible to oxlint**: put shared prop types in a `.ts` beside the component (`window-portal/types.ts`).
+- **A selector that reads props is `$derived(select(...))`**, read as `.current`: `select` captures its selector once, so one closing over a prop (`selectedItemIds.current`, an `itemId`) must be recreated when it changes.
+- **A tooltip- or popover-wrapped button merges its props**: `{...mergeProps(props, { onclick })}` from bits-ui, since spreading `props` after `onclick` would replace the trigger's handler or the other way round.
+- **Tab contents render only for the active tab**, as Radix's unmounting `TabsContent` did: gate them on the tab value, so hidden panels don't subscribe to stores.
+- **Outside-click and target checks use `event.composedPath()[0]`**: in a shadow root, `event.target` seen from `document` is the shadow host.
 - **Tests** port the React tests that check behavior (`*.test.tsx` → `*.test.ts` with `@testing-library/svelte`), at about the same density. Snippets in tests come from `createRawSnippet`; a test that composes components renders a `<name>.harness.svelte` beside it.
+- **Mocked components are `<name>.stub.svelte`** beside the test, swapped in with `vi.mock(path, async () => ({ default: (await import('./x.stub.svelte')).default }))`. What a stub records for the test lives in a `<test>.test-state.ts` both import, since `vi.mock` factories can't close over the test's variables.
 - Formatting: oxfmt from inside `ui/` (`npx vp fmt src`), never from the repo root, which has no config. oxfmt skips `.svelte` files: format those by hand, as the surrounding code is.
 
 ## Primitives

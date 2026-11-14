@@ -150,7 +150,7 @@
     type AudioMeterCompositionLookup,
   } from './audio-meter-utils'
   import type { AudioMixerTrack } from './audio-mixer-view/types'
-  import type { AudioEqPatch } from './properties-sidebar/clip-panel/audio-eq-curve-editor/types'
+  import type { AudioEqPatch } from './properties-sidebar/clip-panel/audio-eq-types'
   import AudioEqPanelSurface from './audio-meter-panel/audio-eq-panel-surface.svelte'
   import { getSparseAudioEqSettings } from '@/shared/utils/audio-eq'
   import { clearMixerLiveGainLayer, setMixerLiveGainLayer } from '@/shared/state/mixer-live-gain'

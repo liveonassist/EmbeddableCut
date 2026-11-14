@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: MIT
-// placeholder: ported elsewhere
 
 /**
- * Limits high-frequency input (wheel, pointer move) to one update per
- * painted frame while always committing the newest value.
+ * Limits high-frequency input (wheel, pointer move) to one update per painted
+ * frame while always committing the newest value. `onValue` is read when the
+ * frame flushes, so it always sees the latest callback.
  */
-export function useRafCoalescedValue<T>(onValue: (value: T) => void) {
+export function useRafCoalescedValue<T>(onValue: () => (value: T) => void) {
   let pending: T | undefined
   let hasPending = false
   let rafId: number | null = null
@@ -16,13 +16,15 @@ export function useRafCoalescedValue<T>(onValue: (value: T) => void) {
     const had = hasPending
     pending = undefined
     hasPending = false
-    if (had) onValue(value as T)
+    if (had) onValue()(value as T)
   }
 
   const queue = (value: T) => {
     pending = value
     hasPending = true
-    if (rafId === null) rafId = requestAnimationFrame(flush)
+    if (rafId === null) {
+      rafId = requestAnimationFrame(flush)
+    }
   }
 
   const flushNow = () => {

@@ -1,4 +1,8 @@
 // SPDX-License-Identifier: MIT
-// placeholder: ported elsewhere
 
-export { default as DopesheetEditor } from './dopesheet-editor.svelte'
+/**
+ * Dopesheet Editor - timeline-style keyframe editor (`index.svelte`).
+ */
+
+export { default as DopesheetEditor } from './index.svelte'
+export type { DopesheetEditorProps } from './dopesheet-editor-props'

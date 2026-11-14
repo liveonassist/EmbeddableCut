@@ -16,11 +16,9 @@ import {
   type RemoteEditor,
   type UiContributions,
 } from '@embeddablecut/sdk'
-import { setHotkeyScope } from '$lib/hotkeys.svelte'
 import { ContributionRegistry } from '../extensions/registry.svelte'
-import { ThemeController, type Theme, type ThemeMode } from '../theme/theme'
-import appCss from '../styles/app.css?inline'
-import { ensureEditorFonts } from './fonts'
+import type { Theme, ThemeMode } from '../theme/theme'
+import { createEditorShell } from './shell'
 import EditorApp from '../app/editor-app.svelte'
 
 export interface MountEditorOptions extends EditorOptions {
@@ -66,45 +64,8 @@ export async function mountEditor(
     ...editorOptions
   } = options
   const editor = await createEditor(editorOptions)
-
-  let host: HTMLElement
-  let container: ParentNode & Node
-  if (isolation === 'shadow') {
-    host = document.createElement('div')
-    host.className = 'ec-host'
-    host.style.cssText = 'display:block;width:100%;height:100%;isolation:isolate'
-    target.append(host)
-    const shadow = host.attachShadow({ mode: 'open' })
-    const sheet = new CSSStyleSheet()
-    sheet.replaceSync(appCss)
-    shadow.adoptedStyleSheets = [sheet]
-    container = shadow
-    ensureEditorFonts()
-    setHotkeyScope(shadow)
-  } else {
-    host = target
-    container = target
-  }
-
-  const root = document.createElement('div')
-  root.className = 'ec-root'
-  root.style.cssText = 'position:relative;width:100%;height:100%;overflow:hidden'
-  const portalTarget = document.createElement('div')
-  portalTarget.className = 'ec-portal'
-  container.append(root, portalTarget)
-
-  const themes = new ThemeController(isolation === 'shadow' ? host : root)
-  themes.setTheme(theme)
-  // A portal outside the root still takes the theme: copy it onto the portal layer.
-  const syncPortal = new MutationObserver(() => {
-    portalTarget.dataset.theme = root.dataset.theme ?? host.dataset.theme ?? 'dark'
-  })
-  syncPortal.observe(isolation === 'shadow' ? host : root, {
-    attributes: true,
-    attributeFilter: ['data-theme'],
-  })
-  portalTarget.dataset.theme = themes.mode
-  portalTarget.classList.add('ec-root')
+  const shell = createEditorShell(target, { isolation, theme })
+  const { root, portalTarget, themes } = shell
 
   const contributions = new ContributionRegistry(editor, ui)
   const app = mount(EditorApp, {
@@ -123,12 +84,7 @@ export async function mountEditor(
   async function teardown() {
     await unmount(app)
     contributions.dispose()
-    themes.dispose()
-    syncPortal.disconnect()
-    setHotkeyScope(null)
-    root.remove()
-    portalTarget.remove()
-    if (host !== target) host.remove()
+    shell.dispose()
     editor.dispose()
   }
 

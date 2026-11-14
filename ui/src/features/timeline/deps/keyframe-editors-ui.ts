@@ -1,5 +1,4 @@
 // SPDX-License-Identifier: MIT
-// placeholder: ported elsewhere
 
 /**
  * Adapter exports for keyframe editor UI used by lazy timeline panels.

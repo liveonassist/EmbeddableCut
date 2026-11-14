@@ -14,6 +14,7 @@
     AlertDialogTitle,
   } from '@/components/ui/alert-dialog'
   import { Button } from '@/components/ui/button'
+  import Trans from '$components/trans.svelte'
   import { createLogger } from '@/shared/logging/logger'
 
   const logger = createLogger('UnsavedChangesDialog')
@@ -34,20 +35,6 @@
   let { open, onOpenChange, onSave, onLeave, projectName }: UnsavedChangesDialogProps = $props()
 
   let isSaving = $state(false)
-
-  // `<strong>` in the translation wraps the name (react-i18next's <Trans>).
-  const NAME_TOKEN = '\u0000'
-  const descriptionParts = $derived.by(() => {
-    if (!projectName) return null
-    const text = t('unsavedChanges.descriptionWithName', { name: NAME_TOKEN })
-    const match = /^(.*?)<strong>(.*?)<\/strong>(.*)$/s.exec(text)
-    if (!match) return { before: text.replace(NAME_TOKEN, projectName), strong: '', after: '' }
-    return {
-      before: match[1] ?? '',
-      strong: (match[2] ?? '').replace(NAME_TOKEN, projectName),
-      after: match[3] ?? '',
-    }
-  })
 
   async function handleSaveAndExit() {
     isSaving = true
@@ -74,8 +61,13 @@
     <AlertDialogHeader>
       <AlertDialogTitle>{t('unsavedChanges.title')}</AlertDialogTitle>
       <AlertDialogDescription>
-        {#if descriptionParts}{descriptionParts.before}<strong>{descriptionParts.strong}</strong
-          >{descriptionParts.after}{:else}{t('unsavedChanges.description')}{/if}
+        {#if projectName}
+          <Trans i18nKey="unsavedChanges.descriptionWithName" values={{ name: projectName }}>
+            {#snippet strong(text)}<strong>{text}</strong>{/snippet}
+          </Trans>
+        {:else}
+          {t('unsavedChanges.description')}
+        {/if}
       </AlertDialogDescription>
     </AlertDialogHeader>
     <AlertDialogFooter class="gap-2 sm:gap-0">

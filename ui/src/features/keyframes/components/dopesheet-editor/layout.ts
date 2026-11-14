@@ -1,5 +1,4 @@
 // SPDX-License-Identifier: MIT
-// placeholder: ported elsewhere
 
 interface Viewport {
   startFrame: number

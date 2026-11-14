@@ -1,7 +1,7 @@
 <!-- SPDX-License-Identifier: MIT -->
 <script lang="ts">
   import type { AudioEqSettings } from '@/types/audio'
-  import type { AudioEqPatch } from '../properties-sidebar/clip-panel/audio-eq-curve-editor/types'
+  import type { AudioEqPatch } from '../properties-sidebar/clip-panel/audio-eq-types'
 
   interface AudioEqPanelSurfaceProps {
     targetLabel: string

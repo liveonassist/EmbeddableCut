@@ -4,12 +4,12 @@
   import Bug from 'lucide-svelte/icons/bug'
   import Zap from 'lucide-svelte/icons/zap'
   import { i18n } from '@/i18n'
-  import changelogData from '../../../../../web/src/data/changelog.json'
+  import changelogData from '@/data/changelog.json'
   import type {
     ChangelogEntry,
     ChangelogFile,
     ChangelogGroup,
-  } from '../../../../../web/src/data/changelog-types'
+  } from '@/data/changelog-types'
 
   const data = changelogData as ChangelogFile
   const GROUP_CONFIG: Record<ChangelogGroup, { labelKey: string; icon: typeof Sparkles }> =

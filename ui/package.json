@@ -15,7 +15,7 @@
     "format": "vp fmt src vite.config.ts",
     "test": "vp test run",
     "dev": "vp dev",
-    "build": "vp build"
+    "build": "vp build && vp build --mode lib"
   },
   "dependencies": {
     "@embeddablecut/engine": "0.0.0",

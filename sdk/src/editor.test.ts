@@ -110,6 +110,7 @@ describe('editor', () => {
     source.dispose()
 
     const e = await newEditor({ media: { url: false } })
+    expect(e.mediaSources).toEqual({ local: true, url: false })
     await expect(e.loadDocument(document)).rejects.toSatisfy(
       (error) => codeOf(error) === 'MEDIA_SOURCE_DISABLED',
     )

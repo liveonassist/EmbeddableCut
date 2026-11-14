@@ -1,7 +1,7 @@
 <!-- SPDX-License-Identifier: MIT -->
 <!-- placeholder: ported elsewhere -->
 <script lang="ts">
-  interface Props {
+  interface KeyframeGraphPanelProps {
     isOpen: boolean
     onToggle?: () => void
     onClose: () => void
@@ -10,13 +10,15 @@
     splitView?: boolean
     isFocusMode?: boolean
     onFocusModeChange?: (isFocusMode: boolean) => void
-    surface?: string
+    surface?: 'default' | 'edit' | 'motion'
     initialVisibleGroupIds?: readonly string[]
     propertyColumnWidth?: number
     timelineScrollContainer?: HTMLDivElement | null
   }
 
-  const props: Props = $props()
+  let props: KeyframeGraphPanelProps = $props()
   // svelte-ignore state_referenced_locally
   void props
 </script>
+
+<div></div>

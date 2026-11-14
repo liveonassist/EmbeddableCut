@@ -7,7 +7,7 @@
 
 export const importExportDialog = () => import('@/features/export/components/export-dialog.svelte')
 export const importExportsDialog = () =>
-  import('@/features/export/components/exports-dialog.svelte')
+  import('@/features/export/components/exports-dialog')
 
 // The runner + persistence are light (the heavy render engine loads lazily
 // inside the runner), so they're safe to import eagerly and mount at the

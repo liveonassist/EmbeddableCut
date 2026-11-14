@@ -1,0 +1,17 @@
+{
+  "media": {
+    "urlMedia": {
+      "streamTitle": "URL에서 미디어 추가",
+      "streamDescription": "URL에서 미디어 파일을 직접 스트리밍합니다. 작업 공간에는 아무것도 다운로드되지 않습니다.",
+      "streamHint": "서버는 CORS를 허용해야 하며 범위 요청을 지원해야 합니다.",
+      "modeLabel": "추가 방법",
+      "modeStream": "스트리밍",
+      "modeStreamHint": "원래 위치에서 읽기",
+      "modeDownload": "다운로드",
+      "modeDownloadHint": "작업 공간에 복사",
+      "add": "추가",
+      "addFailed": "URL에서 미디어를 추가할 수 없습니다",
+      "streamsFromUrl": "URL에서 스트리밍"
+    }
+  }
+}

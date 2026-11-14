@@ -227,6 +227,11 @@ export class Editor {
     await bootstrapWorkspace(root)
   }
 
+  /** Which media sources the host lets this editor use, so a UI can offer only those. */
+  get mediaSources(): MediaSourcePolicy {
+    return { local: this.policy.local, url: this.policy.url }
+  }
+
   on<K extends keyof EditorEvents>(
     event: K,
     listener: (payload: EditorEvents[K]) => void,

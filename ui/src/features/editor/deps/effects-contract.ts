@@ -7,6 +7,6 @@
 
 export { default as EffectsSection } from '@/features/effects/components/effects-section.svelte'
 export { default as ColorGradeSection } from '@/features/effects/components/color-grade-section.svelte'
-export { EffectThumbnail } from '@/features/effects/components/effect-thumbnail'
+export { default as EffectThumbnail } from '@/features/effects/components/effect-thumbnail/index.svelte'
 export { prewarmEffectPreviews } from '@/features/effects/components/effect-thumbnail/engine'
 export { useGpuEffectPreviewData } from '@/features/effects/hooks/use-gpu-effect-preview-data.svelte'

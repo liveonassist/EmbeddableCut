@@ -507,7 +507,7 @@
   }
   let positionScrubPreview: ItemPreview | null = null
   let positionScrubActive = false
-  const positionScrub = useRafCoalescedValue((position: { x: number; y: number }) => {
+  const positionScrub = useRafCoalescedValue(() => (position: { x: number; y: number }) => {
     useGizmoStore.getState().setTransformPreview({
       [item.id]: position,
     })
@@ -538,7 +538,7 @@
   }
   let scaleScrubPreview: ItemPreview | null = null
   let scaleScrubActive = false
-  const scaleScrub = useRafCoalescedValue((scale: { x: number; y: number }) => {
+  const scaleScrub = useRafCoalescedValue(() => (scale: { x: number; y: number }) => {
     scaleValueSource.setSnapshot(scale)
     if (!vectorBaseTransform) return
     useGizmoStore.getState().setTransformPreview({

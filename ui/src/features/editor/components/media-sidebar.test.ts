@@ -10,7 +10,7 @@ import { useEditorStore } from '@/shared/state/editor'
 import MediaSidebarHarness from './media-sidebar.harness.svelte'
 
 function fakeUi(panels: PanelContribution[]): EditorUi {
-  const editor = { id: 'fake-editor' }
+  const editor = { id: 'fake-editor', mediaSources: { url: true, local: true } }
   return {
     editor,
     contributions: {

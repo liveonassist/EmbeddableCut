@@ -506,7 +506,7 @@
 
   <!-- Exports + render queue dialog -->
   {#if renderQueueOpen}
-    {#await importExportsDialog() then { default: ExportsDialog }}
+    {#await importExportsDialog() then { ExportsDialog }}
       <ExportsDialog open={renderQueueOpen} onClose={() => (renderQueueOpen = false)} {projectId} />
     {/await}
   {/if}

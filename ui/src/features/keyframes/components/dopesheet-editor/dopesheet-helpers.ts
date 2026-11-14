@@ -1,5 +1,4 @@
 // SPDX-License-Identifier: MIT
-// placeholder: ported elsewhere
 
 import type { AnimatableProperty, Keyframe } from '@/types/keyframe'
 import { getPropertyDisplayGroups } from './property-groups'

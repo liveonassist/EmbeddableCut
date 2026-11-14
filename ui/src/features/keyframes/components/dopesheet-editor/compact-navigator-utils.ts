@@ -1,5 +1,4 @@
 // SPDX-License-Identifier: MIT
-// placeholder: ported elsewhere
 
 import { KEYFRAME_EDGE_INSET } from './layout'
 

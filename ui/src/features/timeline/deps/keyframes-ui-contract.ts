@@ -1,8 +1,7 @@
 // SPDX-License-Identifier: MIT
-// placeholder: ported elsewhere
 
 /**
- * UI half of `keyframes-contract`: the components and hooks that stay with the app.
+ * UI half of `keyframes-contract`: the components and hooks that stay with the UI.
  */
 
 export { DopesheetEditor } from '@/features/keyframes/components/dopesheet-editor'

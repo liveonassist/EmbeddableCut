@@ -1,11 +1,12 @@
 <!-- SPDX-License-Identifier: MIT -->
-<!-- placeholder: ported elsewhere -->
 <script lang="ts">
-  interface Props {
-    projectId: string
-  }
+  /**
+   * Loads/saves the render queue for the active project. Renders nothing —
+   * mount once near the editor root alongside <RenderQueueRunner />.
+   */
+  import { useRenderQueuePersistence } from '../hooks/use-render-queue-persistence.svelte'
 
-  const props: Props = $props()
-  // svelte-ignore state_referenced_locally
-  void props
+  let { projectId }: { projectId: string } = $props()
+
+  useRenderQueuePersistence(() => projectId)
 </script>
