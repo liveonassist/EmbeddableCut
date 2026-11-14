@@ -7,6 +7,7 @@ import type { TextItem, TimelineItem, VideoItem } from '@/types/timeline'
 import { useItemsStore } from '@/features/editor/deps/timeline-store'
 import { setTimelineState } from '@/features/editor/deps/timeline-test-helpers-contract'
 import { TextContentSection, TextEffectsSection, TextStyleSection } from './text-section'
+import TextSectionHarness from './text-section.harness.svelte'
 
 vi.mock('$lib/i18n.svelte', async (importOriginal) => ({
   ...(await importOriginal<typeof import('$lib/i18n.svelte')>()),
@@ -55,7 +56,7 @@ const SURFACES = {
 } as const
 
 function renderSection(items: TimelineItem[], surface: Surface = 'content') {
-  return render(SURFACES[surface], { items, canvas: CANVAS })
+  return render(TextSectionHarness, { section: SURFACES[surface], items, canvas: CANVAS })
 }
 
 function committedItem(itemId: string): TextItem {
