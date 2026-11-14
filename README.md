@@ -29,6 +29,7 @@ Everything FreeCut's editor does, the SDK keeps. Projects and media stay local: 
 ### Media, AI and export
 
 - **Import without copying:** video, audio, images, GIFs, SVG and Lottie, with Apple ProRes decode, proxies, filmstrips and waveforms.
+- **Media at URLs, read in place:** streamed with range requests and a shared block cache instead of downloaded, with signed-URL renewal and host-supplied authentication.
 - **On-device AI:** transcription and captions, scene detection and search, text-to-speech and music generation. Nothing is uploaded.
 - **Export in the browser:** MP4, WebM, MOV and MKV in H.264, H.265, VP8, VP9 or AV1; MP3, AAC and WAV audio; burned-in, sidecar or embedded subtitles.
 
@@ -71,6 +72,9 @@ just            # every other command
 
 - [`docs/GETTING_STARTED.md`](docs/GETTING_STARTED.md): build, run, and test from source.
 - [`docs/UPSTREAM.md`](docs/UPSTREAM.md): how FreeCut's changes are merged in.
+- [`docs/SCHEMAS.md`](docs/SCHEMAS.md): the versioned formats and their migration policy.
+- [`docs/MEDIA.md`](docs/MEDIA.md): local files and URL media, authentication, caching.
+- [`sdk/README.md`](sdk/README.md): driving the editor from your own app.
 - [`docs/DESIGN.md`](docs/DESIGN.md) and [`docs/PRODUCT.md`](docs/PRODUCT.md): FreeCut's design system and who it's for.
 - [`render/AGENTS.md`](render/AGENTS.md): the render CLIs, HTTP service and container.
 - [`CONTRIBUTING.md`](CONTRIBUTING.md): how changes land.

@@ -1,4 +1,5 @@
 import type { MediaStorageType } from '@/types/storage'
+import type { RemoteRequestMetadata } from '@/infrastructure/remote-media/remote-fetch'
 
 export interface ObjectUrlSourceMetadata {
   mediaId?: string
@@ -6,6 +7,8 @@ export interface ObjectUrlSourceMetadata {
   fileHandle?: FileSystemFileHandle
   opfsPath?: string
   fileSize?: number
+  /** For a remote URL: how to request and cache it, in whichever context reads it. */
+  remote?: RemoteRequestMetadata
 }
 
 export interface DirectObjectUrlSourceMetadata {
@@ -20,6 +23,16 @@ interface ObjectUrlEntry {
 }
 
 const entriesByUrl = new Map<string, ObjectUrlEntry>()
+const remoteByUrl = new Map<string, ObjectUrlSourceMetadata>()
+
+/** Records how to read a remote media URL, so sources built for it (and workers sent it) know. */
+export function registerRemoteUrl(url: string, metadata: ObjectUrlSourceMetadata): void {
+  remoteByUrl.set(url, metadata)
+}
+
+export function unregisterRemoteUrl(url: string): void {
+  remoteByUrl.delete(url)
+}
 
 export function registerObjectUrl(
   url: string,
@@ -34,7 +47,7 @@ export function getObjectUrlBlob(url: string): Blob | null {
 }
 
 export function getObjectUrlSourceMetadata(url: string): ObjectUrlSourceMetadata | null {
-  return entriesByUrl.get(url)?.metadata ?? null
+  return entriesByUrl.get(url)?.metadata ?? remoteByUrl.get(url) ?? null
 }
 
 /**

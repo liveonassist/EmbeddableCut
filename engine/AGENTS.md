@@ -57,6 +57,15 @@ Don't break these without an architecture discussion in the PR description.
 - Persisted projects carry `schemaVersion`; `migrateProject()` runs every migration in `shared/projects/migrations/` on load, and throws `ProjectSchemaTooNewError` for a project from a newer editor. The project schema is FreeCut's: EmbeddableCut adds no project migrations of its own.
 - A change to a format EmbeddableCut owns (`src/schema/`) bumps its version, adds a migration and regenerates `schemas/` (`npx vp test run src/schema -u`); `docs/SCHEMAS.md` is the checklist.
 
+### URL media
+
+- `storageType: 'url'` media is read where it lives: never copied, never downloaded whole on the playback path. [`docs/MEDIA.md`](../docs/MEDIA.md) is the full picture.
+- **Every mediabunny read of a URL goes through `createRemoteFetch`** (`infrastructure/remote-media/`), via `createMediabunnyInputSource`: host headers, URL renewal, and the shared block cache. Build sources with that factory, never `new UrlSource` directly.
+- Workers learn how to read a URL from `ObjectUrlSourceMetadata.remote`; pass `getObjectUrlSourceMetadata(src)` with any URL sent to a worker.
+- `features/media-library/services/remote-media.ts` owns which URL each asset reads now, renews through the host's resolver, and moves readers over by invalidating the asset's entry in `blobUrlManager`.
+- Credentials (`headers`) live only in memory, in the remote registry; `MediaMetadata.remote` and asset records never hold them.
+- Remote preview `<video>` elements are CORS (`crossOrigin`, set in `VideoSourcePool`); the export engine gives remote sources no fallback element.
+
 ### Rendering
 
 - `createCompositionRenderer()` takes a plain `CompositionInputProps` snapshot, so the same engine serves preview overlays, export, thumbnails and the headless harness. Sub-compositions and media still come from `useCompositionsStore` and the media library, which is why a worker export with compositions falls back to the main thread (`WORKER_REQUIRES_MAIN_THREAD:composition`).

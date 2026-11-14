@@ -184,6 +184,11 @@ async function recoverAudioDecode(params: {
   allowWebAudioFallback: boolean
   error: unknown
 }): Promise<DecodedAudio> {
+  // A remote file mediabunny parsed and found silent stays silent: the
+  // retries below would download all of it to learn the same thing.
+  if (/^https?:/i.test(params.src) && getErrorMessage(params.error) === 'No audio track found') {
+    throw params.error
+  }
   if (!params.ac3RetryAttempted && !isAc3AudioCodec(params.audioCodec)) {
     try {
       await ensureAc3DecoderRegistered()

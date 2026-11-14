@@ -581,17 +581,6 @@
       ]
     },
     {
-      "path": "sdk/src/extensions.ts",
-      "reason": "Public SDK API: hosts call it; nothing inside the repository has to.",
-      "members": [
-        {
-          "parentName": "ExtensionHost",
-          "memberName": "mediaProviders",
-          "kind": "class_method"
-        }
-      ]
-    },
-    {
       "path": "sdk/src/media.ts",
       "reason": "Public SDK API: hosts call it; nothing inside the repository has to.",
       "members": [
@@ -608,6 +597,11 @@
         {
           "parentName": "MediaApi",
           "memberName": "remove",
+          "kind": "class_method"
+        },
+        {
+          "parentName": "MediaApi",
+          "memberName": "addUrl",
           "kind": "class_method"
         }
       ]

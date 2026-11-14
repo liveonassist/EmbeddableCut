@@ -36,9 +36,14 @@ export {
 } from './extensions'
 export {
   MediaApi,
+  clearUrlMediaCache,
+  setUrlMediaCacheBudget,
   type MediaProvider,
+  type MediaResolveReason,
+  type MediaResolver,
   type MediaSourcePolicy,
   type ResolvedMediaSource,
+  type UrlMedia,
 } from './media'
 export { SDK_VERSION } from './version'
 export {

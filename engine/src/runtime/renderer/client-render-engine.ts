@@ -767,7 +767,9 @@ export async function createCompositionRenderer(
   }
 
   const bindFallbackVideoElement = (itemId: string, src: string): void => {
-    if (!fallbackVideoPool) return
+    // A remote source gets no fallback element: it would buffer the file a
+    // second time, and a URL mediabunny can't read, a <video> can't either.
+    if (!fallbackVideoPool || /^https?:/i.test(src)) return
 
     let clipId = fallbackVideoClipIdByItem.get(itemId)
     if (!clipId) {

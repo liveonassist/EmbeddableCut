@@ -49,7 +49,11 @@ import {
 import { EditorError } from './errors'
 import { Emitter } from './events'
 import { ExtensionHost, requirementsOf, type Extension } from './extensions'
-import { MediaApi, type MediaSourcePolicy } from './media'
+import { MediaApi, createRemoteResolver, type MediaResolver, type MediaSourcePolicy } from './media'
+import {
+  resetRemoteMedia,
+  setRemoteMediaResolver,
+} from '@embeddablecut/engine/features/media-library/services/remote-media'
 import { SDK_VERSION } from './version'
 
 export interface EditorOptions {
@@ -60,8 +64,12 @@ export interface EditorOptions {
    * and documents only.
    */
   workspace?: FileSystemDirectoryHandle | 'opfs'
-  /** Which media sources the editor accepts. */
-  media?: Partial<MediaSourcePolicy>
+  /**
+   * Which media sources the editor accepts, and how URL assets are resolved:
+   * signed, renewed before they expire, or given the host's credentials.
+   * Media providers from extensions are asked after `resolve`.
+   */
+  media?: Partial<MediaSourcePolicy> & { resolve?: MediaResolver }
   /** Installed before anything loads; a document may depend on them. */
   extensions?: Extension[]
 }
@@ -164,7 +172,13 @@ export class Editor {
   /** @internal Use {@link createEditor}. */
   constructor(options: EditorOptions) {
     this.policy = { local: options.media?.local ?? true, url: options.media?.url ?? true }
-    this.media = new MediaApi(this.policy, () => this.requireProject())
+    const resolver = createRemoteResolver(options.media?.resolve, () => this.extensions.mediaProviders())
+    setRemoteMediaResolver(resolver)
+    this.teardown.push(() => {
+      setRemoteMediaResolver(null)
+      resetRemoteMedia()
+    })
+    this.media = new MediaApi(this.policy, () => this.requireProject(), resolver)
     for (const extension of options.extensions ?? []) this.extensions.install(extension)
 
     this.teardown.push(onNotification((notice) => this.events.emit('notification', notice)))

@@ -13,7 +13,7 @@
 // Options:
 //   --at <sec>            Time to grab (seconds). Default 0.
 //   --frame <n>           Frame index to grab (overrides --at).
-//   --out <path>          Output image (default: ./headless/output/frame.<ext>)
+//   --out <path>          Output image (default: ./render/output/frame.<ext>)
 //   --format <f>          png|jpg|webp (default: png)
 //   --width/--height <n>  Output size (default: project resolution — full quality)
 //   --quality <0..1>      Encoder quality for jpg/webp (default: 1)
@@ -48,7 +48,7 @@ async function main() {
   const mime = MIME_BY_FORMAT[format]
   if (!mime) throw new Error(`Unknown --format "${args.format}" (use png|jpg|webp)`)
   const ext = EXT_BY_MIME[mime]
-  const outPath = path.resolve(args.out ?? path.join('headless', 'output', `frame.${ext}`))
+  const outPath = path.resolve(args.out ?? path.join('render', 'output', `frame.${ext}`))
 
   const atSeconds = args.at !== undefined ? Number(args.at) : undefined
   const frame = args.frame !== undefined ? Number(args.frame) : undefined

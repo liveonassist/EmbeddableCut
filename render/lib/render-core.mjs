@@ -180,13 +180,25 @@ export async function startHarness({ workspace, devUrl, build, resolveAdditional
  */
 export function resolveProjectMedia(workspace, project, mediaUrlOf, range = null) {
   const mediaIds = collectMediaIds(project, range)
-  const { files, missing } = resolveMediaFiles(workspace, mediaIds)
-  const media = [...files.keys()].map((id) => ({
-    mediaId: id,
-    url: mediaUrlOf(id),
-    metadata: readMediaMetadata(workspace, id) ?? undefined,
-  }))
-  return { media, missing, mediaResolved: files.size, mediaTotal: mediaIds.length }
+  // URL media is read where it lives, by the page, exactly as the editor reads it.
+  const remote = new Map()
+  for (const id of mediaIds) {
+    const metadata = readMediaMetadata(workspace, id)
+    if (metadata?.storageType === 'url' && metadata.remote?.url) remote.set(id, metadata)
+  }
+  const { files, missing } = resolveMediaFiles(
+    workspace,
+    mediaIds.filter((id) => !remote.has(id)),
+  )
+  const media = [
+    ...[...files.keys()].map((id) => ({
+      mediaId: id,
+      url: mediaUrlOf(id),
+      metadata: readMediaMetadata(workspace, id) ?? undefined,
+    })),
+    ...[...remote].map(([id, metadata]) => ({ mediaId: id, url: metadata.remote.url, metadata })),
+  ]
+  return { media, missing, mediaResolved: files.size + remote.size, mediaTotal: mediaIds.length }
 }
 
 /** Load a project from a job's `project` id/path or inline `projectObject`. */
@@ -215,7 +227,7 @@ export function prepareJob(workspace, jobArgs, mediaUrlOf) {
   )
 
   const outName = `${(project.name ?? 'freecut-export').replace(/[^\w.-]+/g, '_')}.${settings.container}`
-  const outPath = path.resolve(jobArgs.out ?? path.join('headless', 'output', outName))
+  const outPath = path.resolve(jobArgs.out ?? path.join('render', 'output', outName))
 
   return {
     project,

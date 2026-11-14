@@ -87,6 +87,12 @@ import { parseLottieFileBytes } from '@/infrastructure/lottie/lottie-metadata'
 import { getSharedProxyKey } from '../utils/proxy-key'
 import { mediaProcessorService } from './media-processor-service'
 import { generateThumbnail } from '../utils/thumbnail-generator'
+import { getWorkspaceRoot } from '@/infrastructure/storage/workspace-fs/root'
+import {
+  cacheKeyForUrl,
+  createRemoteFetch,
+  type RemoteRequestMetadata,
+} from '@/infrastructure/remote-media/remote-fetch'
 import {
   needsCustomAudioDecoder,
   startPreviewAudioConform,
@@ -1231,6 +1237,114 @@ class MediaLibraryService {
   }
 
   /**
+   * Add remote media by reference: probed in place with range requests and
+   * never downloaded whole, then read from its URL by preview, export and
+   * server renders alike. With a workspace, its record (no credentials) is
+   * saved like any other media; without one it lives in the store only.
+   *
+   * `request` carries the host's headers for probing; they're not persisted.
+   */
+  async importMediaByReference(
+    source: {
+      url: string
+      fileName?: string
+      mimeType?: string
+      /** Stable key the host's resolver renews the URL from. */
+      key?: string
+      expiresAt?: number
+      request?: Pick<RemoteRequestMetadata, 'headers' | 'credentials'>
+    },
+    projectId: string,
+  ): Promise<MediaMetadata> {
+    if (!projectId) {
+      throw new Error('No project selected')
+    }
+    const remote: RemoteRequestMetadata = {
+      cacheKey: source.key ?? cacheKeyForUrl(source.url),
+      ...source.request,
+    }
+
+    // One byte tells us the size, the type, and whether ranges work.
+    const head = await createRemoteFetch({ ...remote, noCache: true })(source.url, {
+      headers: { Range: 'bytes=0-0' },
+    })
+    if (!head.ok) {
+      throw new Error(`Could not open ${source.url}: HTTP ${head.status}`)
+    }
+    const total = /\/(\d+)$/.exec(head.headers.get('Content-Range') ?? '')?.[1]
+    const fileSize = Number(total ?? head.headers.get('Content-Length') ?? 0)
+    await head.body?.cancel()
+    const fileName =
+      source.fileName ??
+      decodeURIComponent(new URL(source.url).pathname.split('/').pop() || 'remote-media')
+    const headerType = head.headers.get('Content-Type')?.split(';')[0]?.trim()
+    const mimeType =
+      source.mimeType ??
+      (headerType && headerType !== 'application/octet-stream'
+        ? headerType
+        : getMimeType(new File([], fileName)))
+
+    const { metadata, thumbnail } = await mediaProcessorService.processMedia(
+      { url: source.url, name: fileName, size: fileSize, remote },
+      mimeType,
+      { thumbnailTimestamp: 1, fastMetadata: true },
+    )
+
+    const id = crypto.randomUUID()
+    const persisted = Boolean(getWorkspaceRoot())
+    let thumbnailId: string | undefined
+    if (thumbnail && persisted) {
+      try {
+        thumbnailId = crypto.randomUUID()
+        await saveThumbnailDB({ id: thumbnailId, mediaId: id, blob: thumbnail, timestamp: 1, width: 320, height: 180 })
+      } catch (error) {
+        logger.warn('Failed to save thumbnail:', error)
+        thumbnailId = undefined
+      }
+    }
+
+    const mediaMetadata: MediaMetadata = {
+      id,
+      storageType: 'url',
+      remote: {
+        url: source.url,
+        ...(source.expiresAt === undefined ? {} : { expiresAt: source.expiresAt }),
+        ...(source.key === undefined ? {} : { key: source.key }),
+      },
+      fileName,
+      fileSize,
+      mimeType,
+      duration: 'duration' in metadata ? metadata.duration : 0,
+      width: 'width' in metadata ? metadata.width : 0,
+      height: 'height' in metadata ? metadata.height : 0,
+      fps: metadata.type === 'video' ? metadata.fps : 30,
+      frameRateMetrics: metadata.type === 'video' ? metadata.frameRateMetrics : undefined,
+      codec:
+        metadata.type === 'video'
+          ? metadata.codec
+          : metadata.type === 'audio'
+            ? metadata.codec || 'unknown'
+            : 'unknown',
+      bitrate: 'bitrate' in metadata ? (metadata.bitrate ?? 0) : 0,
+      audioCodec: metadata.type === 'video' ? metadata.audioCodec : undefined,
+      audioCodecSupported: metadata.type === 'video' ? metadata.audioCodecSupported : true,
+      videoCodecSupported: metadata.type === 'video' ? metadata.videoCodecSupported : true,
+      keyframeTimestamps: metadata.type === 'video' ? metadata.keyframeTimestamps : undefined,
+      gopInterval: metadata.type === 'video' ? metadata.gopInterval : undefined,
+      thumbnailId,
+      tags: [],
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+    }
+
+    if (persisted) {
+      await createMediaDB(mediaMetadata)
+      await associateMediaWithProject(projectId, id)
+    }
+    return mediaMetadata
+  }
+
+  /**
    * Import a Lottie animation from a direct `.lottie`/`.json` URL into
    * OPFS-backed storage. Unlike {@link importMediaFromUrl}, the file is named
    * from `fileName` (so the library shows a human-readable title instead of a
@@ -1697,6 +1811,12 @@ class MediaLibraryService {
       return null
     }
     const id = media.id
+
+    // URL media: fetched whole, through the host's headers and URL renewal.
+    if (media.storageType === 'url' && media.remote) {
+      const { fetchRemoteMediaFile } = await import('./remote-media')
+      return fetchRemoteMediaFile(media)
+    }
 
     // Workspace-folder storage (durable, cross-origin source of truth).
     // Source bytes live at `media/{id}/{filename}` in the user-picked folder.

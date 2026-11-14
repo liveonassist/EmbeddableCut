@@ -4,6 +4,7 @@ import {
   type ObjectUrlSourceMetadata,
 } from './object-url-registry'
 import { getOpfsFileBlob } from './opfs-file-access'
+import { createRemoteFetch } from '@/infrastructure/remote-media/remote-fetch'
 
 type MediabunnyModule = typeof import('mediabunny')
 
@@ -101,6 +102,15 @@ export function createMediabunnyInputSource(
 
   if (src.startsWith('blob:') && isWorkerContext()) {
     throw new Error('Blob URL source is not registered in this worker')
+  }
+
+  if (metadata?.remote) {
+    return new mb.UrlSource(src, {
+      fetchFn: createRemoteFetch(metadata.remote),
+      ...(metadata.remote.credentials
+        ? { requestInit: { credentials: metadata.remote.credentials } }
+        : {}),
+    })
   }
 
   return new mb.UrlSource(src)

@@ -1,4 +1,5 @@
 import { createLogger } from '@/shared/logging/logger'
+import { getObjectUrlSourceMetadata } from '@/infrastructure/browser/object-url-registry'
 
 const logger = createLogger('VideoSourcePool')
 
@@ -445,6 +446,12 @@ class SourceController {
 
   private createElementSync(): HTMLVideoElement {
     const element = document.createElement('video')
+    // A remote source is read with CORS, which cross-origin isolation needs
+    // and which keeps its frames drawable into the GPU overlays.
+    if (/^https?:/i.test(this.sourceUrl)) {
+      const credentials = getObjectUrlSourceMetadata(this.sourceUrl)?.remote?.credentials
+      element.crossOrigin = credentials === 'include' ? 'use-credentials' : 'anonymous'
+    }
     element.src = this.sourceUrl
     element.preload = 'auto'
     element.playsInline = true

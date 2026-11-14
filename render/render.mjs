@@ -14,7 +14,7 @@
 // single warm browser.
 //
 // Options:
-//   --out <path>           Output file (default: ./headless/output/<name>.<ext>)
+//   --out <path>           Output file (default: ./render/output/<name>.<ext>)
 //   --codec <c>            h264|h265|vp9|vp8|av1 (default: h264, auto-fallback)
 //   --container <c>        mp4|webm|mov|mkv (default: derived from codec)
 //   --resolution <WxH>     Override output resolution (default: project metadata)

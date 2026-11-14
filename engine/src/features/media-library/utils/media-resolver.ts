@@ -6,6 +6,7 @@ import { blobUrlManager } from '@/infrastructure/browser/blob-url-manager'
 import { registerKeyframeIndex } from '@/shared/utils/keyframe-index-registry'
 import type { TimelineTrack } from '@/types/timeline'
 import { createLogger } from '@/shared/logging/logger'
+import { resolveRemoteMediaUrl } from '@/features/media-library/services/remote-media'
 
 const logger = createLogger('MediaResolver')
 
@@ -16,6 +17,12 @@ const logger = createLogger('MediaResolver')
  * @returns Blob URL for the media, or empty string if not found
  */
 export async function resolveMediaUrl(mediaId: string): Promise<string> {
+  // URL media is read where it lives; the remote service renews expiring URLs.
+  const remoteMedia = useMediaLibraryStore.getState().mediaById[mediaId]
+  if (remoteMedia?.storageType === 'url' && remoteMedia.remote) {
+    return resolveRemoteMediaUrl(remoteMedia)
+  }
+
   // Check centralized manager first - URLs persist until explicit release
   const cached = blobUrlManager.get(mediaId)
   if (cached) {

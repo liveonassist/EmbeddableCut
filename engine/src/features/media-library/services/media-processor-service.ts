@@ -8,6 +8,7 @@
 import { createLogger } from '@/shared/logging/logger'
 import { createManagedWorker, rejectAndDeletePendingRequests } from '@/shared/utils/managed-worker'
 import type {
+  RemoteProbeFile,
   ProcessMediaRequest,
   ProcessMediaResponse,
   VideoMetadata,
@@ -102,7 +103,7 @@ class MediaProcessorService {
    * @returns Promise with metadata and thumbnail
    */
   async processMedia(
-    file: File,
+    file: File | RemoteProbeFile,
     mimeType: string,
     options?: {
       thumbnailMaxSize?: number

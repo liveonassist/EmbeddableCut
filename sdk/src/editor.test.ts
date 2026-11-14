@@ -53,12 +53,12 @@ describe('editor', () => {
 
     const document = e.toDocument()
     const item = document.project.timeline?.items.find(
-      (i) => i.id === (text?.detail as { id: string }).id,
+      (i) => i.id === (text!.detail as { id: string }).id,
     )
     expect(item).toMatchObject({
       type: 'text',
       text: 'Hello',
-      trackId: (track?.detail as { trackId: string }).trackId,
+      trackId: (track!.detail as { trackId: string }).trackId,
     })
     expect(document.requires).toEqual([])
   })
@@ -153,7 +153,7 @@ describe('extensions', () => {
     ])
     withEffect.apply({
       op: 'addEffect',
-      itemId: (text?.detail as { id: string }).id,
+      itemId: (text!.detail as { id: string }).id,
       gpuEffectType: 'acme.tint',
     })
     const document = withEffect.toDocument()

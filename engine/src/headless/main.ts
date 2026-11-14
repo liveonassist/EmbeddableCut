@@ -450,7 +450,10 @@ function reportProgress(progress: RenderProgress): void {
  */
 function registerMediaUrls(media: HeadlessMediaSource[] | undefined): void {
   if (!media?.length) return
-  for (const { mediaId, url } of media) {
+  for (const { mediaId, url, metadata } of media) {
+    // URL media resolves through the remote media service once seeded, which
+    // reads it through the shared range cache.
+    if (metadata?.storageType === 'url') continue
     if (blobUrlManager.get(mediaId)) continue
     blobUrlManager.registerUrl(mediaId, url)
   }

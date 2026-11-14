@@ -17,6 +17,10 @@ import {
 import { createLogger, createOperationId } from '@/shared/logging/logger'
 import { DEFAULT_PROJECT_HEIGHT, DEFAULT_PROJECT_WIDTH } from '@/shared/projects/defaults'
 import type { VideoFrameRateMetrics } from '@/types/storage'
+import {
+  createRemoteFetch,
+  type RemoteRequestMetadata,
+} from '@/infrastructure/remote-media/remote-fetch'
 
 const logger = createLogger('MediaProcessorWorker')
 const KEYFRAME_EXTRACTION_TIMEOUT_MS = 8_000
@@ -92,6 +96,7 @@ interface MediabunnyModule {
   Input: new (config: { formats: unknown; source: unknown }) => MediabunnyInput
   ALL_FORMATS: unknown
   BlobSource: new (blob: Blob) => unknown
+  UrlSource: new (url: string, options?: { fetchFn?: typeof fetch; requestInit?: RequestInit }) => unknown
   CanvasSink: new (
     track: MediabunnyVideoTrack,
     options: { width: number; height: number; fit: string },
@@ -99,11 +104,41 @@ interface MediabunnyModule {
   EncodedPacketSink: new (track: MediabunnyVideoTrack) => MediabunnyEncodedPacketSink
 }
 
+/** A remote file probed in place, by range requests, instead of a local `File`. */
+export interface RemoteProbeFile {
+  url: string
+  name: string
+  size: number
+  remote: RemoteRequestMetadata
+}
+
+type ProbeFile = File | RemoteProbeFile
+
+function isRemote(file: ProbeFile): file is RemoteProbeFile {
+  return !(file instanceof Blob)
+}
+
+function probeSource(mb: MediabunnyModule, file: ProbeFile): unknown {
+  if (!isRemote(file)) return new mb.BlobSource(file)
+  return new mb.UrlSource(file.url, {
+    fetchFn: createRemoteFetch(file.remote),
+    ...(file.remote.credentials ? { requestInit: { credentials: file.remote.credentials } } : {}),
+  })
+}
+
+/** Images are decoded whole, so a remote one is fetched first. */
+async function toLocalFile(file: ProbeFile, mimeType: string): Promise<File> {
+  if (!isRemote(file)) return file
+  const response = await createRemoteFetch(file.remote)(file.url)
+  if (!response.ok) throw new Error(`Fetching ${file.name} failed: HTTP ${response.status}`)
+  return new File([await response.blob()], file.name, { type: mimeType })
+}
+
 // Message types
 export interface ProcessMediaRequest {
   type: 'process'
   requestId: string
-  file: File
+  file: ProbeFile
   mimeType: string
   options?: {
     thumbnailMaxSize?: number
@@ -310,14 +345,14 @@ async function extractKeyframeTimestamps(
  * Extract video metadata using mediabunny
  */
 async function extractVideoMetadata(
-  file: File,
+  file: ProbeFile,
   options: { fastMetadata?: boolean } = {},
 ): Promise<VideoMetadata> {
   const mb = await getMediabunny()
 
   const input = new mb.Input({
     formats: mb.ALL_FORMATS,
-    source: new mb.BlobSource(file),
+    source: probeSource(mb, file),
   })
 
   try {
@@ -391,12 +426,12 @@ async function extractVideoMetadata(
 /**
  * Extract audio metadata using mediabunny
  */
-async function extractAudioMetadata(file: File): Promise<AudioMetadata> {
+async function extractAudioMetadata(file: ProbeFile): Promise<AudioMetadata> {
   const mb = await getMediabunny()
 
   const input = new mb.Input({
     formats: mb.ALL_FORMATS,
-    source: new mb.BlobSource(file),
+    source: probeSource(mb, file),
   })
 
   try {
@@ -474,7 +509,7 @@ async function extractImageMetadata(file: File, mimeType: string): Promise<Image
  * Generate video thumbnail using mediabunny
  */
 async function generateVideoThumbnail(
-  file: File,
+  file: ProbeFile,
   maxSize: number,
   quality: number,
   timestamp: number,
@@ -482,7 +517,7 @@ async function generateVideoThumbnail(
   const mb = await getMediabunny()
 
   const input = new mb.Input({
-    source: new mb.BlobSource(file),
+    source: probeSource(mb, file),
     formats: mb.ALL_FORMATS,
   })
   let sink: MediabunnyCanvasSink | null = null
@@ -563,7 +598,11 @@ async function generateImageThumbnail(
 /**
  * Generate audio thumbnail (waveform placeholder)
  */
-async function generateAudioThumbnail(file: File, maxSize: number, quality: number): Promise<Blob> {
+async function generateAudioThumbnail(
+  file: ProbeFile,
+  maxSize: number,
+  quality: number,
+): Promise<Blob> {
   const width = maxSize
   const height = Math.round(maxSize * (9 / 16))
 
@@ -611,7 +650,7 @@ async function generateAudioThumbnail(file: File, maxSize: number, quality: numb
  * Process a media file - extract metadata and generate thumbnail
  */
 async function processMedia(
-  file: File,
+  file: ProbeFile,
   mimeType: string,
   options: ProcessMediaRequest['options'] = {},
 ): Promise<{ metadata: VideoMetadata | AudioMetadata | ImageMetadata; thumbnail?: Blob }> {
@@ -652,6 +691,7 @@ async function processMedia(
     thumbnail = audioThumb
   } else if (mimeType.startsWith('image/')) {
     // Image: metadata and thumbnail can run in parallel
+    file = await toLocalFile(file, mimeType)
     const [imageMeta, imageThumb] = await Promise.all([
       extractImageMetadata(file, mimeType),
       generateThumbnail
