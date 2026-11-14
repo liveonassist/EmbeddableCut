@@ -17,7 +17,7 @@ npm run dev       # Vite dev server for embed.html
 `src/` mirrors `web/src/` path for path: **`web/src/<path>/<name>.tsx` is ported to `ui/src/<path>/<name>.svelte`**, and a React hook `use-<name>.ts` to `use-<name>.svelte.ts`. Keep FreeCut's file names (kebab-case), so an upstream change to a React file names the Svelte file to carry it to.
 
 - `src/lib/` — the bindings every component uses: `store.svelte.ts` (`select`), `i18n.svelte.ts` (`t`), `hotkeys.svelte.ts` (`useHotkeys`), `cn.ts`, `context.ts` (`getEditorUi`, `portalTarget`).
-- `src/components/ui/` — the primitives, ports of the shadcn/Radix kit on bits-ui, with the React kit's class strings unchanged.
+- `src/components/ui/` — the primitives, ports of the shadcn/Radix kit on bits-ui, with the React kit's class strings unchanged ([Primitives](#primitives)).
 - `src/embed/` — `mountEditor`, `mountEditorFrame`, the iframe page's entry, fonts.
 - `src/extensions/` — what hosts and extensions contribute (`UiContributions`), and the `ContributionRegistry` the UI reads them from.
 - `src/theme/` — `ThemeController`: dark (FreeCut's), light, system, and token overrides.
@@ -63,8 +63,33 @@ The bar is FreeCut's editor as it is: same markup, same Tailwind classes, same b
 - **Global cursors and drag state** set classes on `document.body` in FreeCut. Set them on `document.body` and on the editor's `.ec-root` (`getEditorUi().portalTarget` and its root), since a shadow root sees only the latter; the CSS matches both.
 - **Ports keep FreeCut's comments** where they explain the why, and drop those that described React mechanics.
 - New files start with an SPDX header: `<!-- SPDX-License-Identifier: MIT -->` in `.svelte`, `// SPDX-License-Identifier: MIT` in `.ts`.
-- **Tests** port the React tests that check behavior (`*.test.tsx` → `*.test.ts` with `@testing-library/svelte`), at about the same density. Snippets in tests come from `createRawSnippet`.
-- Formatting: oxfmt from inside `ui/` (`npx vp fmt src`), never from the repo root, which has no config.
+- **A React file exporting several components becomes a folder** named after it: one `.svelte` per component and an `index.ts` re-exporting them under the React names (`io-range-markers.tsx` → `io-range-markers/`, `shapes/components.tsx` → `shapes/components/`). The React file's barrels (`index.ts`) port as barrels of `.svelte` defaults.
+- **Element refs passed in become elements.** A `RefObject<El>` prop is the element itself, named without `Ref` (`positionSyncTargetRef` → `positionSyncTarget`, `scrollRef` → `scroll`), bound with `bind:this` to a `$state`. Mutable value refs (`suppressRefs`, `rafRef`) keep their `{ current }` shape.
+- **Hooks take getters and return getters.** A hook's arguments are getter functions (`useNaturalHeight(() => el)`), an options object is one getter (`useMarqueeSelection(() => ({ container, items, … }))`) read on every event, so handlers see the latest props. Reactive results come back as `{ current }` or an object with getters (`selection.isActive`, `pickWhip.drag`): never destructure them. React's `containerRef`/`hitAreaRef` options are `container`/`hitArea`.
+- **`*ClassName` props are `*Class`** (`triggerClassName` → `triggerClass`, `handleClassName` → `handleClass`), like `className` → `class`.
+- **No whitespace where JSX has none.** Svelte keeps one space between sibling elements on separate lines; JSX drops it. In inline contexts (text, `inline-flex` text content), write siblings adjacent (`</span><span>`).
+- **Types exported from a component's `<script module>` are invisible to oxlint**: put shared prop types in a `.ts` beside the component (`window-portal/types.ts`).
+- **Tests** port the React tests that check behavior (`*.test.tsx` → `*.test.ts` with `@testing-library/svelte`), at about the same density. Snippets in tests come from `createRawSnippet`; a test that composes components renders a `<name>.harness.svelte` beside it.
+- Formatting: oxfmt from inside `ui/` (`npx vp fmt src`), never from the repo root, which has no config. oxfmt skips `.svelte` files: format those by hand, as the surrounding code is.
+
+## Primitives
+
+`src/components/ui/` ports FreeCut's shadcn/Radix kit onto bits-ui 2 (and paneforge, svelte-sonner), with every class string as the React kit has it.
+
+- **One folder per React file, imported as the React file was.** `web/src/components/ui/<name>.tsx` is `ui/src/components/ui/<name>/`: one `.svelte` per exported part (`dropdown-menu/dropdown-menu-content.svelte`) and an `index.ts` exporting them under the React names, so `import { DropdownMenu, DropdownMenuContent } from '@/components/ui/dropdown-menu'` works unchanged. Single components follow the same scheme (`input/input.svelte` + `input/index.ts`). `button-variants.ts` stays at `components/ui/button-variants.ts`, where React imports it.
+- Parts that Radix and bits-ui share unchanged are re-exported straight from bits-ui (`export const DropdownMenuTrigger = DropdownMenuPrimitive.Trigger`); parts with classes or markup are `.svelte` wrappers.
+- **Roots accept Radix's uncontrolled defaults** where bits-ui has none: `Tabs`/`Accordion`/`Select` `defaultValue`, `Collapsible`/`Select` `defaultOpen`, `Switch` `defaultChecked`. Controlled props bind (`bind:value`, `bind:open`) or pair with `onValueChange`/`onOpenChange`.
+- **`asChild` is the `child` snippet**: `<PopoverTrigger>{#snippet child({ props })}<Button {...props}>…</Button>{/snippet}</PopoverTrigger>`.
+- **Every portaling part portals to `portalTarget()`**, or to its `container` prop where the React part had one (dialog, alert-dialog, popover, menus, select, tooltip). Non-Radix overlays (`FloatingPanel`, the eyedropper, the IO readout) portal there through bits-ui's `Portal`.
+- **Radix names map to bits-ui's.** CSS variables `--radix-<part>-*` are `--bits-<part>-*`; `--radix-select-trigger-width/height` is `--bits-select-anchor-width/height`. Attributes: `data-radix-scroll-area-viewport` → `data-scroll-area-viewport`, `data-radix-popper-content-wrapper` → `data-bits-floating-content-wrapper`, `data-panel-group-direction` → `data-direction` (paneforge). Content callbacks use bits-ui's names (`onEscapeKeydown`, `onInteractOutside` for Radix's `onPointerDownOutside`).
+- **Deliberate differences from Radix, so rendering and behavior match:**
+  - `Select` registers each item's children so `SelectValue` shows the selected label while closed (Radix renders closed content offscreen for this); bits-ui highlights select items with `data-highlighted` instead of focus, so `SelectItem` adds `data-[highlighted]:` twins of its `focus:` accents. Only `position="popper"` exists.
+  - `AlertDialogAction` closes the dialog after its `onclick` (a bits-ui `Dialog.Close`), as Radix's does; bits-ui's Action doesn't.
+  - Menu labels are plain `<div>`s (bits-ui's `GroupHeading` needs a group); `ContextMenuTrigger` renders Radix's `<span>`.
+  - bits-ui has no Progress Indicator or Slider Track part: the wrappers render Radix's markup for them.
+  - `GlobalTooltip` listens on its own root node: `mouseenter` isn't composed, so the host's document never sees the editor's shadow-root elements.
+- `editor-root.svelte` mounts what FreeCut's `app.tsx` does: `TooltipProvider` (bits-ui tooltips need one), `GlobalTooltip`, and the kit's `Toaster`.
+- `svelte.config.js` compiles `node_modules` components in their own mode (lucide-svelte is Svelte 4 syntax) with `css: 'injected'`, which Svelte appends to the component's root node, so library styles (svelte-sonner, bits-ui) reach a shadow-root editor.
 
 ## Conventions
 
