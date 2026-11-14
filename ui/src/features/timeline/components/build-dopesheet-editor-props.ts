@@ -222,15 +222,17 @@ function buildLinkedTimelineProps({
   | 'editTimelineViewportWidth'
   | 'getEditTimelineLivePixelsPerSecond'
   | 'handleEditTimelineEdgeScroll'
->): Pick<
-  DopesheetProps,
-  | 'globalFrameToPixels'
-  | 'timelineScrollContainer'
-  | 'timelinePanBaseScrollLeft'
-  | 'timelinePanBasePixelsPerSecond'
-  | 'linkedTimelineViewportWidth'
-  | 'getTimelineLivePixelsPerSecond'
-  | 'onRulerEdgeScroll'
+>): Partial<
+  Pick<
+    DopesheetProps,
+    | 'globalFrameToPixels'
+    | 'timelineScrollContainer'
+    | 'timelinePanBaseScrollLeft'
+    | 'timelinePanBasePixelsPerSecond'
+    | 'linkedTimelineViewportWidth'
+    | 'getTimelineLivePixelsPerSecond'
+    | 'onRulerEdgeScroll'
+  >
 > {
   if (surface !== 'edit') return {}
 
@@ -267,9 +269,11 @@ function buildDockedSheetProps({
   | 'editTimelineFps'
   | 'handleTrimAnimation'
   | 'handleSkim'
->): Pick<
-  DopesheetProps,
-  'playheadFrame' | 'affectedFrameRange' | 'onTrimAnimation' | 'scrubFrameBounds' | 'onSkim'
+>): Partial<
+  Pick<
+    DopesheetProps,
+    'playheadFrame' | 'affectedFrameRange' | 'onTrimAnimation' | 'scrubFrameBounds' | 'onSkim'
+  >
 > {
   if (surface !== 'edit') return {}
 
