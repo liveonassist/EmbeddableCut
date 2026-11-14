@@ -23,7 +23,10 @@ class MockStreamSource {
 }
 
 class MockUrlSource {
-  constructor(public readonly url: string) {}
+  constructor(
+    public readonly url: string,
+    public readonly options?: { fetchFn?: typeof fetch },
+  ) {}
 }
 
 const mockMediabunny = {
@@ -133,10 +136,15 @@ describe('createMediabunnyInputSource', () => {
     expect((source as unknown as MockBlobSource).blob).toBe(blob)
   })
 
-  it('falls back to UrlSource for unregistered URLs', () => {
-    const source = createMediabunnyInputSource(mockMediabunny, 'https://example.com/video.mp4')
+  it('reads unregistered network URLs through the block cache', () => {
+    // A worker has no registry entry for a URL asset unless its caller passed one.
+    const source = createMediabunnyInputSource(
+      mockMediabunny,
+      'https://example.com/video.mp4?sig=1',
+    )
     expect(source).toBeInstanceOf(MockUrlSource)
-    expect((source as unknown as MockUrlSource).url).toBe('https://example.com/video.mp4')
+    expect((source as unknown as MockUrlSource).url).toBe('https://example.com/video.mp4?sig=1')
+    expect((source as unknown as MockUrlSource).options?.fetchFn).toBeTypeOf('function')
   })
 
   it('rejects unregistered blob URLs in workers instead of routing them through UrlSource', () => {

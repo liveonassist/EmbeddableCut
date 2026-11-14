@@ -104,12 +104,15 @@ export function createMediabunnyInputSource(
     throw new Error('Blob URL source is not registered in this worker')
   }
 
-  if (metadata?.remote) {
+  // Any network URL reads through the block cache: a worker has no registry
+  // entry for it unless its caller passed one along, and a bare UrlSource
+  // streams open-ended ranges that run far past what it reads.
+  const remote =
+    metadata?.remote ?? (/^https?:/.test(src) ? { cacheKey: src.split('?')[0] ?? src } : undefined)
+  if (remote) {
     return new mb.UrlSource(src, {
-      fetchFn: createRemoteFetch(metadata.remote),
-      ...(metadata.remote.credentials
-        ? { requestInit: { credentials: metadata.remote.credentials } }
-        : {}),
+      fetchFn: createRemoteFetch(remote),
+      ...(remote.credentials ? { requestInit: { credentials: remote.credentials } } : {}),
     })
   }
 

@@ -24,11 +24,18 @@ function getEntriesForSrc(src: string): PreviewAudioPoolEntry[] {
   return entries
 }
 
+function isRemoteMediaUrl(src: string): boolean {
+  return src.startsWith('http:') || src.startsWith('https:')
+}
+
 function configureAudioElement(audio: HTMLAudioElement, src: string): void {
   if (audio.src !== src) {
     audio.src = src
   }
-  audio.preload = 'auto'
+  // EmbeddableCut: a URL asset is read over the network, where Chrome's
+  // preload=auto buffers the whole file through parallel range readers;
+  // a local file's blob URL is free to buffer.
+  audio.preload = isRemoteMediaUrl(src) ? 'metadata' : 'auto'
   audio.preservesPitch = true
   // @ts-expect-error - webkit prefix for older Safari
   audio.webkitPreservesPitch = true
