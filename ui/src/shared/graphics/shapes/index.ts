@@ -1,0 +1,11 @@
+// SPDX-License-Identifier: MIT
+
+/**
+ * Native shape utilities
+ *
+ * Replaces @legacy-video/shapes and @legacy-video/paths with native implementations.
+ */
+
+// Shape components
+export { Rect, Circle, Ellipse, Triangle, Star, Polygon, Heart, ShapePath } from './components'
+export { buildBezierPathData } from '@/shared/graphics/shapes/bezier-path'
