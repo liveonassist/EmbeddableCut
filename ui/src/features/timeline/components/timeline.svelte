@@ -310,6 +310,9 @@
   //   Alt+scroll  = resize track heights in the hovered zone
   //   Shift+scroll = vertical scroll of the hovered zone
   //   Ctrl/Cmd+scroll = zoom timeline in/out
+  //   EmbeddableCut: a plain scroll scrolls the hovered zone vertically too. The
+  //   headers have no time axis, so FreeCut left it unused; over the lanes it
+  //   still scrolls time.
   $effect(() => {
     const el = trackHeadersViewport
     if (!el) return
@@ -341,16 +344,14 @@
         return
       }
 
-      if (event.shiftKey) {
-        event.preventDefault()
-        const contentScroll = hasTrackSections
-          ? zone === 'audio'
-            ? audioTrackContentScroll
-            : videoTrackContentScroll
-          : allTrackContentScroll
-        if (!contentScroll) return
-        contentScroll.scrollTop += event.deltaY || event.deltaX
-      }
+      event.preventDefault()
+      const contentScroll = hasTrackSections
+        ? zone === 'audio'
+          ? audioTrackContentScroll
+          : videoTrackContentScroll
+        : allTrackContentScroll
+      if (!contentScroll) return
+      contentScroll.scrollTop += event.deltaY || event.deltaX
     }
 
     el.addEventListener('wheel', handler, { passive: false })
