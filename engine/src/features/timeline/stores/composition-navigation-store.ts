@@ -1,4 +1,4 @@
-import { create } from 'zustand'
+import { create } from '@/shared/state/bound-store'
 import type { TimelineItem, TimelineTrack, ProjectMarker } from '@/types/timeline'
 import type { AudioEqSettings } from '@/types/audio'
 import type { Transition } from '@/types/transition'

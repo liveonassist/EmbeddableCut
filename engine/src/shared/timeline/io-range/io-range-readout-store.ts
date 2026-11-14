@@ -1,4 +1,4 @@
-import { create } from 'zustand'
+import { create } from '@/shared/state/bound-store'
 
 /** A floating readout shown at the cursor during an IO drag (viewport coords). */
 export interface IoDragReadout {

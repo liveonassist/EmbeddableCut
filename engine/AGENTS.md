@@ -41,6 +41,7 @@ Don't break these without an architecture discussion in the PR description.
 ### Boundaries
 
 - **The engine never imports the app.** `@/` resolves only to `engine/src/` here, and `npm run check` type-checks the engine alone, so an import of anything in `web/src/` fails. A component or hook belongs in `web/`.
+- **No UI framework, not even its types.** `engine/vite.config.ts` bans React, Svelte, Radix, Lucide, `zustand`'s React entry and `sonner`. Stores use `create` from `@/shared/state/bound-store`, notices go through `toast` from `@/shared/notifications`.
 - **Cross-feature imports go through `deps/`.** A feature reaches another only inside `features/<name>/deps/*-contract.ts`; its code imports the sibling adapter (`deps/<name>.ts`). `just check architecture` enforces it, with FreeCut's layer rules and edge budgets.
 - When a contract would re-export a component or hook, that export goes in the app's `deps/<name>-ui-contract.ts` and `-ui` adapter instead.
 - `shared/`, `infrastructure/`, `types/`, `config/` and `i18n/` never import `features/` or `runtime/`. `runtime/` reaches feature state only through `runtime/<engine>/deps/*-contract.ts`.
@@ -48,6 +49,8 @@ Don't break these without an architecture discussion in the PR description.
 ### State and editing
 
 - Stores are zustand singletons, one per JavaScript realm. Two editors in one page share them.
+- `create` in `shared/state/bound-store.ts` is zustand's signature over a vanilla store. Calling a store as a hook goes through the binding a UI installs with `bindStoreHook` (React: `web/src/app/framework-bindings.ts`); engine code uses `getState`, `setState` and `subscribe` only.
+- i18next is initialized here without a UI plugin; a UI binds it itself (`setI18n` for react-i18next).
 - Edits go through the actions in `features/timeline/stores/actions/`, each wrapped in `execute(type, fn)` so undo captures a whole-timeline snapshot before it. A store's `_`-prefixed mutators are for actions only.
 - `timeline-persistence.ts` is the only bridge between the stores and a saved `Project`: `buildTimelineFromStores()` out, `hydrateTimelineStoresFromProject()` in.
 - Persisted projects carry `schemaVersion`; `migrateProject()` runs every migration in `shared/projects/migrations/` on load. A change to the persisted shape bumps `CURRENT_SCHEMA_VERSION` and adds a migration.

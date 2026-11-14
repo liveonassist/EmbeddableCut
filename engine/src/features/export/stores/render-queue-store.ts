@@ -8,7 +8,7 @@
  * the project doesn't change what an already-queued job renders.
  */
 
-import { create } from 'zustand'
+import { create } from '@/shared/state/bound-store'
 import type { TimelineTrack, TimelineItem } from '@/types/timeline'
 import type { Transition } from '@/types/transition'
 import type { ItemKeyframes } from '@/types/keyframe'

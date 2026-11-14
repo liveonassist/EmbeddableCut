@@ -25,7 +25,7 @@ import {
   getItemAspectRatio,
   renderPanelMedia,
 } from './edit-panel-media-utils'
-import { useBlobUrlVersion } from '@/infrastructure/browser/blob-url-manager'
+import { useBlobUrlVersion } from '@/infrastructure/browser/use-blob-url-version'
 import { useEditOverlayPanelPrewarm } from './use-edit-overlay-panel-prewarm'
 import { InlineCompositionPreview } from './inline-composition-preview'
 

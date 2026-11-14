@@ -1,5 +1,5 @@
 import type { MutableRefObject } from 'react'
-import type { SnapTarget } from '../types/drag'
+import type { SnapTarget } from '@/features/timeline/types/drag'
 
 type SnapTargetSnapshot = { frame: number; type: string } | null
 

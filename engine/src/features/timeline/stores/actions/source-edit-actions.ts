@@ -13,7 +13,7 @@ import { useMediaLibraryStore } from '@/features/timeline/deps/media-library-sto
 import { useProjectStore } from '@/features/timeline/deps/projects'
 import { importMediaLibraryService } from '@/features/timeline/deps/media-library-service'
 import { getMediaType, resolveMediaUrl } from '@/features/timeline/deps/media-library-resolver'
-import { toast } from 'sonner'
+import { toast } from '@/shared/notifications'
 import { execute, applyTransitionRepairs, getLogger } from './shared'
 import { resolveSourceEditTrackTargets } from '../../utils/source-edit-targeting'
 import { buildMediaTimelineItems } from '../../utils/media-timeline-item-builder'

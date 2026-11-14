@@ -1,4 +1,4 @@
-import { create } from 'zustand'
+import { create } from '@/shared/state/bound-store'
 
 import { getZoomToFitLevel } from '../utils/timeline-layout'
 import { usePlaybackStore } from '@/shared/state/playback'

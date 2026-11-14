@@ -6,7 +6,7 @@
  * {@link SubtitleScanProgressDialog}.
  */
 
-import { create } from 'zustand'
+import { create } from '@/shared/state/bound-store'
 
 interface SubtitleScanProgressEntry {
   fileName: string

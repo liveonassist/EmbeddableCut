@@ -1,4 +1,4 @@
-import { create } from 'zustand'
+import { create } from '@/shared/state/bound-store'
 import type { DroppableMediaType } from '../utils/dropped-media'
 
 export interface NewTrackZoneGhostPreview {

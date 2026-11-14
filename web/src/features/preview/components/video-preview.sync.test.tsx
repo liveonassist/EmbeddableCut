@@ -260,8 +260,6 @@ class ResizeObserverMock {
 }
 
 vi.mock('@/infrastructure/browser/blob-url-manager', async () => {
-  const React = await import('react')
-
   return {
     blobUrlManager: {
       get: (mediaId: string) => mockState.blobUrls.get(mediaId) ?? null,
@@ -300,8 +298,6 @@ vi.mock('@/infrastructure/browser/blob-url-manager', async () => {
       getSnapshot: () => mockState.version.current,
       onRevoke: () => () => {},
     },
-    useBlobUrlVersion: () =>
-      React.useSyncExternalStore(mockState.subscribeVersion, () => mockState.version.current),
   }
 })
 

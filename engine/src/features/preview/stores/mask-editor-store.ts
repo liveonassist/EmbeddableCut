@@ -6,7 +6,7 @@
  * live preview during drag operations.
  */
 
-import { create } from 'zustand'
+import { create } from '@/shared/state/bound-store'
 import type { MaskVertex } from '@/types/masks'
 
 function normalizeVertexSelection(vertexIndices: number[]): number[] {

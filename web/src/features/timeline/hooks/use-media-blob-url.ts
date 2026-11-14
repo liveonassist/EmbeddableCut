@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState, type MutableRefObject } from 'react'
-import { blobUrlManager, useBlobUrlVersion } from '@/infrastructure/browser/blob-url-manager'
+import { blobUrlManager } from '@/infrastructure/browser/blob-url-manager'
+import { useBlobUrlVersion } from '@/infrastructure/browser/use-blob-url-version'
 
 interface UseMediaBlobUrlResult {
   blobUrl: string | null

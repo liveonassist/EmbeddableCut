@@ -1,4 +1,4 @@
-import { create } from 'zustand'
+import { create } from '@/shared/state/bound-store'
 import { devtools } from 'zustand/middleware'
 import type { Project } from '@/types/project'
 import type { ProjectFormData } from '../utils/validation'

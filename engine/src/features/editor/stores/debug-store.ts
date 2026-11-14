@@ -1,4 +1,4 @@
-import { create } from 'zustand'
+import { create } from '@/shared/state/bound-store'
 
 interface DebugState {
   /** Show debug overlay on video clips */

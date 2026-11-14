@@ -1,4 +1,4 @@
-import { create } from 'zustand'
+import { create } from '@/shared/state/bound-store'
 import type { BoundingBox, GizmoState, GizmoHandle, Transform, Point } from '../types/gizmo'
 import type { ItemEffect } from '@/types/effects'
 import type { ShapeItem, TimelineItem } from '@/types/timeline'

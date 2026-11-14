@@ -1,4 +1,4 @@
-import { create } from 'zustand'
+import { create } from '@/shared/state/bound-store'
 
 interface RollHoverState {
   /** The item that published the roll hover (the one being hovered) */

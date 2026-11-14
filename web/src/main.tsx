@@ -1,3 +1,4 @@
+import './app/framework-bindings'
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { i18n, i18nReady } from '@/i18n'

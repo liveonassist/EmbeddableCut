@@ -78,7 +78,7 @@ vi.mock('@/features/preview/deps/media-library-contract', () => ({
   resolveMediaUrls: resolveMediaUrlsMock,
 }))
 
-vi.mock('@/infrastructure/browser/blob-url-manager', () => ({
+vi.mock('@/infrastructure/browser/use-blob-url-version', () => ({
   useBlobUrlVersion: () => 0,
 }))
 

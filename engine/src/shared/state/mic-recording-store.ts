@@ -1,4 +1,4 @@
-import { create } from 'zustand'
+import { create } from '@/shared/state/bound-store'
 import { persist } from 'zustand/middleware'
 import type { AudioInputDevice } from '@/infrastructure/audio/mic-recorder'
 

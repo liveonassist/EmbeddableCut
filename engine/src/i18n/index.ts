@@ -1,5 +1,4 @@
 import i18n from 'i18next'
-import { initReactI18next } from 'react-i18next'
 import LanguageDetector from 'i18next-browser-languagedetector'
 import { createLogger } from '@/shared/logging/logger'
 import { DEFAULT_LANGUAGE, SUPPORTED_LANGUAGE_CODES, resolveSupportedLanguage } from './languages'
@@ -75,14 +74,13 @@ const resources = {
 
 void i18n
   .use(LanguageDetector)
-  .use(initReactI18next)
   .init({
     resources,
     fallbackLng: DEFAULT_LANGUAGE,
     supportedLngs: SUPPORTED_LANGUAGE_CODES as string[],
     load: 'currentOnly',
     interpolation: {
-      // React already escapes values to prevent XSS.
+      // UI frameworks escape interpolated text themselves.
       escapeValue: false,
     },
     detection: {

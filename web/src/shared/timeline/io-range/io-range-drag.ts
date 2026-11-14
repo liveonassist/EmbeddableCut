@@ -2,7 +2,7 @@ import type { PointerEvent as ReactPointerEvent } from 'react'
 import {
   useIoRangeReadoutStore,
   type IoDragReadout,
-} from './io-range-readout-store'
+} from '@/shared/timeline/io-range/io-range-readout-store'
 
 /**
  * Start a pointer drag for an IO marker / range strip.

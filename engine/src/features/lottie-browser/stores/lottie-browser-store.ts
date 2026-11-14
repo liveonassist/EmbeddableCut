@@ -1,4 +1,4 @@
-import { create } from 'zustand'
+import { create } from '@/shared/state/bound-store'
 import { createLogger } from '@/shared/logging/logger'
 import {
   buildLottieAttribution,

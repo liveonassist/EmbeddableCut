@@ -10,9 +10,32 @@ const oxlintConfig = JSON.parse(readFileSync(new URL('../.oxlintrc.json', import
 const oxfmtConfig = JSON.parse(readFileSync(new URL('../.oxfmtrc.json', import.meta.url), 'utf8'))
 const toolIgnorePatterns = ['coverage/**', 'tmp/**', 'output/**']
 
+const uiFramework = 'The engine runs without a UI framework; this belongs in a UI package.'
+
 export default defineConfig({
   lint: {
     ...oxlintConfig,
+    rules: {
+      ...oxlintConfig.rules,
+      'no-restricted-imports': [
+        'error',
+        {
+          paths: [
+            { name: 'react', message: uiFramework },
+            { name: 'react-dom', message: uiFramework },
+            { name: 'svelte', message: uiFramework },
+            { name: 'zustand', message: 'Use `create` from @/shared/state/bound-store.' },
+            { name: 'sonner', message: 'Raise notices through @/shared/notifications.' },
+          ],
+          patterns: [
+            {
+              group: ['react/*', 'react-dom/*', 'react-*', '@radix-ui/*', 'lucide-*', '@tanstack/react-*', 'zustand/react*', 'svelte/*'],
+              message: uiFramework,
+            },
+          ],
+        },
+      ],
+    },
     ignorePatterns: toolIgnorePatterns,
     options: {
       ...(oxlintConfig.options ?? {}),

@@ -8,7 +8,7 @@
  * happens in one place.
  */
 
-import { create } from 'zustand'
+import { create } from '@/shared/state/bound-store'
 
 import type { MediaMetadata } from '@/types/storage'
 

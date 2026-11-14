@@ -12,7 +12,7 @@
  * only — it is a short-lived review state, not persisted project data.
  */
 
-import { create } from 'zustand'
+import { create } from '@/shared/state/bound-store'
 import { useItemsStore } from './items-store'
 import { removeTranscriptRangesFromItems } from './timeline-actions'
 import {

@@ -1,4 +1,4 @@
-import { create } from 'zustand'
+import { create } from '@/shared/state/bound-store'
 import type { TimelineItem, VideoItem } from '@/types/timeline'
 
 interface ReverseConformDialogRequest {

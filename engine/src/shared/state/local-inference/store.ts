@@ -1,4 +1,4 @@
-import { create } from 'zustand'
+import { create } from '@/shared/state/bound-store'
 import type { LocalInferenceActions, LocalInferenceStateShape } from './types'
 
 export const useLocalInferenceStore = create<LocalInferenceStateShape & LocalInferenceActions>(

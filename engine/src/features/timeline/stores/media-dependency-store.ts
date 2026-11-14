@@ -1,4 +1,4 @@
-import { create } from 'zustand'
+import { create } from '@/shared/state/bound-store'
 import { useCompositionsStore } from './compositions-store'
 import { useItemsStore } from './items-store'
 

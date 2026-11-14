@@ -1,5 +1,5 @@
 import type { TimelineItem } from '@/types/timeline'
-import { toast } from 'sonner'
+import { toast } from '@/shared/notifications'
 import { useItemsStore } from '../../items-store'
 import { useTimelineSettingsStore } from '../../timeline-settings-store'
 import { useSelectionStore } from '@/shared/state/selection'

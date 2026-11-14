@@ -11,7 +11,7 @@
  * - Version tracking enables efficient React.memo comparisons
  */
 
-import { create } from 'zustand'
+import { create } from '@/shared/state/bound-store'
 import { useItemsStore } from './items-store'
 import { useTransitionsStore } from './transitions-store'
 import type { TimelineItem, TimelineTrack } from '@/types/timeline'

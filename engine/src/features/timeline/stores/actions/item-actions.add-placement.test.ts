@@ -1,7 +1,7 @@
 // @vitest-environment node
 
 import { beforeEach, describe, expect, it, vi } from 'vite-plus/test'
-import { toast } from 'sonner'
+import { toast } from '@/shared/notifications'
 
 import type { VideoItem } from '@/types/timeline'
 import { useItemsStore } from '../items-store'
@@ -11,7 +11,7 @@ import { useTimelineCommandStore } from '../timeline-command-store'
 import { useTimelineSettingsStore } from '../timeline-settings-store'
 import { addItem, addItems } from './item-actions'
 
-vi.mock('sonner', () => ({
+vi.mock('@/shared/notifications', () => ({
   toast: {
     warning: vi.fn(),
   },

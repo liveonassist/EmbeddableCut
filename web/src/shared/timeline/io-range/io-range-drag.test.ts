@@ -1,7 +1,7 @@
 import type { PointerEvent as ReactPointerEvent } from 'react'
 import { afterEach, describe, expect, it, vi } from 'vite-plus/test'
 import { beginIoPointerDrag } from './io-range-drag'
-import { useIoRangeReadoutStore } from './io-range-readout-store'
+import { useIoRangeReadoutStore } from '@/shared/timeline/io-range/io-range-readout-store'
 
 describe('beginIoPointerDrag readout positioning', () => {
   afterEach(() => {

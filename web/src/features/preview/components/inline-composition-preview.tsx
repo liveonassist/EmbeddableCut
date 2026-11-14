@@ -14,7 +14,7 @@ import {
 } from '@/features/preview/deps/export'
 import { createLogger } from '@/shared/logging/logger'
 import { getPreviewNeedsOverflow, getPreviewPlayerSize } from '@/features/preview/utils/preview-pixel-snap'
-import { useBlobUrlVersion } from '@/infrastructure/browser/blob-url-manager'
+import { useBlobUrlVersion } from '@/infrastructure/browser/use-blob-url-version'
 import { useComparisonCompositionFrame } from './use-comparison-composition-frame'
 
 const RESOLVED_TRACK_CACHE_LIMIT = 12

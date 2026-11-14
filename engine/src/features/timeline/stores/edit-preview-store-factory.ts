@@ -1,4 +1,4 @@
-import { create, type StoreApi, type UseBoundStore } from 'zustand'
+import { create, type StoreApi, type UseBoundStore } from '@/shared/state/bound-store'
 
 type EditPreviewActions<PreviewParams> = {
   setPreview: (params: PreviewParams) => void

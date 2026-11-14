@@ -1,6 +1,7 @@
 import * as matchers from '@testing-library/jest-dom/matchers'
 import { afterEach, expect } from 'vite-plus/test'
 import '@/i18n'
+import '@/app/framework-bindings'
 import { resetAutoKeyframeStore } from '@/features/keyframes/stores/auto-keyframe-store'
 
 expect.extend(matchers)

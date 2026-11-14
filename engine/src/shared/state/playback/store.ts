@@ -1,4 +1,4 @@
-import { create } from 'zustand'
+import { create } from '@/shared/state/bound-store'
 import { persist } from 'zustand/middleware'
 import type { PlaybackState, PlaybackActions, PreviewQuality } from './types'
 import { getNextShuttleRate } from './shuttle'

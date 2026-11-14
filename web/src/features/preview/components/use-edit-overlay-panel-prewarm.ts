@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef } from 'react'
-import { useBlobUrlVersion } from '@/infrastructure/browser/blob-url-manager'
+import { useBlobUrlVersion } from '@/infrastructure/browser/use-blob-url-version'
 import { backgroundBatchPreseek } from '@/features/preview/utils/decoder-prewarm'
 import type { TimelineItem } from '@/types/timeline'
 import { resolveMediaUrl, resolveProxyUrl } from '@/features/preview/utils/media-resolver'

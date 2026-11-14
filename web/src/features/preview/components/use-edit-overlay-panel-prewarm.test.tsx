@@ -11,7 +11,7 @@ const compositionState = vi.hoisted(() => ({
   compositionById: {} as Record<string, unknown>,
 }))
 
-vi.mock('@/infrastructure/browser/blob-url-manager', () => ({
+vi.mock('@/infrastructure/browser/use-blob-url-version', () => ({
   useBlobUrlVersion: () => 0,
 }))
 

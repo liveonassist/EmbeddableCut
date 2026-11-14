@@ -1,4 +1,4 @@
-import { create } from 'zustand'
+import { create } from '@/shared/state/bound-store'
 import type { SourcePlayerState } from './types'
 
 export const useSourcePlayerStore = create<SourcePlayerState>((set) => ({

@@ -8,7 +8,7 @@
  * during interaction, committed to the timeline store on mouse up.
  */
 
-import { create } from 'zustand'
+import { create } from '@/shared/state/bound-store'
 
 export type CornerPinHandle = 'topLeft' | 'topRight' | 'bottomRight' | 'bottomLeft'
 

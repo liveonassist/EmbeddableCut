@@ -1,4 +1,4 @@
-import { create } from 'zustand'
+import { create } from '@/shared/state/bound-store'
 import type { PreviewBridgeActions, PreviewBridgeState } from './types'
 import { createLogger } from '@/shared/logging/logger'
 

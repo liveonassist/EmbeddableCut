@@ -1,4 +1,3 @@
-import { useSyncExternalStore } from 'react'
 import { createLogger } from '@/shared/logging/logger'
 import {
   registerObjectUrl,
@@ -42,7 +41,7 @@ class BlobUrlManager {
     }
   }
 
-  /** Subscribe to changes (for useSyncExternalStore) */
+  /** Subscribe to changes (a UI binding's external-store subscription) */
   subscribe = (listener: () => void): (() => void) => {
     this.listeners.add(listener)
     return () => this.listeners.delete(listener)
@@ -58,7 +57,7 @@ class BlobUrlManager {
     return () => this.revokeListeners.delete(listener)
   }
 
-  /** Get current version snapshot (for useSyncExternalStore) */
+  /** Get current version snapshot (a UI binding's external-store snapshot) */
   getSnapshot = (): number => this.version
 
   /**
@@ -207,11 +206,3 @@ class BlobUrlManager {
 
 /** Singleton instance for media blob URLs */
 export const blobUrlManager = new BlobUrlManager()
-
-/**
- * React hook that re-renders when blob URLs are acquired or released.
- * Use as a dependency in useMemo to react to URL availability changes.
- */
-export function useBlobUrlVersion(): number {
-  return useSyncExternalStore(blobUrlManager.subscribe, blobUrlManager.getSnapshot)
-}

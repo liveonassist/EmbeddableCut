@@ -1,4 +1,4 @@
-import { create } from 'zustand'
+import { create } from '@/shared/state/bound-store'
 import { persist } from 'zustand/middleware'
 import { DEFAULT_VOICE, type VoiceName } from '@/infrastructure/audio/ui-sound'
 

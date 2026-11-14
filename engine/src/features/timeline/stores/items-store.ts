@@ -1,4 +1,4 @@
-import { create } from 'zustand'
+import { create } from '@/shared/state/bound-store'
 import { createLogger } from '@/shared/logging/logger'
 import type { TimelineItem, TimelineTrack } from '@/types/timeline'
 import type { TransformProperties } from '@/types/transform'

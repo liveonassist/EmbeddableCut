@@ -1,4 +1,4 @@
-import { create, type StoreApi, type UseBoundStore } from 'zustand'
+import { create, type StoreApi, type UseBoundStore } from '@/shared/state/bound-store'
 import type { PaletteEntry } from '../deps/analysis'
 
 export type SceneBrowserSortMode = 'relevance' | 'time' | 'name'

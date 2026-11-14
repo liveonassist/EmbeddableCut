@@ -18,7 +18,7 @@ import {
   getProjectBrokenMediaIds,
   useMediaLibraryStore,
 } from '@/features/preview/deps/media-library'
-import { useBlobUrlVersion } from '@/infrastructure/browser/blob-url-manager'
+import { useBlobUrlVersion } from '@/infrastructure/browser/use-blob-url-version'
 import { usePlaybackStore } from '@/shared/state/playback'
 import { useMaskEditorStore } from '@/features/preview/stores/mask-editor-store'
 import { isMarqueeJustFinished } from '@/shared/marquee/use-marquee-selection'

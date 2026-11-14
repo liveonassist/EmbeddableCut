@@ -1,4 +1,4 @@
-import { create } from 'zustand'
+import { create } from '@/shared/state/bound-store'
 import type { SelectionState, SelectionActions, SelectionDragState } from './types'
 
 function areStringListsEqual(previous: readonly string[], next: readonly string[]): boolean {

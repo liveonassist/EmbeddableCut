@@ -1,4 +1,4 @@
-import { create } from 'zustand'
+import { create } from '@/shared/state/bound-store'
 import type { TimelineCommand, CommandEntry, TimelineSnapshot } from './commands/types'
 import { captureSnapshot, restoreSnapshot, snapshotsEqual } from './commands/snapshot'
 import { useSettingsStore } from '@/features/timeline/deps/settings'
