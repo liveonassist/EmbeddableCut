@@ -31,11 +31,19 @@ import { captureSnapshot } from '@embeddablecut/engine/features/timeline/stores/
 import {
   buildTimelineFromStores,
   hydrateTimelineStoresFromProject,
+  loadTimeline,
+  saveTimeline,
 } from '@embeddablecut/engine/features/timeline/stores/timeline-persistence'
+import { CURRENT_SCHEMA_VERSION } from '@embeddablecut/engine/shared/projects/migrations/index'
+import { getProject } from '@embeddablecut/engine/infrastructure/storage/workspace-fs/projects'
+import { clearPreviewAudioCache } from '@embeddablecut/engine/runtime/composition-runtime/utils/audio-decode-cache'
 import { resolveMediaUrl } from '@embeddablecut/engine/features/media-library/utils/media-resolver'
 import { blobUrlManager } from '@embeddablecut/engine/infrastructure/browser/blob-url-manager'
 import { bootstrapWorkspace } from '@embeddablecut/engine/infrastructure/storage/workspace-fs/bootstrap'
-import { setWorkspaceRoot } from '@embeddablecut/engine/infrastructure/storage/workspace-fs/root'
+import {
+  getWorkspaceRoot,
+  setWorkspaceRoot,
+} from '@embeddablecut/engine/infrastructure/storage/workspace-fs/root'
 import { applyEditOperations } from '@embeddablecut/engine/headless/edit'
 import { editOperationNames } from '@embeddablecut/engine/headless/edit-ops'
 import { setEditCanvas, type EditOp } from '@embeddablecut/engine/headless/edit-op-support'
@@ -167,12 +175,16 @@ export class Editor {
   private readonly events = new Emitter<EditorEvents>()
   private readonly teardown: Array<() => void> = []
   private readonly policy: MediaSourcePolicy
+  /** Set while the loaded project is the workspace's own, which `save` writes back. */
+  private workspaceProjectId: string | null = null
   private disposed = false
 
   /** @internal Use {@link createEditor}. */
   constructor(options: EditorOptions) {
     this.policy = { local: options.media?.local ?? true, url: options.media?.url ?? true }
-    const resolver = createRemoteResolver(options.media?.resolve, () => this.extensions.mediaProviders())
+    const resolver = createRemoteResolver(options.media?.resolve, () =>
+      this.extensions.mediaProviders(),
+    )
     setRemoteMediaResolver(resolver)
     this.teardown.push(() => {
       setRemoteMediaResolver(null)
@@ -268,6 +280,7 @@ export class Editor {
     }
 
     usePlaybackStore.getState().pause()
+    this.workspaceProjectId = null
     const project = document.project as unknown as Project
     const media = document.assets.map((asset) => mediaFromAssetRecord(asset))
     useProjectStore.getState().setCurrentProject(project)
@@ -292,6 +305,84 @@ export class Editor {
     const info = infoOf(project)
     this.events.emit('project', info)
     return { project: info, migrated, warnings }
+  }
+
+  /**
+   * Opens a project from the workspace folder, as FreeCut's editor does: its
+   * media library, then its timeline. `save` writes it back there.
+   *
+   * @throws {EditorError} `WORKSPACE_REQUIRED`, `PROJECT_NOT_FOUND`, or
+   *   `PROJECT_NEEDS_UPGRADE` for a project from an older schema unless
+   *   `allowUpgrade` agrees to migrate it.
+   */
+  async openProject(
+    projectId: string,
+    options: { allowUpgrade?: boolean } = {},
+  ): Promise<ProjectInfo> {
+    this.assertLive()
+    if (!getWorkspaceRoot()) {
+      throw new EditorError('WORKSPACE_REQUIRED', 'Opening a workspace project needs a workspace')
+    }
+    const project = await getProject(projectId)
+    if (!project)
+      throw new EditorError('PROJECT_NOT_FOUND', `No project ${projectId} in the workspace`)
+    const requiresUpgrade = (project.schemaVersion ?? 1) < CURRENT_SCHEMA_VERSION
+    if (requiresUpgrade && !options.allowUpgrade) {
+      throw new EditorError(
+        'PROJECT_NEEDS_UPGRADE',
+        `Project ${project.name} is schema v${project.schemaVersion ?? 1}; opening it migrates it to v${CURRENT_SCHEMA_VERSION}`,
+      )
+    }
+
+    usePlaybackStore.getState().pause()
+    usePlaybackStore.getState().setPreviewFrame(null)
+    resetRemoteMedia()
+    const media = useMediaLibraryStore.getState()
+    media.setCurrentProject(projectId)
+    await media.loadMediaItems()
+    useProjectStore
+      .getState()
+      .setCurrentProject({ ...project, schemaVersion: CURRENT_SCHEMA_VERSION })
+    setEditCanvas({
+      width: project.metadata.width,
+      height: project.metadata.height,
+      fps: project.metadata.fps,
+    })
+    await loadTimeline(projectId, { allowProjectUpgrade: requiresUpgrade })
+    this.workspaceProjectId = projectId
+
+    const info = infoOf(project)
+    this.events.emit('project', info)
+    return info
+  }
+
+  /**
+   * Writes the loaded workspace project back to the workspace. A project
+   * loaded from a document has nowhere of its own: save `toDocument()` instead.
+   *
+   * @throws {EditorError} `NO_PROJECT` when no workspace project is open.
+   */
+  async save(): Promise<void> {
+    this.requireProject()
+    if (!this.workspaceProjectId) {
+      throw new EditorError(
+        'NO_PROJECT',
+        'The loaded project is not a workspace project; save toDocument() instead',
+      )
+    }
+    await saveTimeline(this.workspaceProjectId)
+  }
+
+  /** Closes the loaded project: playback stops and its media and timeline are released. */
+  closeProject(): void {
+    const playback = usePlaybackStore.getState()
+    playback.setPreviewFrame(null)
+    playback.pause()
+    useMediaLibraryStore.getState().setCurrentProject(null)
+    useProjectStore.getState().setCurrentProject(null)
+    clearPreviewAudioCache()
+    resetRemoteMedia()
+    this.workspaceProjectId = null
   }
 
   /** The loaded project as a portable document: its timeline now, and every asset it references. */

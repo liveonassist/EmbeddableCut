@@ -46,6 +46,7 @@ export {
   type UrlMedia,
 } from './media'
 export { SDK_VERSION } from './version'
+export * from './bridge/index'
 export {
   PROJECT_DOCUMENT_FORMAT,
   SCHEMA_VERSIONS,

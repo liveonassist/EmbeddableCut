@@ -8,6 +8,10 @@ export type EditorErrorCode =
   | 'EDITOR_DISPOSED'
   /** The call needs a loaded project. */
   | 'NO_PROJECT'
+  /** The workspace has no project with that id. */
+  | 'PROJECT_NOT_FOUND'
+  /** The project is from an older schema; open it with `allowUpgrade` to migrate it. */
+  | 'PROJECT_NEEDS_UPGRADE'
   /** The document uses an effect, transition or media provider no installed extension provides. */
   | 'EXTENSION_MISSING'
   /** An extension tried to register something another already has. */
