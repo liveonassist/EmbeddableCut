@@ -62,7 +62,15 @@ export default defineConfig({
           ],
           patterns: [
             {
-              group: ['react', 'react/*', 'react-*', '@radix-ui/*', 'lucide-react', '@tanstack/react-*', 'zustand/react*'],
+              group: [
+                'react',
+                'react/*',
+                'react-*',
+                '@radix-ui/*',
+                'lucide-react',
+                '@tanstack/react-*',
+                'zustand/react*',
+              ],
               message: 'The UI is Svelte; see the porting table in ui/AGENTS.md.',
             },
           ],
@@ -86,7 +94,8 @@ export default defineConfig({
       $lib: fileURLToPath(new URL('./src/lib', import.meta.url)),
       $components: fileURLToPath(new URL('./src/components', import.meta.url)),
     },
-    conditions: process.env.VITEST ? ['browser'] : [],
+    // Vitest resolves for the server by default; Svelte's client runtime needs the browser entries.
+    ...(process.env.VITEST ? { conditions: ['browser'] } : {}),
   },
   test: {
     globals: true,
@@ -97,6 +106,8 @@ export default defineConfig({
   worker: {
     format: 'es',
   },
+  // The editor page is served wherever a host puts it, so it loads its assets relatively.
+  base: './',
   build: libraryBuild
     ? {
         target: 'esnext',
