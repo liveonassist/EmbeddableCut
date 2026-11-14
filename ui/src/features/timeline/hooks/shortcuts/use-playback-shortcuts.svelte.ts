@@ -110,10 +110,6 @@ export function usePlaybackShortcuts(callbacks: () => TimelineShortcutCallbacks)
 
   // K owns pause only while a transport is active. When already paused it
   // yields to the existing Edit keyframe shortcut.
-  // FreeCut listens in the capture phase, so stopping propagation keeps the
-  // dopesheet's K from also firing. Here every shortcut shares the window's
-  // bubble phase: stopImmediatePropagation stops the listeners registered
-  // after this one, which never re-registers.
   useHotkeys(
     () => 'k',
     (event) => {
@@ -123,14 +119,12 @@ export function usePlaybackShortcuts(callbacks: () => TimelineShortcutCallbacks)
         if (!playerMethods.isPlaying()) return
         event.preventDefault()
         event.stopPropagation()
-        event.stopImmediatePropagation()
         playerMethods.pause()
         return
       }
       if (!usePlaybackStore.getState().isPlaying) return
       event.preventDefault()
       event.stopPropagation()
-      event.stopImmediatePropagation()
       usePlaybackStore.getState().pause()
       callbacks().onPause?.()
     },

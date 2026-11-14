@@ -42,17 +42,19 @@ export function useEditorHotkeys(callbacks: () => EditorHotkeyCallbacks = () => 
       event.preventDefault()
       callbacks().onExport?.()
     },
-    HOTKEY_OPTIONS,
+    { ...HOTKEY_OPTIONS, eventListenerOptions: { capture: true } },
   )
 
-  // Open Scene Browser: Cmd/Ctrl+Shift+F
+  // Open Scene Browser: Cmd/Ctrl+Shift+F — capture phase because the
+  // default browser binding is a no-op here but Chrome will still eat it
+  // if our listener is in bubbling phase.
   useHotkeys(
     () => hotkeys.current.OPEN_SCENE_BROWSER,
     (event) => {
       event.preventDefault()
       useSceneBrowserStore.getState().openBrowser({ focus: true })
     },
-    HOTKEY_OPTIONS,
+    { ...HOTKEY_OPTIONS, eventListenerOptions: { capture: true } },
   )
 
   // Workspace switching: Alt+1 (Edit), Alt+2 (Color), Alt+3 (Motion).
