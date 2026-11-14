@@ -409,8 +409,11 @@ function getDetailRangeSnapshot(trackId: string): VisibleFrameRange {
 export function useVisibleItemDetailRange(trackId: () => string): {
   readonly current: VisibleFrameRange
 } {
+  // Keyed on the id's value, so a new track object with the same id keeps
+  // the subscription (re-subscribing republishes the range at current zoom).
+  const currentTrackId = $derived(trackId())
   const source = $derived.by(() => {
-    const id = trackId()
+    const id = currentTrackId
     return {
       id,
       track: createSubscriber((update) => subscribeToDetailRange(id, update)),
@@ -471,8 +474,10 @@ export function useVisibleItems(getTrackId: () => string): {
     }
   }
 
+  const currentTrackId = $derived(getTrackId())
+
   $effect(() => {
-    const trackId = getTrackId()
+    const trackId = currentTrackId
     // Commit a concrete visible range: filter items/transitions and publish.
     const commit = (range: VisibleFrameRange) => {
       const itemsState = useItemsStore.getState()
