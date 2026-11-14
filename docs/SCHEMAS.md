@@ -9,6 +9,8 @@ Every format EmbeddableCut persists or exchanges has one owner, an explicit vers
 | Project (`project.json`) | integer, `project.schemaVersion` | FreeCut: `engine/src/shared/projects/migrations/` | the workspace, and inside every project document |
 | Project document | integer, `schemaVersion` | EmbeddableCut: `engine/src/schema/project-document.ts` | the SDK's load and save, the render API, other clients |
 | Asset record | integer, versioned with the document | EmbeddableCut: `engine/src/schema/asset.ts` | a project document's `assets` |
+| Edit operation | the render API's `apiVersion` | FreeCut: `render/lib/contract.mjs` | the SDK's `apply`, the service's `/edit`, the bridge |
+| Bridge messages | `BRIDGE_VERSION` | EmbeddableCut: `sdk/src/bridge/protocol.ts` | iframe and WebView hosts ([`BRIDGE.md`](BRIDGE.md)) |
 | Workspace layout | `"2.0"` in `.freecut-workspace.json` | FreeCut: `engine/src/infrastructure/storage/workspace-fs/` | the workspace folder |
 | Bundle manifest (`.freecut.zip`) | `"1.0"` | FreeCut: `engine/src/features/project-bundle/` | project bundles |
 | JSON snapshot | `"1.0"` | FreeCut: `engine/src/features/project-bundle/` | FreeCut's JSON export |

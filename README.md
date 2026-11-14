@@ -76,6 +76,8 @@ just            # every other command
 - [`docs/SCHEMAS.md`](docs/SCHEMAS.md): the versioned formats and their migration policy.
 - [`docs/MEDIA.md`](docs/MEDIA.md): local files and URL media, authentication, caching.
 - [`docs/RENDERING.md`](docs/RENDERING.md): preview, browser export and the render service; extensions on servers; scaling.
+- [`docs/BRIDGE.md`](docs/BRIDGE.md): driving an editor in an iframe or a WebView.
+- [`docs/FLUTTER.md`](docs/FLUTTER.md): using EmbeddableCut from a Flutter app, and toward a native one.
 - [`sdk/README.md`](sdk/README.md): driving the editor from your own app.
 - [`docs/DESIGN.md`](docs/DESIGN.md) and [`docs/PRODUCT.md`](docs/PRODUCT.md): FreeCut's design system and who it's for.
 - [`render/AGENTS.md`](render/AGENTS.md): the render CLIs, HTTP service and container.
