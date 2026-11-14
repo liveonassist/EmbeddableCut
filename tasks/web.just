@@ -24,12 +24,7 @@ build:
 preview:
     npm run preview
 
-# Run the editor's tests, optionally narrowed to a path or name filter.
-[working-directory('../web')]
-test *args:
-    npx vp test run {{ args }}
-
-# Lint and type-check the editor.
+# Lint the app's build config (the editor itself is checked in ui/).
 [working-directory('../web')]
 check:
     npm run check

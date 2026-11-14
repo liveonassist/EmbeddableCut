@@ -66,7 +66,7 @@ jobs:
           path: ~/.npm
           key: npm-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
       - run: nix develop --command npm ci --ignore-scripts
-      - run: nix develop --command sh -c 'cd web && npm run check && npx vp test run --coverage && npm run build'
+      - run: nix develop --command sh -c 'cd web && npm run check && npm run build'
       # The portable Node, Chrome, edit-operation and generated-media suites
       # reuse the build above and never need WebGPU.
       - run: nix develop --command sh -c 'cd render && npm run test:portable'
@@ -100,7 +100,7 @@ jobs:
             exit 0
           fi
           if git diff --name-only "origin/${{ github.base_ref }}"...HEAD \
-            | grep -qE '^((engine|web)/src/features/preview/|web/scripts/preview-sync-stress\.mjs$)'; then
+            | grep -qE '^((engine|ui)/src/features/preview/|ui/scripts/preview-sync-stress\.mjs$)'; then
             echo "run=true" >> "$GITHUB_OUTPUT"
             echo "runs=5" >> "$GITHUB_OUTPUT"
           else
@@ -113,4 +113,4 @@ jobs:
       - if: steps.gate.outputs.run == 'true'
         run: nix develop --command npm ci --ignore-scripts
       - if: steps.gate.outputs.run == 'true'
-        run: nix develop --command sh -c 'cd web && npm run test:preview-sync:stress -- --runs ${{ steps.gate.outputs.runs }}'
+        run: nix develop --command sh -c 'cd ui && npm run test:preview-sync:stress -- --runs ${{ steps.gate.outputs.runs }}'

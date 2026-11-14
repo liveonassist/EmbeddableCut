@@ -7,7 +7,8 @@
   "description": "EmbeddableCut's editor UI in Svelte 5: the full editor to mount in any app, and its components.",
   "exports": {
     ".": "./src/index.ts",
-    "./styles.css": "./src/styles/app.css"
+    "./styles.css": "./src/styles/app.css",
+    "./app": "./src/bootstrap.ts"
   },
   "scripts": {
     "check": "vp lint src vite.config.ts && node scripts/svelte-check.mjs",
@@ -15,7 +16,11 @@
     "format": "vp fmt src vite.config.ts",
     "test": "vp test run",
     "dev": "vp dev",
-    "build": "vp build && vp build --mode lib"
+    "build": "vp build && vp build --mode lib",
+    "test:preview-sync": "vp test run src/features/preview/components/video-preview.sync.test.ts",
+    "test:preview-sync:stress": "node scripts/preview-sync-stress.mjs --runs 20",
+    "changelog:append": "node scripts/changelog-append.mjs",
+    "changelog:rollup": "node scripts/changelog-rollup.mjs"
   },
   "dependencies": {
     "@embeddablecut/engine": "0.0.0",
@@ -30,7 +35,8 @@
     "svelte": "5.57.3",
     "svelte-sonner": "1.2.3",
     "tailwind-merge": "2.6.1",
-    "tailwindcss-animate": "1.0.7"
+    "tailwindcss-animate": "1.0.7",
+    "zustand": "5.0.12"
   },
   "devDependencies": {
     "@sveltejs/vite-plugin-svelte": "7.3.1",

@@ -49,7 +49,7 @@ just check all   # task scripts, architecture ratchets, engine, editor, render s
 just check nix   # the Nix packages and flake formatting (slowest)
 ```
 
-While you work, the scoped recipes are quicker: `just engine test <filter>`, `just web test <filter>`, `just engine check`.
+While you work, the scoped recipes are quicker: `just engine test <filter>`, `just ui test <filter>`, `just engine check`.
 
 ## Next steps
 

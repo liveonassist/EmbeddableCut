@@ -18,3 +18,8 @@ test *args:
 [working-directory('../ui')]
 check:
     npm run check
+
+# Re-run the preview's sync tests from cold, to surface ordering flakes.
+[working-directory('../ui')]
+preview-sync-stress runs="20":
+    npm run test:preview-sync:stress -- --runs {{ runs }}

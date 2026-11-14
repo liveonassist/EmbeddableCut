@@ -26,8 +26,8 @@ Each project subdirectory owns an `AGENTS.md` describing its stack, commands, an
 
 - `engine/` — `@embeddablecut/engine`: everything that runs without a UI framework. Its `src/` mirrors FreeCut's `src/`.
 - `sdk/` — `@embeddablecut/sdk`: the public API over the engine, which hosts and the editor UI use alike.
-- `ui/` — `@embeddablecut/ui`: the editor in Svelte 5, mountable in any page; its `src/` mirrors `web/src/`.
-- `web/` — `@embeddablecut/web`: the editor app, FreeCut's React UI, built as a static PWA plus the headless harness page. Its `src/` mirrors FreeCut's `src/` too.
+- `ui/` — `@embeddablecut/ui`: the editor in Svelte 5, mountable in any page, and the app around it. Its `src/` is FreeCut's React UI ported file for file, at FreeCut's paths.
+- `web/` — `@embeddablecut/web`: the editor app's build: the UI's app as a static PWA, plus the headless harness page.
 - `render/` — `@embeddablecut/render`: FreeCut's headless renderer (formerly `headless/`), driving the harness in Chrome.
 - `schemas/` — generated JSON Schema for the portable formats; [`docs/SCHEMAS.md`](docs/SCHEMAS.md) is the policy.
 - `scripts/checks/` — FreeCut's architecture ratchets, run over both trees by `overlay.mjs`.
@@ -37,7 +37,7 @@ Each project subdirectory owns an `AGENTS.md` describing its stack, commands, an
 
 ## Upstream
 
-- **FreeCut is upstream, and every path keeps its upstream twin.** A file at FreeCut's `src/<path>` lives at `engine/src/<path>` or `web/src/<path>`, never both, so merges follow the renames. Don't move a file within a tree without a reason that outweighs that.
+- **FreeCut is upstream, and every path keeps its upstream twin.** A file at FreeCut's `src/<path>` lives at `engine/src/<path>`, or, if it is React UI, is ported to its twin under `ui/src/<path>`; never both. Merges follow the engine's renames, and an upstream change to a React file names the Svelte file to carry it to. Don't move a file within a tree without a reason that outweighs that.
 - Merge upstream with `just upstream merge`; [`docs/UPSTREAM.md`](docs/UPSTREAM.md) is the procedure. Never push to the `upstream` remote; its push URL is disabled.
 - Code that only EmbeddableCut has goes in new files where it can, so upstream's edits to theirs merge cleanly.
 - Never reformat an upstream file wholesale: upstream isn't format-clean, and the noise would conflict with every merge. Format what you write, from inside its package (`cd engine && npx vp fmt src/...`): the repo root has no Vite config, and oxfmt there falls back to its defaults.
@@ -56,14 +56,14 @@ FreeCut's design is the default and the bar. [`docs/DESIGN.md`](docs/DESIGN.md) 
 
 - **Precise, confident, calm.** Dense panels read at a glance by editors coming from Premiere Pro and DaVinci Resolve; keyboard first, frame accurate.
 - **Chrome stays dark and neutral** so footage carries the color. One accent (`--primary`, orange), IBM Plex Sans and Mono, Lucide icons.
-- **Tokens, not values.** Colors, radii and type come from the CSS variables in `web/src/index.css`. Never hard-code them.
+- **Tokens, not values.** Colors, radii and type come from the CSS variables in `ui/src/styles/app.css`. Never hard-code them.
 
 ## Conventions
 
 - The toolchain comes from the Nix flake — enter it with `nix develop` or `direnv`. Never a system `node`. Need a tool? Add it to `flake.nix`, in the group its shell composes from.
 - `just` is the entry point for common tasks: `just` lists every recipe, `just <group>` one group. A command people run more than once gets a recipe.
 - npm workspaces: one `package-lock.json` at the root. Install with `just web install` (`npm install` at the root); add a dependency to the package that imports it, exact-pinned, never `^` or `~`. A lockfile change also refreshes the flake's `npmDepsHash`: `just check npm-hash`.
-- `onnxruntime-web` (a dev build) and `lucide-react` (0.468.x) are pinned deliberately: never routine-bump either.
+- `onnxruntime-web` (a dev build) and `lucide-svelte` (0.468.x, FreeCut's `lucide-react` version, so the icons match) are pinned deliberately: never routine-bump either.
 - Shell scripts pass `shfmt --indent 2` and `shellcheck`, justfiles `just --fmt`, the flake `alejandra` (`just check tasks`).
 - License is MIT, FreeCut's. New source files start with an SPDX header (`// SPDX-License-Identifier: MIT`, or the file type's comment equivalent); upstream files stay as upstream has them.
 - Code from elsewhere goes in a commit of its own, keeps its notice, and names its source and license in the message.

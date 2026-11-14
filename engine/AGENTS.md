@@ -16,7 +16,7 @@ Or from anywhere: `just engine check`, `just engine test [filter]`.
 
 ## Layout
 
-`src/` mirrors FreeCut's `src/` path for path, so `@/features/timeline/stores/items-store` names the same module here as upstream. Only what `web/src/` holds is missing.
+`src/` mirrors FreeCut's `src/` path for path, so `@/features/timeline/stores/items-store` names the same module here as upstream. Only FreeCut's React UI is missing: it is ported to Svelte in `ui/src/` at the same paths.
 
 - `src/types/` — the data model: `Project`, the `TimelineItem` union, `Transition`, keyframes, effects, `MediaMetadata`.
 - `src/features/<feature>/{stores,services,utils,deps}` — feature state and logic. `timeline/stores/actions/` is the editing API; `timeline/stores/timeline-actions.ts` is its barrel.
@@ -41,17 +41,17 @@ Don't break these without an architecture discussion in the PR description.
 
 ### Boundaries
 
-- **The engine never imports the app.** `@/` resolves only to `engine/src/` here, and `npm run check` type-checks the engine alone, so an import of anything in `web/src/` fails. A component or hook belongs in `web/`.
+- **The engine never imports the app.** `@/` resolves only to `engine/src/` here, and `npm run check` type-checks the engine alone, so an import of anything in `ui/src/` fails. A component or hook belongs in `ui/`.
 - **No UI framework, not even its types.** `engine/vite.config.ts` bans React, Svelte, Radix, Lucide, `zustand`'s React entry and `sonner`. Stores use `create` from `@/shared/state/bound-store`, notices go through `toast` from `@/shared/notifications`.
 - **Cross-feature imports go through `deps/`.** A feature reaches another only inside `features/<name>/deps/*-contract.ts`; its code imports the sibling adapter (`deps/<name>.ts`). `just check architecture` enforces it, with FreeCut's layer rules and edge budgets.
-- When a contract would re-export a component or hook, that export goes in the app's `deps/<name>-ui-contract.ts` and `-ui` adapter instead.
+- When a contract would re-export a component or hook, that export goes in the UI's `deps/<name>-ui-contract.ts` and `-ui` adapter instead.
 - `shared/`, `infrastructure/`, `types/`, `config/` and `i18n/` never import `features/` or `runtime/`. `runtime/` reaches feature state only through `runtime/<engine>/deps/*-contract.ts`.
 
 ### State and editing
 
 - Stores are zustand singletons, one per JavaScript realm. Two editors in one page share them.
-- `create` in `shared/state/bound-store.ts` is zustand's signature over a vanilla store. Calling a store as a hook goes through the binding a UI installs with `bindStoreHook` (React: `web/src/app/framework-bindings.ts`); engine code uses `getState`, `setState` and `subscribe` only.
-- i18next is initialized here without a UI plugin; a UI binds it itself (`setI18n` for react-i18next).
+- `create` in `shared/state/bound-store.ts` is zustand's signature over a vanilla store. Calling a store as a hook goes through the binding a React host installs with `bindStoreHook`; the Svelte UI reads stores through `select` and never calls them. Engine code uses `getState`, `setState` and `subscribe` only.
+- i18next is initialized here without a UI plugin; a UI binds it itself (the Svelte UI's `$lib/i18n.svelte`).
 - Edits go through the actions in `features/timeline/stores/actions/`, each wrapped in `execute(type, fn)` so undo captures a whole-timeline snapshot before it. A store's `_`-prefixed mutators are for actions only.
 - `timeline-persistence.ts` is the only bridge between the stores and a saved `Project`: `buildTimelineFromStores()` out, `hydrateTimelineStoresFromProject()` in.
 - Persisted projects carry `schemaVersion`; `migrateProject()` runs every migration in `shared/projects/migrations/` on load, and throws `ProjectSchemaTooNewError` for a project from a newer editor. The project schema is FreeCut's: EmbeddableCut adds no project migrations of its own.

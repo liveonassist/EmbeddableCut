@@ -43,7 +43,7 @@ Everything FreeCut's editor does, the SDK keeps. Projects and media stay local: 
 
 **⚙️ Engine: TypeScript, no UI framework.** `engine/` holds FreeCut's state, editing actions, media handling, persistence, effects, transitions, renderer and clock. Hosts bundle it as source.
 
-**🖥️ Editor: React, moving to Svelte 5.** `web/` is FreeCut's editor, unchanged in behavior and look, built with Vite+ into a static PWA.
+**🖥️ Editor: Svelte 5.** `ui/` is FreeCut's editor ported from React file for file, with the same behavior and look, mountable in any page, in a shadow root or an iframe. `web/` builds it with Vite+ into the static PWA FreeCut ships.
 
 **🎥 Render: headless Chrome.** `render/` drives the engine through Playwright for CLIs and an HTTP service, with a container image for clusters.
 

@@ -22,11 +22,10 @@ ui:
     npm run check
     npx vp test run
 
-# Lint, type-check and test the editor app, and build it.
+# Lint the editor app's build config and build it.
 [working-directory('../web')]
 web:
     npm run check
-    npx vp test run
     npm run build
 
 # Run the render contract tests and the portable Chrome suites (needs a web build).

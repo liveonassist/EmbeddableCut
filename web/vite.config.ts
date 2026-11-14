@@ -1,16 +1,15 @@
 import { defineConfig, lazyPlugins } from 'vite-plus'
 import type { Plugin } from 'vite-plus'
-import react from '@vitejs/plugin-react'
+import { svelte } from '@sveltejs/vite-plugin-svelte'
 import tailwindcss from '@tailwindcss/vite'
 import { readFileSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
-// `@/` resolves against the app's own sources first, then the engine's, which
-// mirror FreeCut's original `src/` layout. This keeps every upstream import
-// specifier valid while the UI still reaches into engine modules directly.
+// The app is the editor UI's: `@/` resolves against its sources first, then
+// the engine's, which together mirror FreeCut's original `src/` layout.
 const sourceRoots = [
-  fileURLToPath(new URL('./src', import.meta.url)),
+  fileURLToPath(new URL('../ui/src', import.meta.url)),
   fileURLToPath(new URL('../engine/src', import.meta.url)),
 ]
 
@@ -94,41 +93,20 @@ export default defineConfig({
   },
   fmt: {
     ...oxfmtConfig,
-    // `tsr generate` emits routeTree.gen.ts at 80 cols; oxfmt would rewrap it
-    // at 100, so the two rewrite each other on every `npm run routes`.
-    ignorePatterns: [...toolIgnorePatterns, 'src/routeTree.gen.ts'],
-  },
-  test: {
-    // Preserve Vitest 4's mock history; adopt Vitest 5 clearing separately.
-    clearMocks: false,
-    globals: true,
-    environment: 'jsdom',
-    setupFiles: ['./src/test/setup.ts'],
-    include: ['src/**/*.test.{ts,tsx}'],
-    coverage: {
-      provider: 'v8',
-      reporter: ['text', 'json', 'html'],
-      // Ratchet floor, not a target: set just below measured coverage
-      // (2026-06-10: 50.2% stmts / 43.7% branch / 54.9% funcs / 51.5% lines)
-      // so CI fails on regressions. Raise these as coverage grows.
-      thresholds: {
-        statements: 48,
-        branches: 42,
-        functions: 52,
-        lines: 49,
-      },
-    },
+    ignorePatterns: toolIgnorePatterns,
   },
   plugins: lazyPlugins(() => [
     layeredSourceAliasPlugin(),
-    react(),
+    svelte({ configFile: fileURLToPath(new URL('../ui/svelte.config.js', import.meta.url)) }),
     tailwindcss(),
     serviceWorkerVersionPlugin(),
   ]),
   resolve: {
-    // Keep every UI dependency on the same React dispatcher. This also prevents
-    // an optimizer refresh from leaving Radix on a stale React module during HMR.
-    dedupe: ['react', 'react-dom'],
+    alias: {
+      $lib: fileURLToPath(new URL('../ui/src/lib', import.meta.url)),
+      $components: fileURLToPath(new URL('../ui/src/components', import.meta.url)),
+    },
+    dedupe: ['svelte'],
   },
   server: {
     port: 5173,
@@ -168,20 +146,20 @@ export default defineConfig({
         manualChunks: (id) => {
           const normalizedId = id.replaceAll('\\', '/')
           const isWorkspaceGateShell =
-            normalizedId.endsWith('/src/features/workspace-gate/workspace-gate.tsx') ||
-            normalizedId.endsWith('/src/features/workspace-gate/workspace-gate-splash.tsx') ||
-            normalizedId.endsWith('/src/features/workspace-gate/use-pathname.ts')
+            normalizedId.endsWith('/src/features/workspace-gate/workspace-gate.svelte') ||
+            normalizedId.endsWith('/src/features/workspace-gate/workspace-gate-splash.svelte') ||
+            normalizedId.endsWith('/src/features/workspace-gate/use-pathname.svelte.ts')
           const isAppShellComponent =
-            normalizedId.endsWith('/src/components/brand/freecut-logo.tsx') ||
-            normalizedId.endsWith('/src/components/ui/accordion.tsx') ||
-            normalizedId.endsWith('/src/components/ui/button.tsx') ||
+            normalizedId.endsWith('/src/components/brand/freecut-logo.svelte') ||
+            normalizedId.includes('/src/components/ui/accordion/') ||
+            normalizedId.includes('/src/components/ui/button/') ||
             normalizedId.endsWith('/src/components/ui/button-variants.ts') ||
-            normalizedId.endsWith('/src/components/ui/global-tooltip.tsx') ||
-            // TooltipProvider wraps the whole app in App, so the Radix tooltip
+            normalizedId.includes('/src/components/ui/global-tooltip/') ||
+            // TooltipProvider wraps the whole app in App, so the tooltip
             // primitive must live in the shell. Without this pin, the chunker
             // places it in feature-editing-core (majority importer) and the
             // entire 1.2MB editor chunk loads on the landing page.
-            normalizedId.endsWith('/src/components/ui/tooltip.tsx')
+            normalizedId.includes('/src/components/ui/tooltip/')
 
           // Logger must be in its own chunk to avoid circular chunk TDZ errors.
           // Without this, Rollup places it in composition-runtime which has a
@@ -275,24 +253,10 @@ export default defineConfig({
           // rolldown-runtime and app-shell), while re-pinning it would move ~130
           // modules into that 1.6MB chunk.
 
-          // React must be in its own chunk, loaded first to ensure proper initialization
-          // This prevents "Cannot set properties of undefined" errors with React 19.2 features
-          if (normalizedId.includes('/node_modules/react-dom/')) {
-            return 'react-vendor'
+          if (normalizedId.includes('/node_modules/svelte/')) {
+            return 'svelte-vendor'
           }
-          if (normalizedId.includes('/node_modules/react/')) {
-            return 'react-vendor'
-          }
-          // Router framework — router-core/history are separate packages, so
-          // they need their own matchers or they leak into app-shell.
-          if (
-            normalizedId.includes('/node_modules/@tanstack/react-router/') ||
-            normalizedId.includes('/node_modules/@tanstack/router-core/') ||
-            normalizedId.includes('/node_modules/@tanstack/history/')
-          ) {
-            return 'router-vendor'
-          }
-          if (normalizedId.includes('/node_modules/sonner/')) {
+          if (normalizedId.includes('/node_modules/svelte-sonner/')) {
             return 'toast-vendor'
           }
           // State management
@@ -317,19 +281,16 @@ export default defineConfig({
             return 'gif-processing'
           }
           // UI framework
-          if (normalizedId.includes('/node_modules/@radix-ui/')) {
+          if (
+            normalizedId.includes('/node_modules/bits-ui/') ||
+            normalizedId.includes('/node_modules/@floating-ui/') ||
+            normalizedId.includes('/node_modules/paneforge/')
+          ) {
             return 'vendor-ui'
           }
-          // Icons - keep lucide-react in separate chunk for better caching
-          if (normalizedId.includes('/node_modules/lucide-react/')) {
+          // Icons - keep lucide-svelte in separate chunk for better caching
+          if (normalizedId.includes('/node_modules/lucide-svelte/')) {
             return 'vendor-icons'
-          }
-          // Animation - keep motion in its own chunk for better caching
-          if (
-            normalizedId.includes('/node_modules/motion/') ||
-            normalizedId.includes('/node_modules/framer-motion/')
-          ) {
-            return 'vendor-motion'
           }
           return undefined
         },
@@ -347,17 +308,6 @@ export default defineConfig({
       '@mediabunny/aac-encoder',
       '@huggingface/transformers',
     ],
-    // Pre-bundle the React runtime and root provider together so dependency
-    // optimizer refreshes cannot mix old/new dispatchers in a live dev session.
-    // Lucide stays explicit to avoid analyzing its full icon graph on startup.
-    include: [
-      'react',
-      'react-dom',
-      'react/jsx-runtime',
-      'react/jsx-dev-runtime',
-      '@radix-ui/react-tooltip',
-      '@tanstack/react-virtual',
-      'lucide-react',
-    ],
+
   },
 })
