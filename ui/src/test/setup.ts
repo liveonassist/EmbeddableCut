@@ -16,6 +16,16 @@ if (typeof testGlobal.ResizeObserver === 'undefined') {
   } as unknown as typeof ResizeObserver
 }
 
+// jsdom has no idle callbacks; the editor defers its warm-up work to them.
+if (typeof window !== 'undefined' && typeof window.requestIdleCallback !== 'function') {
+  window.requestIdleCallback = ((callback: IdleRequestCallback) =>
+    window.setTimeout(
+      () => callback({ didTimeout: false, timeRemaining: () => 0 }),
+      1,
+    )) as typeof window.requestIdleCallback
+  window.cancelIdleCallback = (id: number) => window.clearTimeout(id)
+}
+
 if (typeof window !== 'undefined' && typeof window.matchMedia !== 'function') {
   window.matchMedia = (query: string) =>
     ({
