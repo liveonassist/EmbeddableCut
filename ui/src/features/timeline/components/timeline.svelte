@@ -509,18 +509,37 @@
         : null
     void [videoPaneHeight, videoDisplayHeight]
 
+    const observers: ResizeObserver[] = []
     const anchorToDivider = (element: HTMLDivElement | null) => {
       if (!element) {
         return
       }
 
-      element.scrollTop = Math.max(0, element.scrollHeight - element.clientHeight)
+      const anchor = () => {
+        element.scrollTop = Math.max(0, element.scrollHeight - element.clientHeight)
+      }
+      // paneforge sizes its panes in an effect that runs after this one, where
+      // React's layout effect saw them laid out: anchor once the pane has a height.
+      if (element.clientHeight === 0) {
+        const observer = new ResizeObserver(() => {
+          if (element.clientHeight === 0) return
+          observer.disconnect()
+          anchor()
+        })
+        observer.observe(element)
+        observers.push(observer)
+        return
+      }
+      anchor()
     }
 
     untrack(() => {
       anchorToDivider(content)
       anchorToDivider(header)
     })
+    return () => {
+      for (const observer of observers) observer.disconnect()
+    }
   })
 
   // Update drop indicator from shared ref (only during drag)
