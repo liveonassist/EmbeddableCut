@@ -1,0 +1,17 @@
+{
+  "media": {
+    "urlMedia": {
+      "streamTitle": "URL'den medya ekle",
+      "streamDescription": "Bir medya dosyasını doğrudan URL'den akışla oynatın. Çalışma alanına hiçbir şey indirilmez.",
+      "streamHint": "Sunucu CORS'a izin vermeli ve aralık isteklerini desteklemelidir.",
+      "modeLabel": "Nasıl eklensin",
+      "modeStream": "Akış",
+      "modeStreamHint": "Yerinde oku",
+      "modeDownload": "İndir",
+      "modeDownloadHint": "Çalışma alanına kopyala",
+      "add": "Ekle",
+      "addFailed": "Medya URL'den eklenemedi",
+      "streamsFromUrl": "URL'den akışla oynatılır"
+    }
+  }
+}

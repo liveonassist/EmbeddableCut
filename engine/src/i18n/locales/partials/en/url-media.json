@@ -1,0 +1,17 @@
+{
+  "media": {
+    "urlMedia": {
+      "streamTitle": "Add Media From URL",
+      "streamDescription": "Stream a media file from a direct URL. Nothing is downloaded into the workspace.",
+      "streamHint": "The server must allow CORS and should support range requests.",
+      "modeLabel": "How to add it",
+      "modeStream": "Stream",
+      "modeStreamHint": "Read in place",
+      "modeDownload": "Download",
+      "modeDownloadHint": "Copy into the workspace",
+      "add": "Add",
+      "addFailed": "Couldn't add media from URL",
+      "streamsFromUrl": "Streams from URL"
+    }
+  }
+}

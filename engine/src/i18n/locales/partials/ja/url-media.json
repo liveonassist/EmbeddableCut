@@ -1,0 +1,17 @@
+{
+  "media": {
+    "urlMedia": {
+      "streamTitle": "URL からメディアを追加",
+      "streamDescription": "URL から直接メディアファイルをストリーミングします。ワークスペースには何もダウンロードされません。",
+      "streamHint": "サーバーは CORS を許可し、Range リクエストに対応している必要があります。",
+      "modeLabel": "追加方法",
+      "modeStream": "ストリーミング",
+      "modeStreamHint": "元の場所から読み込む",
+      "modeDownload": "ダウンロード",
+      "modeDownloadHint": "ワークスペースにコピー",
+      "add": "追加",
+      "addFailed": "URL からメディアを追加できませんでした",
+      "streamsFromUrl": "URL からストリーミング"
+    }
+  }
+}

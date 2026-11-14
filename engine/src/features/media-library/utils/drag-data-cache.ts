@@ -1,5 +1,6 @@
 import type { VisualEffect } from '@/types/effects'
 import type { TextStylePresetId } from '@/shared/typography/text-style-presets'
+import { toggleGlobalCursorClass } from '@/shared/ui/global-cursor-roots'
 
 /**
  * Cache for media drag data
@@ -66,7 +67,7 @@ function syncTimelinePointerPassthrough(data: DragData | null): void {
     return
   }
 
-  document.body.classList.toggle(
+  toggleGlobalCursorClass(
     TIMELINE_EXTERNAL_MEDIA_DRAG_CLASS,
     shouldEnableTimelinePointerPassthrough(data),
   )

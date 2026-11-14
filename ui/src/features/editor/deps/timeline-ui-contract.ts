@@ -1,0 +1,21 @@
+// SPDX-License-Identifier: MIT
+
+/**
+ * Adapter exports for timeline UI dependencies.
+ * Editor modules should import timeline feature UI components from here.
+ */
+
+export { useBentoLayoutDialogStore } from '@/features/timeline/components/bento-layout-dialog-store'
+export { useFillerRemovalDialogStore } from '@/features/timeline/stores/filler-removal-dialog-store'
+export { useReverseConformDialogStore } from '@/features/timeline/stores/reverse-conform-dialog-store'
+export { useSilenceRemovalDialogStore } from '@/features/timeline/stores/silence-removal-dialog-store'
+
+export const importTimeline = () => import('@/features/timeline/components/timeline.svelte')
+export const importBentoLayoutDialog = () =>
+  import('@/features/timeline/components/bento-layout-dialog/bento-layout-dialog.svelte')
+export const importFillerRemovalDialog = () =>
+  import('@/features/timeline/components/filler-removal-dialog/filler-removal-dialog.svelte')
+export const importReverseConformDialog = () =>
+  import('@/features/timeline/components/reverse-conform-dialog.svelte')
+export const importSilenceRemovalDialog = () =>
+  import('@/features/timeline/components/silence-removal-dialog/silence-removal-dialog.svelte')

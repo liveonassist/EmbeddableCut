@@ -139,6 +139,41 @@
       "path": "src/shared/timeline/io-range/index.ts",
       "exportName": "IO_HANDLE_WIDTH",
       "reason": "barrel-surface: feature barrel defines the public API; current consumers import the underlying module directly."
+    },
+    {
+      "path": "src/shared/ui/global-cursor-roots.ts",
+      "exportName": "registerGlobalCursorRoots",
+      "reason": "consumed by the Svelte editor UI (ui/src), which the overlay does not scan yet."
+    },
+    {
+      "path": "src/shared/ui/global-cursor-roots.ts",
+      "exportName": "getGlobalCursorTargets",
+      "reason": "consumed by the Svelte editor UI (ui/src), which the overlay does not scan yet."
+    },
+    {
+      "path": "src/shared/ui/global-cursor-roots.ts",
+      "exportName": "addGlobalCursorClass",
+      "reason": "consumed by the Svelte editor UI (ui/src), which the overlay does not scan yet."
+    },
+    {
+      "path": "src/shared/ui/global-cursor-roots.ts",
+      "exportName": "removeGlobalCursorClass",
+      "reason": "consumed by the Svelte editor UI (ui/src), which the overlay does not scan yet."
+    },
+    {
+      "path": "src/shared/ui/global-cursor-roots.ts",
+      "exportName": "queryEditorElement",
+      "reason": "consumed by the Svelte editor UI (ui/src), which the overlay does not scan yet."
+    },
+    {
+      "path": "src/shared/ui/global-cursor-roots.ts",
+      "exportName": "queryEditorElements",
+      "reason": "consumed by the Svelte editor UI (ui/src), which the overlay does not scan yet."
+    },
+    {
+      "path": "src/shared/ui/global-cursor-roots.ts",
+      "exportName": "setGlobalCursorStyle",
+      "reason": "consumed by the Svelte editor UI (ui/src), which the overlay does not scan yet."
     }
   ]
 }

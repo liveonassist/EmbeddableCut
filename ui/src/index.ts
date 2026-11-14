@@ -2,10 +2,12 @@
 
 /**
  * EmbeddableCut's editor UI: `mountEditor` for the full editor in any page,
- * `mountEditorFrame` for isolated editors in iframes, and the theme and
- * contribution types hosts customize it with.
+ * `mountEditorFrame` for isolated editors in iframes, `mountPreview` for just
+ * the playable composition, `mountApp` for the whole FreeCut app, and the
+ * theme and contribution types hosts customize it with.
  */
 
+export { mountApp, type MountedApp } from './app/mount-app'
 export {
   mountEditor,
   mountEditorFrame,
@@ -14,6 +16,7 @@ export {
   type MountedEditor,
   type MountedEditorFrame,
 } from './embed/mount'
+export { mountPreview, type MountPreviewOptions, type MountedPreview } from './embed/mount-preview'
 export {
   THEME_TOKENS,
   ThemeController,
