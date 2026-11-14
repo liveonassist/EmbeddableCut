@@ -39,7 +39,10 @@ export function createEditorShell(
   if (isolation === 'shadow') {
     host = document.createElement('div')
     host.className = 'ec-host'
-    host.style.cssText = 'display:block;width:100%;height:100%;isolation:isolate'
+    // Sized by its container: inline-size containment keeps the editor's
+    // minimum width from widening a host's grid or flex track, without the
+    // containing block layout containment would give fixed-position overlays.
+    host.style.cssText = 'display:block;width:100%;height:100%;isolation:isolate;contain:inline-size'
     target.append(host)
     const shadow = host.attachShadow({ mode: 'open' })
     const sheet = new CSSStyleSheet()

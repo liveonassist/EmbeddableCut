@@ -39,7 +39,7 @@ export function mountPreview(target: HTMLElement, options: MountPreviewOptions):
   if (isolation === 'shadow') {
     host = document.createElement('div')
     host.className = 'ec-host'
-    host.style.cssText = 'display:block;width:100%;height:100%;isolation:isolate'
+    host.style.cssText = 'display:block;width:100%;height:100%;isolation:isolate;contain:inline-size'
     target.append(host)
     const shadow = host.attachShadow({ mode: 'open' })
     const sheet = new CSSStyleSheet()
