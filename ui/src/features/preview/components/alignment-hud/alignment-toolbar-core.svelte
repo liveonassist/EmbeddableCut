@@ -204,34 +204,27 @@
     }
 </script>
 
-{#snippet renderButton({
-    type,
-    icon: Icon,
-    labelKey,
-    minItems,
-  }: (typeof ALIGNMENT_ACTIONS)[number])}
-  {#key type}
-    <Button
-      variant="ghost"
-      size="icon"
-      class="flex-shrink-0 text-muted-foreground hover:text-foreground"
-      style={cssStyle(BUTTON_STYLE)}
-      onclick={() => handleAlign(type)}
-      disabled={itemCount < minItems}
-      data-tooltip={t(labelKey)}
-      aria-label={t(labelKey)}
-    >
-      <Icon class="w-3.5 h-3.5" />
-    </Button>
-  {/key}
+{#snippet renderButton({ type, icon: Icon, labelKey, minItems }: (typeof ALIGNMENT_ACTIONS)[number])}
+  <Button
+    variant="ghost"
+    size="icon"
+    class="flex-shrink-0 text-muted-foreground hover:text-foreground"
+    style={cssStyle(BUTTON_STYLE)}
+    onclick={() => handleAlign(type)}
+    disabled={itemCount < minItems}
+    data-tooltip={t(labelKey)}
+    aria-label={t(labelKey)}
+  >
+    <Icon class="w-3.5 h-3.5" />
+  </Button>
 {/snippet}
 
 {#if !(itemCount < 1)}
-  {ALIGNMENT_ACTIONS.slice(0, 3).map(renderButton)}
+  {#each ALIGNMENT_ACTIONS.slice(0, 3) as action (action.type)}{@render renderButton(action)}{/each}
   <div class="w-px h-3.5 bg-border mx-0.5"></div>
-  {ALIGNMENT_ACTIONS.slice(3, 6).map(renderButton)}
+  {#each ALIGNMENT_ACTIONS.slice(3, 6) as action (action.type)}{@render renderButton(action)}{/each}
   <div class="w-px h-3.5 bg-border mx-0.5"></div>
-  {ALIGNMENT_ACTIONS.slice(6).map(renderButton)}
+  {#each ALIGNMENT_ACTIONS.slice(6) as action (action.type)}{@render renderButton(action)}{/each}
   <div class="w-px h-3.5 bg-border mx-0.5"></div>
   <Button
     variant="ghost"
