@@ -1,14 +1,11 @@
 <!-- SPDX-License-Identifier: MIT -->
-<!-- placeholder: ported elsewhere -->
 <script lang="ts">
-  interface Props {
-    project: { width: number; height: number; backgroundColor?: string }
-    containerSize: { width: number; height: number }
-    suspendOverlay?: boolean
-    chrome?: 'edit' | 'color'
-  }
+  import { useTransformStableItemsSnapshot } from '../../hooks/use-transform-stable-items-snapshot.svelte'
+  import DeferredVideoPreview from './deferred-video-preview.svelte'
+  import type { VideoPreviewProps } from './types'
 
-  const props: Props = $props()
-  // svelte-ignore state_referenced_locally
-  void props
+  let { chrome = 'edit', ...previewProps }: VideoPreviewProps = $props()
+  const itemsSnapshot = useTransformStableItemsSnapshot()
 </script>
+
+<DeferredVideoPreview {...previewProps} overlayChrome={chrome} itemsSnapshot={itemsSnapshot.current} />

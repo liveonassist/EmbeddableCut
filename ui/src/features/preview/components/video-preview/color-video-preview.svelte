@@ -1,14 +1,9 @@
 <!-- SPDX-License-Identifier: MIT -->
-<!-- placeholder: ported elsewhere -->
 <script lang="ts">
-  interface Props {
-    project: { width: number; height: number; backgroundColor?: string }
-    containerSize: { width: number; height: number }
-    suspendOverlay?: boolean
-    chrome?: 'edit' | 'color'
-  }
+  import VideoPreview from './video-preview.svelte'
+  import type { VideoPreviewProps } from './types'
 
-  const props: Props = $props()
-  // svelte-ignore state_referenced_locally
-  void props
+  let props: VideoPreviewProps = $props()
 </script>
+
+<VideoPreview {...props} chrome="color" />

@@ -1,13 +1,23 @@
 <!-- SPDX-License-Identifier: MIT -->
-<!-- placeholder: ported elsewhere -->
 <script lang="ts">
-  interface Props {
+  import InlineSourcePreviewContent from './inline-source-preview/inline-source-preview-content.svelte'
+
+  interface InlineSourcePreviewProps {
     mediaId: string
     seekFrame: number | null
-    containerSize: { width: number; height: number }
+    containerSize: {
+      width: number
+      height: number
+    }
   }
 
-  const props: Props = $props()
-  // svelte-ignore state_referenced_locally
-  void props
+  let { mediaId, seekFrame, containerSize }: InlineSourcePreviewProps = $props()
 </script>
+
+{#key mediaId}
+  <InlineSourcePreviewContent
+    mediaId={mediaId}
+    seekFrame={seekFrame}
+    containerSize={containerSize}
+   />
+{/key}
