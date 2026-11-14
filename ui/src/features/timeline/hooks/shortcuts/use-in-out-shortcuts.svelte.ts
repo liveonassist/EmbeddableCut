@@ -11,7 +11,8 @@ import {
   setOutPoint,
 } from '@/features/timeline/stores/timeline-actions'
 import { useResolvedHotkeys } from '@/features/timeline/deps/settings-ui'
-import { useTimelineHotkey } from './timeline-hotkey'
+import { useHotkeys } from '$lib/hotkeys.svelte'
+import { HOTKEY_OPTIONS } from '@/config/hotkeys'
 
 function addShiftModifier(binding: string): string {
   const parts = binding
@@ -33,47 +34,52 @@ export function useInOutShortcuts(): void {
   const markInAtPreview = $derived(addShiftModifier(hotkeys.current.MARK_IN))
   const markOutAtPreview = $derived(addShiftModifier(hotkeys.current.MARK_OUT))
 
-  useTimelineHotkey(
+  useHotkeys(
     () => hotkeys.current.MARK_IN,
     (event) => {
       event.preventDefault()
       const { currentFrame } = usePlaybackStore.getState()
       setInPoint(currentFrame)
     },
+    () => HOTKEY_OPTIONS,
   )
 
-  useTimelineHotkey(
+  useHotkeys(
     () => markInAtPreview,
     (event) => {
       event.preventDefault()
       const { previewFrame, currentFrame } = usePlaybackStore.getState()
       setInPoint(previewFrame ?? currentFrame)
     },
+    () => HOTKEY_OPTIONS,
   )
 
-  useTimelineHotkey(
+  useHotkeys(
     () => hotkeys.current.MARK_OUT,
     (event) => {
       event.preventDefault()
       const { currentFrame } = usePlaybackStore.getState()
       setOutPoint(currentFrame)
     },
+    () => HOTKEY_OPTIONS,
   )
 
-  useTimelineHotkey(
+  useHotkeys(
     () => markOutAtPreview,
     (event) => {
       event.preventDefault()
       const { previewFrame, currentFrame } = usePlaybackStore.getState()
       setOutPoint(previewFrame ?? currentFrame)
     },
+    () => HOTKEY_OPTIONS,
   )
 
-  useTimelineHotkey(
+  useHotkeys(
     () => hotkeys.current.CLEAR_IN_OUT,
     (event) => {
       event.preventDefault()
       clearInOutPoints()
     },
+    () => HOTKEY_OPTIONS,
   )
 }

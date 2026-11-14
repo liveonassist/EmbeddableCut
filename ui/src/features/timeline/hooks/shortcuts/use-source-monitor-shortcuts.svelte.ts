@@ -17,13 +17,14 @@ import {
   performOverwriteEdit,
 } from '@/features/timeline/stores/actions/source-edit-actions'
 import { useResolvedHotkeys } from '@/features/timeline/deps/settings-ui'
-import { useTimelineHotkey } from './timeline-hotkey'
+import { useHotkeys } from '$lib/hotkeys.svelte'
+import { HOTKEY_OPTIONS } from '@/config/hotkeys'
 
 export function useSourceMonitorShortcuts(): void {
   const hotkeys = useResolvedHotkeys()
 
   // Insert Edit: , (comma) — works globally when source monitor is open
-  useTimelineHotkey(
+  useHotkeys(
     () => hotkeys.current.INSERT_EDIT,
     (event) => {
       event.preventDefault()
@@ -31,10 +32,11 @@ export function useSourceMonitorShortcuts(): void {
       if (!sourceMediaId) return
       performInsertEdit()
     },
+    () => HOTKEY_OPTIONS,
   )
 
   // Overwrite Edit: . (period) — works globally when source monitor is open
-  useTimelineHotkey(
+  useHotkeys(
     () => hotkeys.current.OVERWRITE_EDIT,
     (event) => {
       event.preventDefault()
@@ -42,5 +44,6 @@ export function useSourceMonitorShortcuts(): void {
       if (!sourceMediaId) return
       performOverwriteEdit()
     },
+    () => HOTKEY_OPTIONS,
   )
 }

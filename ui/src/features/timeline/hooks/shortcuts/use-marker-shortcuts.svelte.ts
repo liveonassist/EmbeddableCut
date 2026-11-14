@@ -9,23 +9,25 @@ import { useMarkersStore } from '@/features/timeline/stores/markers-store'
 import { useSelectionStore } from '@/shared/state/selection'
 import { addMarker, removeMarker } from '@/features/timeline/stores/actions/marker-actions'
 import { useResolvedHotkeys } from '@/features/timeline/deps/settings-ui'
-import { useTimelineHotkey } from './timeline-hotkey'
+import { useHotkeys } from '$lib/hotkeys.svelte'
+import { HOTKEY_OPTIONS } from '@/config/hotkeys'
 
 export function useMarkerShortcuts(): void {
   const hotkeys = useResolvedHotkeys()
 
   // Markers: M - Add marker at playhead
-  useTimelineHotkey(
+  useHotkeys(
     () => hotkeys.current.ADD_MARKER,
     (event) => {
       event.preventDefault()
       const { previewFrame, currentFrame } = usePlaybackStore.getState()
       addMarker(previewFrame ?? currentFrame)
     },
+    () => HOTKEY_OPTIONS,
   )
 
   // Markers: Shift+M - Remove selected marker
-  useTimelineHotkey(
+  useHotkeys(
     () => hotkeys.current.REMOVE_MARKER,
     (event) => {
       event.preventDefault()
@@ -35,10 +37,11 @@ export function useMarkerShortcuts(): void {
         useSelectionStore.getState().clearSelection()
       }
     },
+    () => HOTKEY_OPTIONS,
   )
 
   // Markers: [ - Jump to previous marker
-  useTimelineHotkey(
+  useHotkeys(
     () => hotkeys.current.PREVIOUS_MARKER,
     (event) => {
       event.preventDefault()
@@ -57,10 +60,11 @@ export function useMarkerShortcuts(): void {
         usePlaybackStore.getState().setCurrentFrame(previousFrame)
       }
     },
+    () => HOTKEY_OPTIONS,
   )
 
   // Markers: ] - Jump to next marker
-  useTimelineHotkey(
+  useHotkeys(
     () => hotkeys.current.NEXT_MARKER,
     (event) => {
       event.preventDefault()
@@ -79,5 +83,6 @@ export function useMarkerShortcuts(): void {
         usePlaybackStore.getState().setCurrentFrame(nextFrame)
       }
     },
+    () => HOTKEY_OPTIONS,
   )
 }

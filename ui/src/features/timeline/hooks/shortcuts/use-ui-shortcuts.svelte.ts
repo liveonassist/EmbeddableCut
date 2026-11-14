@@ -15,7 +15,7 @@ import type { TimelineShortcutCallbacks } from '../use-timeline-shortcuts.svelte
 import { useSettingsStore } from '@/features/timeline/deps/settings'
 import { useResolvedHotkeys } from '@/features/timeline/deps/settings-ui'
 import { queryEditorElement } from '@/features/timeline/utils/global-cursor-roots'
-import { useTimelineHotkey } from './timeline-hotkey'
+import { useHotkeys } from '$lib/hotkeys.svelte'
 
 function zoomTo100AtCursor(event: KeyboardEvent): void {
   event.preventDefault()
@@ -32,7 +32,7 @@ export function useUIShortcuts(callbacks: () => TimelineShortcutCallbacks): void
   const hotkeys = useResolvedHotkeys()
 
   // History: Cmd/Ctrl+Z - Undo
-  useTimelineHotkey(
+  useHotkeys(
     () => hotkeys.current.UNDO,
     (event) => {
       event.preventDefault()
@@ -49,7 +49,7 @@ export function useUIShortcuts(callbacks: () => TimelineShortcutCallbacks): void
   )
 
   // History: Cmd/Ctrl+Shift+Z - Redo
-  useTimelineHotkey(
+  useHotkeys(
     () => hotkeys.current.REDO,
     (event) => {
       event.preventDefault()
@@ -66,46 +66,50 @@ export function useUIShortcuts(callbacks: () => TimelineShortcutCallbacks): void
   )
 
   // UI: S - Toggle Snap
-  useTimelineHotkey(
+  useHotkeys(
     () => hotkeys.current.TOGGLE_SNAP,
     (event) => {
       event.preventDefault()
       toggleSnap()
     },
+    () => HOTKEY_OPTIONS,
   )
 
   // UI: Shift+S - Toggle Canvas (gizmo) Snap — independent from timeline snap.
-  useTimelineHotkey(
+  useHotkeys(
     () => hotkeys.current.TOGGLE_CANVAS_SNAP,
     (event) => {
       event.preventDefault()
       const s = useSettingsStore.getState()
       s.setSetting('canvasSnapEnabled', !s.canvasSnapEnabled)
     },
+    () => HOTKEY_OPTIONS,
   )
 
-  // The zoom shortcuts listen in the capture phase in FreeCut; see timeline-hotkey.
+  const zoomHotkeyOptions = () => ({ ...HOTKEY_OPTIONS, eventListenerOptions: { capture: true } })
 
   // Zoom: Cmd/Ctrl+Equals - Zoom in
-  useTimelineHotkey(
+  useHotkeys(
     () => hotkeys.current.ZOOM_IN,
     (event) => {
       event.preventDefault()
       useZoomStore.getState().zoomIn()
     },
+    zoomHotkeyOptions,
   )
 
   // Zoom: Cmd/Ctrl+Minus - Zoom out
-  useTimelineHotkey(
+  useHotkeys(
     () => hotkeys.current.ZOOM_OUT,
     (event) => {
       event.preventDefault()
       useZoomStore.getState().zoomOut()
     },
+    zoomHotkeyOptions,
   )
 
   // Zoom: Backslash - Zoom to Fit
-  useTimelineHotkey(
+  useHotkeys(
     () => hotkeys.current.ZOOM_TO_FIT,
     (event) => {
       event.preventDefault()
@@ -133,11 +137,16 @@ export function useUIShortcuts(callbacks: () => TimelineShortcutCallbacks): void
 
       container.scrollLeft = 0
     },
+    () => HOTKEY_OPTIONS,
   )
 
   // Zoom: Shift+Backslash - Zoom to 100% centered on cursor (or playhead if cursor not on timeline)
-  useTimelineHotkey(() => hotkeys.current.ZOOM_TO_100, zoomTo100AtCursor)
+  useHotkeys(
+    () => hotkeys.current.ZOOM_TO_100,
+    zoomTo100AtCursor,
+    () => HOTKEY_OPTIONS,
+  )
 
   // Zoom: Cmd/Ctrl+0 - Reset timeline zoom to 100%
-  useTimelineHotkey(() => hotkeys.current.ZOOM_TO_100_ALT, zoomTo100AtCursor)
+  useHotkeys(() => hotkeys.current.ZOOM_TO_100_ALT, zoomTo100AtCursor, zoomHotkeyOptions)
 }

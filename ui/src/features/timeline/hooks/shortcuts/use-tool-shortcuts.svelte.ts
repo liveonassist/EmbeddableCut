@@ -12,7 +12,7 @@ import { HOTKEY_OPTIONS } from '@/config/hotkeys'
 import type { TimelineShortcutCallbacks } from '../use-timeline-shortcuts.svelte'
 import { useResolvedHotkeys } from '@/features/timeline/deps/settings-ui'
 import { SLIP_SLIDE_TOOLS_ENABLED } from '@/features/timeline/constants'
-import { useTimelineHotkey } from './timeline-hotkey'
+import { useHotkeys } from '$lib/hotkeys.svelte'
 
 type ActiveTool = ReturnType<typeof useSelectionStore.getState>['activeTool']
 
@@ -25,34 +25,37 @@ export function useToolShortcuts(callbacks: () => TimelineShortcutCallbacks): vo
   const hotkeys = useResolvedHotkeys()
 
   // Tool: V - Selection Tool
-  useTimelineHotkey(
+  useHotkeys(
     () => hotkeys.current.SELECTION_TOOL,
     (event) => {
       event.preventDefault()
       useSelectionStore.getState().setActiveTool('select')
     },
+    () => HOTKEY_OPTIONS,
   )
 
   // Tool: T - Toggle Trim Edit Tool
-  useTimelineHotkey(
+  useHotkeys(
     () => hotkeys.current.TRIM_EDIT_TOOL,
     (event) => {
       event.preventDefault()
       toggleTool('trim-edit')
     },
+    () => HOTKEY_OPTIONS,
   )
 
   // Tool: C - Toggle Razor/Cut Mode
-  useTimelineHotkey(
+  useHotkeys(
     () => hotkeys.current.RAZOR_TOOL,
     (event) => {
       event.preventDefault()
       toggleTool('razor')
     },
+    () => HOTKEY_OPTIONS,
   )
 
   // Tool: Shift+C - Split hovered item at gray playhead (or main playhead)
-  useTimelineHotkey(
+  useHotkeys(
     () => hotkeys.current.SPLIT_AT_CURSOR,
     (event) => {
       event.preventDefault()
@@ -72,19 +75,21 @@ export function useToolShortcuts(callbacks: () => TimelineShortcutCallbacks): vo
         }
       }
     },
+    () => HOTKEY_OPTIONS,
   )
 
   // Tool: R - Toggle Rate Stretch Tool
-  useTimelineHotkey(
+  useHotkeys(
     () => hotkeys.current.RATE_STRETCH_TOOL,
     (event) => {
       event.preventDefault()
       toggleTool('rate-stretch')
     },
+    () => HOTKEY_OPTIONS,
   )
 
   // Tool: Y - Toggle Slip Tool
-  useTimelineHotkey(
+  useHotkeys(
     () => hotkeys.current.SLIP_TOOL,
     (event) => {
       event.preventDefault()
@@ -94,7 +99,7 @@ export function useToolShortcuts(callbacks: () => TimelineShortcutCallbacks): vo
   )
 
   // Tool: U - Toggle Slide Tool
-  useTimelineHotkey(
+  useHotkeys(
     () => hotkeys.current.SLIDE_TOOL,
     (event) => {
       event.preventDefault()

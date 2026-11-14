@@ -31,7 +31,7 @@ import {
 } from '@/features/timeline/utils/composition-graph'
 import { handleTranscriptClipboardCopy } from '@/features/timeline/utils/transcript-copy-bridge'
 import { queryEditorElement } from '@/features/timeline/utils/global-cursor-roots'
-import { useTimelineHotkey } from './timeline-hotkey'
+import { useHotkeys } from '$lib/hotkeys.svelte'
 
 function revealPastedItems(itemIds: readonly string[]): void {
   if (itemIds.length === 0) {
@@ -81,14 +81,14 @@ export function useClipboardShortcuts(): void {
     useKeyframeSelectionStore,
     (s) => s.selectedKeyframes.length === 0,
   )
-  // FreeCut listens in the capture phase here; see timeline-hotkey.
   const clipboardHotkeyOptions = () => ({
     ...HOTKEY_OPTIONS,
+    eventListenerOptions: { capture: true },
     enabled: noKeyframesSelected.current,
   })
 
   // Clipboard: Ctrl+C - Copy selected transition properties or timeline items
-  useTimelineHotkey(
+  useHotkeys(
     () => hotkeys.current.COPY,
     (event) => {
       // Transcript editor copies the selected words instead of the clip.
@@ -132,7 +132,7 @@ export function useClipboardShortcuts(): void {
   )
 
   // Clipboard: Ctrl+X - Cut selected items immediately
-  useTimelineHotkey(
+  useHotkeys(
     () => hotkeys.current.CUT,
     (event) => {
       // Transcript editor cuts the selected words instead of the clip.
@@ -161,7 +161,7 @@ export function useClipboardShortcuts(): void {
   )
 
   // Clipboard: Ctrl+V - Paste transition properties or timeline items
-  useTimelineHotkey(
+  useHotkeys(
     () => hotkeys.current.PASTE,
     (event) => {
       const { selectedTransitionId, activeTrackId, selectItems } = useSelectionStore.getState()

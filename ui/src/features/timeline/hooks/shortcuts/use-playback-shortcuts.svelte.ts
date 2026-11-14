@@ -14,7 +14,8 @@ import { useSourcePlayerStore } from '@/shared/state/source-player'
 import { getFilteredItemSnapEdges } from '@/features/timeline/utils/timeline-snap-utils'
 import { getVisibleTrackIds } from '@/features/timeline/utils/group-utils'
 import { useResolvedHotkeys } from '@/features/timeline/deps/settings-ui'
-import { useTimelineHotkey } from './timeline-hotkey'
+import { useHotkeys } from '$lib/hotkeys.svelte'
+import { HOTKEY_OPTIONS } from '@/config/hotkeys'
 
 /** Compute snap points on-demand from current store state (avoids reactive subscriptions). */
 function getSnapPoints(): number[] {
@@ -44,7 +45,7 @@ export function usePlaybackShortcuts(callbacks: () => TimelineShortcutCallbacks)
   const hotkeys = useResolvedHotkeys()
 
   // Playback: Space - Play/Pause
-  useTimelineHotkey(
+  useHotkeys(
     () => hotkeys.current.PLAY_PAUSE,
     (event) => {
       event.preventDefault()
@@ -62,11 +63,12 @@ export function usePlaybackShortcuts(callbacks: () => TimelineShortcutCallbacks)
         onPlay()
       }
     },
+    () => ({ ...HOTKEY_OPTIONS, eventListenerOptions: { capture: true } }),
   )
 
   // Shuttle: L advances forward through 1x, 2x, and 4x. Ignore browser key
   // repeat so one physical press produces one transport transition.
-  useTimelineHotkey(
+  useHotkeys(
     () => 'l',
     (event) => {
       if (event.repeat) return
@@ -82,11 +84,12 @@ export function usePlaybackShortcuts(callbacks: () => TimelineShortcutCallbacks)
         callbacks().onPlay?.()
       }
     },
+    () => ({ ...HOTKEY_OPTIONS, eventListenerOptions: { capture: true } }),
   )
 
   // Shuttle: J mirrors L in reverse. Browser media stays on a paused visual
   // seek path for negative rates; the Clock still advances at display cadence.
-  useTimelineHotkey(
+  useHotkeys(
     () => 'j',
     (event) => {
       if (event.repeat) return
@@ -102,6 +105,7 @@ export function usePlaybackShortcuts(callbacks: () => TimelineShortcutCallbacks)
         callbacks().onPlay?.()
       }
     },
+    () => ({ ...HOTKEY_OPTIONS, eventListenerOptions: { capture: true } }),
   )
 
   // K owns pause only while a transport is active. When already paused it
@@ -110,7 +114,7 @@ export function usePlaybackShortcuts(callbacks: () => TimelineShortcutCallbacks)
   // dopesheet's K from also firing. Here every shortcut shares the window's
   // bubble phase: stopImmediatePropagation stops the listeners registered
   // after this one, which never re-registers.
-  useTimelineHotkey(
+  useHotkeys(
     () => 'k',
     (event) => {
       if (event.repeat) return
@@ -130,10 +134,11 @@ export function usePlaybackShortcuts(callbacks: () => TimelineShortcutCallbacks)
       usePlaybackStore.getState().pause()
       callbacks().onPause?.()
     },
+    () => ({ ...HOTKEY_OPTIONS, eventListenerOptions: { capture: true } }),
   )
 
   // Navigation: Arrow Left - Previous frame
-  useTimelineHotkey(
+  useHotkeys(
     () => hotkeys.current.PREVIOUS_FRAME,
     (event) => {
       event.preventDefault()
@@ -145,10 +150,11 @@ export function usePlaybackShortcuts(callbacks: () => TimelineShortcutCallbacks)
       const currentFrame = usePlaybackStore.getState().currentFrame
       commitTimelineSeek(Math.max(0, currentFrame - 1))
     },
+    () => HOTKEY_OPTIONS,
   )
 
   // Navigation: Arrow Right - Next frame
-  useTimelineHotkey(
+  useHotkeys(
     () => hotkeys.current.NEXT_FRAME,
     (event) => {
       event.preventDefault()
@@ -160,10 +166,11 @@ export function usePlaybackShortcuts(callbacks: () => TimelineShortcutCallbacks)
       const currentFrame = usePlaybackStore.getState().currentFrame
       commitTimelineSeek(currentFrame + 1)
     },
+    () => HOTKEY_OPTIONS,
   )
 
   // Navigation: Home - Go to start
-  useTimelineHotkey(
+  useHotkeys(
     () => hotkeys.current.GO_TO_START,
     (event) => {
       event.preventDefault()
@@ -174,10 +181,11 @@ export function usePlaybackShortcuts(callbacks: () => TimelineShortcutCallbacks)
       }
       commitTimelineSeek(0)
     },
+    () => HOTKEY_OPTIONS,
   )
 
   // Navigation: End - Go to end of timeline (last frame of last item)
-  useTimelineHotkey(
+  useHotkeys(
     () => hotkeys.current.GO_TO_END,
     (event) => {
       event.preventDefault()
@@ -193,10 +201,11 @@ export function usePlaybackShortcuts(callbacks: () => TimelineShortcutCallbacks)
       }, 0)
       commitTimelineSeek(lastFrame)
     },
+    () => HOTKEY_OPTIONS,
   )
 
   // Navigation: Down - Jump to next snap point (clip edge or marker)
-  useTimelineHotkey(
+  useHotkeys(
     () => hotkeys.current.NEXT_SNAP_POINT,
     (event) => {
       event.preventDefault()
@@ -206,10 +215,11 @@ export function usePlaybackShortcuts(callbacks: () => TimelineShortcutCallbacks)
         commitTimelineSeek(nextEdge)
       }
     },
+    () => HOTKEY_OPTIONS,
   )
 
   // Navigation: Up - Jump to previous snap point (clip edge or marker)
-  useTimelineHotkey(
+  useHotkeys(
     () => hotkeys.current.PREVIOUS_SNAP_POINT,
     (event) => {
       event.preventDefault()
@@ -226,5 +236,6 @@ export function usePlaybackShortcuts(callbacks: () => TimelineShortcutCallbacks)
         commitTimelineSeek(previousEdge)
       }
     },
+    () => HOTKEY_OPTIONS,
   )
 }
