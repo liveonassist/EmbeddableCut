@@ -54,11 +54,31 @@
     contentScale.style.transform = `scale(${layout.scaleX}, ${layout.scaleY})`
   }
 
+  // Compared by value, as React's dependency list was.
+  const layoutWidth = $derived(layoutSize?.width)
+  const layoutHeight = $derived(layoutSize?.height)
+  const contentWidth = $derived(width)
+  const contentHeight = $derived(height)
+  const layoutInputs = {
+    get width() {
+      return contentWidth
+    },
+    get height() {
+      return contentHeight
+    },
+    get layoutWidth() {
+      return layoutWidth
+    },
+    get layoutHeight() {
+      return layoutHeight
+    },
+  }
+
   $effect(() => {
     const observed = container
     if (!observed) return
     // Re-measure (and re-observe) when the layout inputs change.
-    void [width, height, layoutSize?.width, layoutSize?.height]
+    void [layoutInputs.width, layoutInputs.height, layoutInputs.layoutWidth, layoutInputs.layoutHeight]
 
     let rafId: number | null = null
     const scheduleUpdate = () => {

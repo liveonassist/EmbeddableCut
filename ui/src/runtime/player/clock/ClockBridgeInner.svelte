@@ -30,12 +30,15 @@
     imperativePlaying.current = playing.current
   })
 
+  const inPoint = $derived(inFrame)
+  const outPoint = $derived(outFrame)
+
   $effect(() => {
-    clock.setInPoint(inFrame)
+    clock.setInPoint(inPoint)
   })
 
   $effect(() => {
-    clock.setOutPoint(outFrame)
+    clock.setOutPoint(outPoint)
   })
 
   const setPlaybackRate = (rate: number) => {

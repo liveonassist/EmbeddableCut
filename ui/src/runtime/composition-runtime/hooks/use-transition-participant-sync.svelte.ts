@@ -39,11 +39,16 @@ export function useTransitionParticipantSync(
   const clock = useClock()
   const pool = useVideoSourcePool()
   const isPlaying = useIsPlaying()
+  // Compared by value (the participants array by identity), as React's
+  // dependency list was.
+  const activeParticipantsValue = $derived(participants())
+  const groupMinFromValue = $derived(groupMinFrom())
+  const timelineFpsValue = $derived(timelineFps())
 
   $effect(() => {
-    const activeParticipants = participants()
-    const minFrom = groupMinFrom()
-    const fps = timelineFps()
+    const activeParticipants = activeParticipantsValue
+    const minFrom = groupMinFromValue
+    const fps = timelineFpsValue
     if (!isPlaying.current || activeParticipants.length < 2) {
       return
     }
