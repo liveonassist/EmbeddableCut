@@ -55,3 +55,8 @@ nix:
 
 # Run every gate but `just check nix`.
 all: tasks architecture engine sdk ui web render
+
+# Refresh the flake's npmDepsHash after a lockfile change.
+[working-directory('..')]
+npm-hash:
+    scripts/tasks/npm-deps-hash.sh
