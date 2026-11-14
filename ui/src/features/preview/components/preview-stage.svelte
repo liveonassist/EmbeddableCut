@@ -1,21 +1,12 @@
 <!-- SPDX-License-Identifier: MIT -->
 <script module lang="ts">
   import type { Snippet } from 'svelte'
-  import { select } from '$lib/store.svelte'
-  import { t } from '$lib/i18n.svelte'
-  import { cssStyle } from '@/features/preview/utils/css-style'
-  import { HeadlessPlayer, type PlayerRef } from '@/features/preview/deps/player-core'
-  import { MainComposition } from '@/features/preview/deps/composition-runtime-ui'
-  import { useItemsStore } from '@/features/preview/deps/timeline-store'
+  import { type PlayerRef } from '@/features/preview/deps/player-core'
   import type { CompositionInputProps } from '@/types/export'
   import { usePlaybackStore } from '@/shared/state/playback'
-  import { EDITOR_LAYOUT_CSS_VALUES } from '@/config/editor-layout'
-  import { FAST_SCRUB_RENDERER_ENABLED } from '@/features/preview/utils/preview-constants'
-  import { getPreviewDisplayCanvasStyle } from '@/features/preview/utils/preview-display-canvas'
-  import { getPreviewPixelSnapOffset } from '@/features/preview/utils/preview-pixel-snap'
   import type { ColorGradeComparisonMode } from '@/features/preview/stores/gizmo-store'
-  import { isPlaybackColdStartPending, markPlaybackColdStart, resolvePlaybackColdStartVisibleFrame } from '@/features/preview/utils/playback-cold-start-event'
-  import DomTextScrubOverlay from './dom-text-scrub-overlay.svelte'
+  import { isPlaybackColdStartPending } from '@/features/preview/utils/playback-cold-start-event'
+
 
   interface PreviewStageProps {
     backgroundRef: { current: HTMLDivElement | null }
@@ -61,6 +52,18 @@
 </script>
 
 <script lang="ts">
+  import { HeadlessPlayer } from '@/features/preview/deps/player-core'
+  import { markPlaybackColdStart, resolvePlaybackColdStartVisibleFrame } from '@/features/preview/utils/playback-cold-start-event'
+  import { select } from '$lib/store.svelte'
+  import { t } from '$lib/i18n.svelte'
+  import { cssStyle } from '@/features/preview/utils/css-style'
+  import { MainComposition } from '@/features/preview/deps/composition-runtime-ui'
+  import { useItemsStore } from '@/features/preview/deps/timeline-store'
+  import { EDITOR_LAYOUT_CSS_VALUES } from '@/config/editor-layout'
+  import { FAST_SCRUB_RENDERER_ENABLED } from '@/features/preview/utils/preview-constants'
+  import { getPreviewDisplayCanvasStyle } from '@/features/preview/utils/preview-display-canvas'
+  import { getPreviewPixelSnapOffset } from '@/features/preview/utils/preview-pixel-snap'
+  import DomTextScrubOverlay from './dom-text-scrub-overlay.svelte'
   let { backgroundRef, playerRef, scrubCanvasRef, gpuEffectsCanvasRef, needsOverflow, playerSize, playerRenderSize, overlayRenderSize, totalFrames, fps, initialFrame = 0, isResolving, isRenderedOverlayVisible, isSplitGradeAfterVisible = false, colorGradeComparisonMode = 'off', colorGradeSplitPosition = 0.5, onColorGradeSplitPositionChange, inputProps, domTextScrubInputProps, onBackgroundClick, onFrameChange, onPlayStateChange, setPlayerContainerRefCallback, perfPanel, comparisonOverlay, overlayControls }: PreviewStageProps = $props()
 
   const useProxy = select(usePlaybackStore, (s) => s.useProxy)

@@ -16,29 +16,9 @@
       "reason": "deps-contract: preview editor state is shared with effect panels through feature boundary adapters."
     },
     {
-      "path": "src/features/preview/components/video-preview.tsx",
-      "exportName": "ColorVideoPreview",
-      "reason": "Component is re-exported by the editor preview dependency contract for workspace-specific preview selection."
-    },
-    {
-      "path": "src/features/timeline/components/transcript-editor/transcript-editor-panel.tsx",
-      "exportName": "TranscriptEditorPanel",
-      "reason": "Component is lazy-loaded by the editor media sidebar through timeline contracts."
-    },
-    {
-      "path": "src/features/timeline/components/timeline.tsx",
-      "exportName": "Timeline",
-      "reason": "Component is exported through the timeline editor contract and consumed by the editor workspace."
-    },
-    {
       "path": "src/features/editor/deps/composition-runtime-contract.ts",
       "exportName": "deletePreviewAudioConform",
       "reason": "Re-exported deps contract API used through a dynamic composition-runtime import in the editor settings dialog."
-    },
-    {
-      "path": "src/features/export/components/exports-dialog.tsx",
-      "exportName": "ExportsDialog",
-      "reason": "Lazy-loaded from the editor export deps contract."
     },
     {
       "path": "src/features/export/deps/timeline-compositions-contract.ts",
@@ -46,59 +26,14 @@
       "reason": "deps-contract: cross-feature adapter surface mandated by the boundary rules; check:deps-wrapper-health --fail-on-unused passes it."
     },
     {
-      "path": "src/features/media-library/components/embedded-subtitle-track-picker-host.tsx",
-      "exportName": "EmbeddedSubtitleTrackPickerHost",
-      "reason": "Lazy-loaded through the editor media-library import helper."
-    },
-    {
-      "path": "src/features/media-library/components/subtitle-scan-progress-dialog.tsx",
-      "exportName": "SubtitleScanProgressDialog",
-      "reason": "Lazy-loaded through the editor media-library import helper."
-    },
-    {
-      "path": "src/features/preview/components/color-scopes-monitor.tsx",
-      "exportName": "ColorScopesMonitor",
-      "reason": "Lazy-loaded from the preview area."
-    },
-    {
-      "path": "src/features/preview/components/inline-source-preview.tsx",
-      "exportName": "InlineSourcePreview",
-      "reason": "Lazy-loaded from the preview area."
-    },
-    {
       "path": "src/features/preview/deps/media-library-contract.ts",
       "exportName": "resolveProxyUrl",
       "reason": "Re-exported through preview media resolution helpers for preview component callers."
     },
     {
-      "path": "src/features/project-bundle/components/bundle-export-dialog.tsx",
-      "exportName": "BundleExportDialog",
-      "reason": "Lazy-loaded through the editor project-bundle deps contract."
-    },
-    {
       "path": "src/features/project-bundle/services/json-export-service.ts",
       "exportName": "downloadSnapshotJson",
       "reason": "Dynamically imported by the project debug panel."
-    },
-    {
-      "path": "src/features/scene-browser/components/scene-browser-panel.tsx",
-      "exportName": "SceneBrowserPanel",
-      "reason": "Lazy-loaded through the scene-browser contract from media-library UI."
-    },
-    {
-      "path": "src/features/timeline/components/bento-layout-dialog.tsx",
-      "exportName": "BentoLayoutDialog",
-      "reason": "Lazy-loaded through the editor timeline import helper."
-    },
-    {
-      "path": "src/features/timeline/components/filler-removal-dialog.tsx",
-      "exportName": "FillerRemovalDialog",
-      "reason": "Lazy-loaded through the editor timeline import helper."
-    },
-    {
-      "path": "src/features/timeline/components/reverse-conform-dialog.tsx",
-      "exportName": "ReverseConformDialog",
-      "reason": "Lazy-loaded through the editor timeline import helper."
     },
     {
       "path": "src/features/timeline/utils/collision-utils.ts",
@@ -141,39 +76,164 @@
       "reason": "barrel-surface: feature barrel defines the public API; current consumers import the underlying module directly."
     },
     {
-      "path": "src/shared/ui/global-cursor-roots.ts",
-      "exportName": "registerGlobalCursorRoots",
-      "reason": "consumed by the Svelte editor UI (ui/src), which the overlay does not scan yet."
+      "path": "src/features/editor/components/audio-meter-utils.ts",
+      "exportName": "getLiveOverrideVersion",
+      "reason": "svelte-port: exported as FreeCut has it; only its React UI imported it."
     },
     {
-      "path": "src/shared/ui/global-cursor-roots.ts",
-      "exportName": "getGlobalCursorTargets",
-      "reason": "consumed by the Svelte editor UI (ui/src), which the overlay does not scan yet."
+      "path": "src/features/editor/components/audio-mixer-view/fader.ts",
+      "exportName": "FADER_DB_MIN",
+      "reason": "svelte-port: exported as FreeCut has it; only its React UI imported it."
     },
     {
-      "path": "src/shared/ui/global-cursor-roots.ts",
-      "exportName": "addGlobalCursorClass",
-      "reason": "consumed by the Svelte editor UI (ui/src), which the overlay does not scan yet."
+      "path": "src/features/editor/components/audio-mixer-view/fader.ts",
+      "exportName": "FADER_DB_MAX",
+      "reason": "svelte-port: exported as FreeCut has it; only its React UI imported it."
     },
     {
-      "path": "src/shared/ui/global-cursor-roots.ts",
-      "exportName": "removeGlobalCursorClass",
-      "reason": "consumed by the Svelte editor UI (ui/src), which the overlay does not scan yet."
+      "path": "src/features/editor/components/compose-workspace/motion-layer-row-model.ts",
+      "exportName": "buildMotionGroupRowModel",
+      "reason": "svelte-port: used in Svelte markup ({#await}, {@const}) that fallow does not read."
     },
     {
-      "path": "src/shared/ui/global-cursor-roots.ts",
-      "exportName": "queryEditorElement",
-      "reason": "consumed by the Svelte editor UI (ui/src), which the overlay does not scan yet."
+      "path": "src/features/editor/components/editor/index.ts",
+      "exportName": "LoadedEditor",
+      "reason": "svelte-port: the barrel of a component folder, exporting it under the name the React file did."
     },
     {
-      "path": "src/shared/ui/global-cursor-roots.ts",
-      "exportName": "queryEditorElements",
-      "reason": "consumed by the Svelte editor UI (ui/src), which the overlay does not scan yet."
+      "path": "src/features/editor/components/properties-sidebar/clip-panel/subtitle-section/index.ts",
+      "exportName": "SubtitleSection",
+      "reason": "svelte-port: the barrel of a component folder, exporting it under the name the React file did."
     },
     {
-      "path": "src/shared/ui/global-cursor-roots.ts",
-      "exportName": "setGlobalCursorStyle",
-      "reason": "consumed by the Svelte editor UI (ui/src), which the overlay does not scan yet."
+      "path": "src/features/editor/deps/effects-contract.ts",
+      "exportName": "ColorGradeSection",
+      "reason": "deps-contract: part of the seam FreeCut's React consumers used; the Svelte UI reaches it through another adapter."
+    },
+    {
+      "path": "src/features/editor/deps/projects-contract.ts",
+      "exportName": "createProjectUpgradeBackup",
+      "reason": "deps-contract: part of the seam FreeCut's React consumers used; the Svelte UI reaches it through another adapter."
+    },
+    {
+      "path": "src/features/editor/deps/projects-contract.ts",
+      "exportName": "formatProjectUpgradeBackupName",
+      "reason": "deps-contract: part of the seam FreeCut's React consumers used; the Svelte UI reaches it through another adapter."
+    },
+    {
+      "path": "src/features/editor/deps/timeline-store-contract.ts",
+      "exportName": "loadTimeline",
+      "reason": "deps-contract: part of the seam FreeCut's React consumers used; the Svelte UI reaches it through another adapter."
+    },
+    {
+      "path": "src/features/editor/deps/timeline-store-contract.ts",
+      "exportName": "saveTimeline",
+      "reason": "deps-contract: part of the seam FreeCut's React consumers used; the Svelte UI reaches it through another adapter."
+    },
+    {
+      "path": "src/features/effects/components/panels/gpu-wheels-panel-shared.ts",
+      "exportName": "DOCK_RING_GAP",
+      "reason": "svelte-port: exported as FreeCut has it; only its React UI imported it."
+    },
+    {
+      "path": "src/features/export/components/exports-dialog/index.ts",
+      "exportName": "ExportsDialog",
+      "reason": "svelte-port: the barrel of a component folder, exporting it under the name the React file did."
+    },
+    {
+      "path": "src/features/export/deps/media-library-contract.ts",
+      "exportName": "useMediaMetadataById",
+      "reason": "deps-contract: part of the seam FreeCut's React consumers used; the Svelte UI reaches it through another adapter."
+    },
+    {
+      "path": "src/features/export/deps/media-library-contract.ts",
+      "exportName": "useBrokenMediaIds",
+      "reason": "deps-contract: part of the seam FreeCut's React consumers used; the Svelte UI reaches it through another adapter."
+    },
+    {
+      "path": "src/features/preview/components/video-preview/index.ts",
+      "exportName": "ColorVideoPreview",
+      "reason": "svelte-port: the barrel of a component folder, exporting it under the name the React file did."
+    },
+    {
+      "path": "src/features/timeline/components/clip-filmstrip/index.test-state.svelte.ts",
+      "exportName": "useFilmstripMock",
+      "reason": "svelte-port: test state read by vi.mock factories, which fallow does not trace."
+    },
+    {
+      "path": "src/features/timeline/components/clip-filmstrip/index.test-state.svelte.ts",
+      "exportName": "useMediaBlobUrlMock",
+      "reason": "svelte-port: test state read by vi.mock factories, which fallow does not trace."
+    },
+    {
+      "path": "src/features/timeline/components/timeline-drop-ghost-previews.ts",
+      "exportName": "TimelineDropGhostPreviews",
+      "reason": "svelte-port: the type of the component's bind:this handle, which fallow does not trace."
+    },
+    {
+      "path": "src/features/timeline/components/timeline-item/clip-content/lazy-visuals.ts",
+      "exportName": "loadClipFilmstrip",
+      "reason": "svelte-port: used in Svelte markup ({#await}, {@const}) that fallow does not read."
+    },
+    {
+      "path": "src/features/timeline/components/timeline-item/clip-content/lazy-visuals.ts",
+      "exportName": "loadImageFilmstrip",
+      "reason": "svelte-port: used in Svelte markup ({#await}, {@const}) that fallow does not read."
+    },
+    {
+      "path": "src/features/timeline/components/timeline-item/clip-content/lazy-visuals.ts",
+      "exportName": "loadClipWaveform",
+      "reason": "svelte-port: used in Svelte markup ({#await}, {@const}) that fallow does not read."
+    },
+    {
+      "path": "src/features/timeline/components/timeline-item/clip-content/lazy-visuals.ts",
+      "exportName": "loadCompoundClipWaveform",
+      "reason": "svelte-port: used in Svelte markup ({#await}, {@const}) that fallow does not read."
+    },
+    {
+      "path": "src/features/timeline/components/timeline-item/clip-content/types.ts",
+      "exportName": "MEDIA_LABEL_ROW_HORIZONTAL_PADDING_PX",
+      "reason": "svelte-port: exported as FreeCut has it; only its React UI imported it."
+    },
+    {
+      "path": "src/features/timeline/components/timeline-item/clip-content/types.ts",
+      "exportName": "MEDIA_SYNC_OFFSET_BADGE_HORIZONTAL_PADDING_PX",
+      "reason": "svelte-port: exported as FreeCut has it; only its React UI imported it."
+    },
+    {
+      "path": "src/features/timeline/components/timeline-item/clip-content/types.ts",
+      "exportName": "MEDIA_SYNC_OFFSET_CHARACTER_WIDTH_PX",
+      "reason": "svelte-port: exported as FreeCut has it; only its React UI imported it."
+    },
+    {
+      "path": "src/lib/router/index.ts",
+      "exportName": "buildHref",
+      "reason": "svelte-port: the barrel of a component folder, exporting it under the name the React file did."
+    },
+    {
+      "path": "src/lib/router/index.ts",
+      "exportName": "interpolatePath",
+      "reason": "svelte-port: the barrel of a component folder, exporting it under the name the React file did."
+    },
+    {
+      "path": "src/runtime/composition-runtime/components/mock-state.svelte.ts",
+      "exportName": "mockState",
+      "reason": "svelte-port: test state read by vi.mock factories, which fallow does not trace."
+    },
+    {
+      "path": "src/runtime/player/video/VideoSourcePoolContext.ts",
+      "exportName": "setVideoSourcePool",
+      "reason": "svelte-port: exported as FreeCut has it; only its React UI imported it."
+    },
+    {
+      "path": "src/shared/logging/perf-marks.ts",
+      "exportName": "perfMarkRender",
+      "reason": "svelte-port: exported as FreeCut has it; only its React UI imported it."
+    },
+    {
+      "path": "src/shared/state/audio-skim-meter.ts",
+      "exportName": "getAudioSkimMeterVersion",
+      "reason": "svelte-port: exported as FreeCut has it; only its React UI imported it."
     }
   ]
 }

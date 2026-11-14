@@ -38,7 +38,7 @@
   import AlertTriangle from 'lucide-svelte/icons/alert-triangle'
   import Plus from 'lucide-svelte/icons/plus'
   import Upload from 'lucide-svelte/icons/upload'
-  import { Link } from '@/app/router'
+  import { Link } from '$lib/router'
   import { Input } from '@/components/ui/input'
   import { Button } from '@/components/ui/button'
   import {

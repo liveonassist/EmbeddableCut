@@ -6,7 +6,7 @@
  * `.lazy` file.
  */
 
-import type { RouteDefinition } from './router'
+import type { RouteDefinition } from '$lib/router'
 import LandingPage from '../routes/index.svelte'
 import ProjectRouteRedirect from '../routes/projects/$projectId.svelte'
 import { Route as EditorRoute } from '../routes/editor/$projectId'

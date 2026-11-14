@@ -1,9 +1,8 @@
 <!-- SPDX-License-Identifier: MIT -->
 <script module lang="ts">
-  import { cssStyle, type CssStyleObject } from '@/features/preview/utils/css-style'
   import type { CropEdge } from '@/features/preview/utils/crop-gizmo'
   import type { GizmoHandle } from '@/features/preview/types/gizmo'
-  import { getScaleCursor, HANDLE_SIZE, ROTATION_HANDLE_OFFSET } from '@/features/preview/utils/coordinate-transform'
+
 
   /**
    * Scale handle positions (corners and edges).
@@ -51,6 +50,8 @@
 </script>
 
 <script lang="ts">
+  import { cssStyle, type CssStyleObject } from '@/features/preview/utils/css-style'
+  import { getScaleCursor, HANDLE_SIZE, ROTATION_HANDLE_OFFSET } from '@/features/preview/utils/coordinate-transform'
   let { bounds, rotation, isInteracting, isMask = false, onTranslateStart, translateBlocked = false, translateBlockedLabel, onScaleStart, onRotateStart, cropRect, onCropStart }: GizmoHandlesProps = $props()
   // Get style for a scale handle
   const getHandleStyle = (handle: GizmoHandle): CssStyleObject => {

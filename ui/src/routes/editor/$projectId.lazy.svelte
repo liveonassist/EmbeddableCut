@@ -1,6 +1,6 @@
 <!-- SPDX-License-Identifier: MIT -->
 <script lang="ts" module>
-  import { createLogger, createOperationId } from '@/shared/logging/logger'
+  import { createLogger } from '@/shared/logging/logger'
 
   const logger = createLogger('Editor')
 
@@ -25,6 +25,7 @@
 </script>
 
 <script lang="ts">
+  import { createOperationId } from '@/shared/logging/logger'
   /**
    * The editor route. Legacy projects are upgraded automatically: a backup on
    * the original schema is snapshotted first (best-effort safety net), then
@@ -34,7 +35,7 @@
   import { toast } from 'svelte-sonner'
   import { getEditorUi } from '$lib/context'
   import { t } from '$lib/i18n.svelte'
-  import { useRouter, type RouteComponentProps } from '@/app/router'
+  import { useRouter, type RouteComponentProps } from '$lib/router'
   import RouteErrorScreen from '@/app/route-error.svelte'
   import EditorView from '@/app/editor-view.svelte'
   import { createProjectUpgradeBackup } from '@/features/projects/services/project-upgrade-service'

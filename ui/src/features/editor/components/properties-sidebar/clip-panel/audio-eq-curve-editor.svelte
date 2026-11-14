@@ -1,30 +1,6 @@
 <!-- SPDX-License-Identifier: MIT -->
 <script lang="ts" module>
-  import {
-    AUDIO_EQ_HIGH_CUT_FREQUENCY_HZ,
-    AUDIO_EQ_HIGH_CUT_MAX_FREQUENCY_HZ,
-    AUDIO_EQ_HIGH_CUT_MIN_FREQUENCY_HZ,
-    AUDIO_EQ_HIGH_FREQUENCY_HZ,
-    AUDIO_EQ_HIGH_MAX_FREQUENCY_HZ,
-    AUDIO_EQ_HIGH_MIN_FREQUENCY_HZ,
-    AUDIO_EQ_HIGH_MID_FREQUENCY_HZ,
-    AUDIO_EQ_HIGH_MID_MAX_FREQUENCY_HZ,
-    AUDIO_EQ_HIGH_MID_MIN_FREQUENCY_HZ,
-    AUDIO_EQ_LOW_CUT_FREQUENCY_HZ,
-    AUDIO_EQ_LOW_CUT_MAX_FREQUENCY_HZ,
-    AUDIO_EQ_LOW_CUT_MIN_FREQUENCY_HZ,
-    AUDIO_EQ_LOW_FREQUENCY_HZ,
-    AUDIO_EQ_LOW_MAX_FREQUENCY_HZ,
-    AUDIO_EQ_LOW_MID_FREQUENCY_HZ,
-    AUDIO_EQ_LOW_MID_MAX_FREQUENCY_HZ,
-    AUDIO_EQ_LOW_MID_MIN_FREQUENCY_HZ,
-    AUDIO_EQ_LOW_MIN_FREQUENCY_HZ,
-    clampAudioEqFrequencyHz,
-    clampAudioEqGainDb,
-    getAudioEqSettings,
-    resolveAudioEqSettings,
-    sampleAudioEqResponseCurve,
-  } from '@/shared/utils/audio-eq'
+  import { AUDIO_EQ_HIGH_CUT_FREQUENCY_HZ, AUDIO_EQ_HIGH_CUT_MAX_FREQUENCY_HZ, AUDIO_EQ_HIGH_CUT_MIN_FREQUENCY_HZ, AUDIO_EQ_HIGH_FREQUENCY_HZ, AUDIO_EQ_HIGH_MAX_FREQUENCY_HZ, AUDIO_EQ_HIGH_MIN_FREQUENCY_HZ, AUDIO_EQ_HIGH_MID_FREQUENCY_HZ, AUDIO_EQ_HIGH_MID_MAX_FREQUENCY_HZ, AUDIO_EQ_HIGH_MID_MIN_FREQUENCY_HZ, AUDIO_EQ_LOW_CUT_FREQUENCY_HZ, AUDIO_EQ_LOW_CUT_MAX_FREQUENCY_HZ, AUDIO_EQ_LOW_CUT_MIN_FREQUENCY_HZ, AUDIO_EQ_LOW_FREQUENCY_HZ, AUDIO_EQ_LOW_MAX_FREQUENCY_HZ, AUDIO_EQ_LOW_MID_FREQUENCY_HZ, AUDIO_EQ_LOW_MID_MAX_FREQUENCY_HZ, AUDIO_EQ_LOW_MID_MIN_FREQUENCY_HZ, AUDIO_EQ_LOW_MIN_FREQUENCY_HZ, clampAudioEqFrequencyHz, clampAudioEqGainDb, getAudioEqSettings, resolveAudioEqSettings } from '@/shared/utils/audio-eq'
   import type { ResolvedAudioEqSettings } from '@/types/audio'
   import type { AudioEqPatch } from './audio-eq-types'
 
@@ -477,6 +453,7 @@
 </script>
 
 <script lang="ts">
+  import { sampleAudioEqResponseCurve } from '@/shared/utils/audio-eq'
   import { cn } from '@/shared/ui/cn'
 
   let {

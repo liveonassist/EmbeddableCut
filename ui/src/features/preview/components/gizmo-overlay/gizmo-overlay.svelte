@@ -1,46 +1,11 @@
 <!-- SPDX-License-Identifier: MIT -->
 <script module lang="ts">
-  import { untrack } from 'svelte'
-  import { select, shallow } from '$lib/store.svelte'
-  import { selectDerived } from '@/features/preview/utils/select-derived.svelte'
-  import { toast } from 'svelte-sonner'
-  import { useSelectionStore } from '@/shared/state/selection'
-  import { useSettingsStore } from '@/features/preview/deps/settings'
-  import { applyAutoKeyframeOperations, updateItem, updateItemsTransformMap, updateItemTransform, updateVectorKeyframe, useItemsStore, useKeyframesStore, useTimelineSettingsStore } from '@/features/preview/deps/timeline-store'
-  import { usePlaybackStore } from '@/shared/state/playback'
-  import { usePreviewBridgeStore } from '@/shared/state/preview-bridge'
-  import { getResolvedPlaybackFrame } from '@/shared/state/playback/frame-resolution'
-  import { useGizmoStore, type ItemPreview } from '@/features/preview/stores/gizmo-store'
-  import { useExclusiveCanvasEditor } from '../../hooks/use-exclusive-canvas-editor.svelte'
-  import TransformGizmo from '../transform-gizmo.svelte'
-  import GroupGizmo from '../group-gizmo.svelte'
-  import SelectableItem from '../selectable-item.svelte'
-  import MotionPathOverlay from '../motion-path-overlay.svelte'
-  import { getEffectiveScale, getScreenTransformOrigin, screenToCanvas, transformToScreenBounds } from '@/features/preview/utils/coordinate-transform'
-  import { attachWindowTransformInteraction } from '@/features/preview/utils/gizmo-transform-interaction'
-  import { computeItemAabb } from '@/features/preview/utils/canvas-snap-utils'
-  import { useMarqueeSelection, isMarqueeJustFinished, type Rect } from '@/shared/marquee/use-marquee-selection.svelte'
-  import MarqueeOverlay from '@/shared/marquee/marquee-overlay.svelte'
-  import { useVisualTransforms } from '../../hooks/use-visual-transform.svelte'
-  import { useCanvasMediaDrop } from '../../hooks/use-canvas-media-drop.svelte'
-  import { buildMotionPathPoints, canvasPointToMotionPathScreenPoint, type MotionPathScreenPoint } from '@/features/preview/utils/motion-path'
-  import { buildDefaultSpatialTangents, updateSpatialTangent, worldPointToPositionKeyframeValue } from '@/features/preview/utils/motion-path-edit'
-  import { attachWindowMotionPathPointerInteraction } from '@/features/preview/utils/motion-path-pointer-interaction'
-  import { getAutoKeyframeOperation, type AutoKeyframeOperation } from '@/features/preview/deps/keyframes'
-  import type { ItemKeyframes, SpatialBezierTangents } from '@/types/keyframe'
+  import { useKeyframesStore } from '@/features/preview/deps/timeline-store'
+  import type { SpatialBezierTangents } from '@/types/keyframe'
   import type { TimelineItem } from '@/types/timeline'
-  import type { BoundingBox, CoordinateParams, Transform, Point } from '@/features/preview/types/gizmo'
-  import type { ResolvedTransform, TransformProperties } from '@/types/transform'
-  import { normalizeCropSettings } from '@/shared/utils/media-crop'
-  import { getSourceDimensions, resolveTransform } from '@/features/preview/deps/composition-runtime'
-  import { buildGizmoAnchorCommit, buildGizmoTransformCommit, resolveEditableGizmoTransform, resolveGizmoCommitParentWorld } from '@/features/preview/utils/gizmo-transform-commit'
-  import { buildGroupTextScaleCommit, type GroupScaledTextProperties } from '@/features/preview/utils/group-text-scale'
-  import { CROP_EDGE_PROPERTY, type CropEdge } from '@/features/preview/utils/crop-gizmo'
-  import { MARQUEE_CANDIDATE_ATTRIBUTE, updateMarqueeCandidateElements } from '@/features/preview/utils/marquee-candidate-preview'
-  import { getPositionLinkOwner } from '@/features/preview/utils/position-link-ownership'
-  import LiveSnapGuides from './live-snap-guides.svelte'
-  import { Portal } from 'bits-ui'
-  import { portalTarget } from '$lib/context'
+  import type { Transform } from '@/features/preview/types/gizmo'
+  import type { ResolvedTransform } from '@/types/transform'
+
 
   interface GizmoOverlayProps {
     itemsSnapshot: TimelineItem[]
@@ -89,6 +54,46 @@
 </script>
 
 <script lang="ts">
+  import { applyAutoKeyframeOperations, updateItem, updateItemsTransformMap, updateItemTransform, updateVectorKeyframe, useItemsStore, useTimelineSettingsStore } from '@/features/preview/deps/timeline-store'
+  import type { ItemKeyframes } from '@/types/keyframe'
+  import type { BoundingBox, CoordinateParams, Point } from '@/features/preview/types/gizmo'
+  import type { TransformProperties } from '@/types/transform'
+  import { untrack } from 'svelte'
+  import { select, shallow } from '$lib/store.svelte'
+  import { selectDerived } from '@/features/preview/utils/select-derived.svelte'
+  import { toast } from 'svelte-sonner'
+  import { useSelectionStore } from '@/shared/state/selection'
+  import { useSettingsStore } from '@/features/preview/deps/settings'
+  import { usePlaybackStore } from '@/shared/state/playback'
+  import { usePreviewBridgeStore } from '@/shared/state/preview-bridge'
+  import { getResolvedPlaybackFrame } from '@/shared/state/playback/frame-resolution'
+  import { useGizmoStore, type ItemPreview } from '@/features/preview/stores/gizmo-store'
+  import { useExclusiveCanvasEditor } from '../../hooks/use-exclusive-canvas-editor.svelte'
+  import TransformGizmo from '../transform-gizmo.svelte'
+  import GroupGizmo from '../group-gizmo.svelte'
+  import SelectableItem from '../selectable-item.svelte'
+  import MotionPathOverlay from '../motion-path-overlay.svelte'
+  import { getEffectiveScale, getScreenTransformOrigin, screenToCanvas, transformToScreenBounds } from '@/features/preview/utils/coordinate-transform'
+  import { attachWindowTransformInteraction } from '@/features/preview/utils/gizmo-transform-interaction'
+  import { computeItemAabb } from '@/features/preview/utils/canvas-snap-utils'
+  import { useMarqueeSelection, isMarqueeJustFinished, type Rect } from '@/shared/marquee/use-marquee-selection.svelte'
+  import MarqueeOverlay from '@/shared/marquee/marquee-overlay.svelte'
+  import { useVisualTransforms } from '../../hooks/use-visual-transform.svelte'
+  import { useCanvasMediaDrop } from '../../hooks/use-canvas-media-drop.svelte'
+  import { buildMotionPathPoints, canvasPointToMotionPathScreenPoint, type MotionPathScreenPoint } from '@/features/preview/utils/motion-path'
+  import { buildDefaultSpatialTangents, updateSpatialTangent, worldPointToPositionKeyframeValue } from '@/features/preview/utils/motion-path-edit'
+  import { attachWindowMotionPathPointerInteraction } from '@/features/preview/utils/motion-path-pointer-interaction'
+  import { getAutoKeyframeOperation, type AutoKeyframeOperation } from '@/features/preview/deps/keyframes'
+  import { normalizeCropSettings } from '@/shared/utils/media-crop'
+  import { getSourceDimensions, resolveTransform } from '@/features/preview/deps/composition-runtime'
+  import { buildGizmoAnchorCommit, buildGizmoTransformCommit, resolveEditableGizmoTransform, resolveGizmoCommitParentWorld } from '@/features/preview/utils/gizmo-transform-commit'
+  import { buildGroupTextScaleCommit, type GroupScaledTextProperties } from '@/features/preview/utils/group-text-scale'
+  import { CROP_EDGE_PROPERTY, type CropEdge } from '@/features/preview/utils/crop-gizmo'
+  import { MARQUEE_CANDIDATE_ATTRIBUTE, updateMarqueeCandidateElements } from '@/features/preview/utils/marquee-candidate-preview'
+  import { getPositionLinkOwner } from '@/features/preview/utils/position-link-ownership'
+  import LiveSnapGuides from './live-snap-guides.svelte'
+  import { Portal } from 'bits-ui'
+  import { portalTarget } from '$lib/context'
   let { itemsSnapshot, containerRect, playerSize, projectSize, zoom, hitArea, overlayPadding = 100 }: GizmoOverlayProps = $props()
   // The context menu portals inside the editor, never into the host page's body.
   const contextMenuPortalTarget = portalTarget()
@@ -700,7 +705,6 @@
     // `selectedItemsRef` is intentionally read via ref; `motionPathSignature`
     // captures the item fields that affect the result so the rebuild still
     // reruns when the selection's motion data changes.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   })
 
   // Get visual transforms for all visible items (base + keyframes + preview).

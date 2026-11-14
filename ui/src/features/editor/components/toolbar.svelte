@@ -56,7 +56,7 @@
   import { useItemsStore, useTimelineSettingsStore } from '@/features/editor/deps/timeline-store'
   import { useMediaLibraryStore } from '@/features/editor/deps/media-library'
   import { maybeEditorUi } from '../editor-ui'
-  import { findRouter } from '@/app/router'
+  import { findRouter } from '$lib/router'
 
   interface ToolbarProps {
     projectId: string

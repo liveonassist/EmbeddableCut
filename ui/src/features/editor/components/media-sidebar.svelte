@@ -458,6 +458,9 @@
     { shapeType: 'polygon' as const, label: t('editor.shapeSection.typePolygon'), icon: Hexagon, iconClass: 'w-3.5 h-3.5' },
     { shapeType: 'heart' as const, label: t('editor.shapeSection.typeHeart'), icon: Heart, iconClass: 'w-3.5 h-3.5' },
   ])
+
+  // Loaded on first use; a loader in the script lets static analysis see the import.
+  const loadAiTab = () => import('./ai-tab.svelte')
 </script>
 
 {#snippet textTemplatePreview(preset?: TextStylePreset)}
@@ -1039,7 +1042,7 @@
       <!-- AI Tab -->
       <div class="min-h-0 flex-1 overflow-hidden {activeBuiltInTab === 'ai' ? 'block' : 'hidden'}">
         {#if aiTabActivated}
-          {#await import('./ai-tab.svelte') then { default: AiTab }}
+          {#await loadAiTab() then { default: AiTab }}
             <AiTab />
           {/await}
         {/if}

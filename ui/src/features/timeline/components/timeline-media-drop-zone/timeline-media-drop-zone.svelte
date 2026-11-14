@@ -1,7 +1,5 @@
 <!-- SPDX-License-Identifier: MIT -->
 <script lang="ts" module>
-  import type { TimelineItem as TimelineItemType } from '@/types/timeline'
-  import type { MediaMetadata } from '@/types/storage'
   import { createLogger } from '@/shared/logging/logger'
   import type { NewTrackZoneGhostPreview } from '@/features/timeline/stores/new-track-zone-preview-store'
   import type { getMediaDragData } from '@/features/timeline/deps/media-library-resolver'
@@ -34,6 +32,8 @@
 </script>
 
 <script lang="ts">
+  import type { TimelineItem as TimelineItemType } from '@/types/timeline'
+  import type { MediaMetadata } from '@/types/storage'
   import { untrack } from 'svelte'
   import { toast } from 'svelte-sonner'
   import { t } from '$lib/i18n.svelte'

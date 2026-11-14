@@ -24,7 +24,9 @@ const EDGE_BUDGETS = [
   // Raised for the on-device transcription + caption feature: the timeline
   // transcript editor / auto-captions and the media-library Parakeet/Whisper
   // pipeline now interoperate through more deps/ adapter contracts.
-  { edge: 'timeline -> media-library', maxImports: 16, maxFiles: 7 },
+  // EmbeddableCut: one more for the Svelte UI, where the transcribe dialog's
+  // types live in a .ts beside the component instead of in its module.
+  { edge: 'timeline -> media-library', maxImports: 17, maxFiles: 7 },
   // Raised for the multi-timeline sequences + compositions feature: the media
   // library's compositions/sequences section reaches the sequences store,
   // composition-navigation store and cycle guard through deps/ adapters.

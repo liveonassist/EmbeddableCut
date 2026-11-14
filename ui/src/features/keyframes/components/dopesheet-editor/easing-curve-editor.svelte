@@ -1,12 +1,7 @@
 <!-- SPDX-License-Identifier: MIT -->
 <script lang="ts" module>
   import { applyEasingConfig } from '@/shared/utils/easing'
-  import type {
-    BezierControlPoints,
-    EasingConfig,
-    EasingType,
-    SpringParameters,
-  } from '@/types/keyframe'
+  import type { BezierControlPoints, EasingConfig, SpringParameters } from '@/types/keyframe'
 
   /**
    * The easing editor, adapted from easings.dev: a curve canvas on the left, and
@@ -158,6 +153,7 @@
 </script>
 
 <script lang="ts">
+  import type { EasingType } from '@/types/keyframe'
   import ChevronDown from 'lucide-svelte/icons/chevron-down'
   import { t } from '$lib/i18n.svelte'
 

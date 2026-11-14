@@ -1,6 +1,6 @@
 <!-- SPDX-License-Identifier: MIT -->
 <script lang="ts">
-  import { Link } from '@/app/router'
+  import { Link } from '$lib/router'
   import { richTextTokens } from './search'
 
   /** Renders inline `**bold**`, `` `code` ``, and `[text](page-slug)` links inside doc strings. */

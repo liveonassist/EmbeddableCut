@@ -40,7 +40,7 @@
   import FileIcon from 'lucide-svelte/icons/file'
   import Github from 'lucide-svelte/icons/github'
   import BookOpen from 'lucide-svelte/icons/book-open'
-  import { Link, useNavigate } from '@/app/router'
+  import { Link, useNavigate } from '$lib/router'
   import { Button } from '@/components/ui/button'
   import { Separator } from '@/components/ui/separator'
   import FreeCutLogo from '@/components/brand/freecut-logo.svelte'

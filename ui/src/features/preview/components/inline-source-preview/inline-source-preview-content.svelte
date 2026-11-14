@@ -1,16 +1,5 @@
 <!-- SPDX-License-Identifier: MIT -->
 <script module lang="ts">
-  import InlineSourcePreviewClockSync from './inline-source-preview-clock-sync.svelte'
-  import { untrack } from 'svelte'
-  import { select } from '$lib/store.svelte'
-  import { selectDerived } from '@/features/preview/utils/select-derived.svelte'
-  import { PlayerEmitterProvider, ClockBridgeProvider, VideoConfigProvider } from '@/features/preview/deps/player-context'
-  import { useMediaLibraryStore, getMediaType } from '@/features/preview/deps/media-library'
-  import { resolveMediaUrl } from '@/features/preview/utils/media-resolver'
-  import { SourceComposition } from '../source-composition'
-  import { usePlaybackStore } from '@/shared/state/playback'
-  import { EDITOR_LAYOUT_CSS_VALUES } from '@/config/editor-layout'
-  import { getPreviewNeedsOverflow, getPreviewPlayerSize } from '@/features/preview/utils/preview-pixel-snap'
 
   interface InlineSourcePreviewProps {
     mediaId: string
@@ -25,6 +14,17 @@
 </script>
 
 <script lang="ts">
+  import InlineSourcePreviewClockSync from './inline-source-preview-clock-sync.svelte'
+  import { untrack } from 'svelte'
+  import { select } from '$lib/store.svelte'
+  import { selectDerived } from '@/features/preview/utils/select-derived.svelte'
+  import { PlayerEmitterProvider, ClockBridgeProvider, VideoConfigProvider } from '@/features/preview/deps/player-context'
+  import { useMediaLibraryStore, getMediaType } from '@/features/preview/deps/media-library'
+  import { resolveMediaUrl } from '@/features/preview/utils/media-resolver'
+  import { SourceComposition } from '../source-composition'
+  import { usePlaybackStore } from '@/shared/state/playback'
+  import { EDITOR_LAYOUT_CSS_VALUES } from '@/config/editor-layout'
+  import { getPreviewNeedsOverflow, getPreviewPlayerSize } from '@/features/preview/utils/preview-pixel-snap'
   let { mediaId, seekFrame, containerSize }: InlineSourcePreviewProps = $props()
   let blobUrl = $state.raw('')
   const setBlobUrl = (next: typeof blobUrl | ((prev: typeof blobUrl) => typeof blobUrl)) => {

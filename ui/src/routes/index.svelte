@@ -1,16 +1,11 @@
 <!-- SPDX-License-Identifier: MIT -->
 <script lang="ts" module>
   import Layers from 'lucide-svelte/icons/layers'
-  import ArrowRight from 'lucide-svelte/icons/arrow-right'
   import Play from 'lucide-svelte/icons/play'
   import Download from 'lucide-svelte/icons/download'
-  import Star from 'lucide-svelte/icons/star'
-  import ExternalLink from 'lucide-svelte/icons/external-link'
-  import BookOpen from 'lucide-svelte/icons/book-open'
   import Search from 'lucide-svelte/icons/search'
   import AudioLines from 'lucide-svelte/icons/audio-lines'
   import Keyboard from 'lucide-svelte/icons/keyboard'
-  import History from 'lucide-svelte/icons/history'
   import Palette from 'lucide-svelte/icons/palette'
   import WandSparkles from 'lucide-svelte/icons/wand-sparkles'
 
@@ -75,6 +70,11 @@
 </script>
 
 <script lang="ts">
+  import ArrowRight from 'lucide-svelte/icons/arrow-right'
+  import Star from 'lucide-svelte/icons/star'
+  import ExternalLink from 'lucide-svelte/icons/external-link'
+  import BookOpen from 'lucide-svelte/icons/book-open'
+  import History from 'lucide-svelte/icons/history'
   import type { Snippet } from 'svelte'
   import FreeCutLogo from '@/components/brand/freecut-logo.svelte'
   import DiscordIcon from '@/components/brand/discord-icon.svelte'
@@ -86,7 +86,7 @@
     AccordionItem,
     AccordionTrigger,
   } from '@/components/ui/accordion'
-  import { Link } from '@/app/router'
+  import { Link } from '$lib/router'
   import { DISCORD_INVITE_URL } from '@/config/community'
   import {
     isGitHubStarsCacheFresh,

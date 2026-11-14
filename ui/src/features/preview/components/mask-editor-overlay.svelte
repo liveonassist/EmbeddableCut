@@ -1,30 +1,10 @@
 <!-- SPDX-License-Identifier: MIT -->
 <script module lang="ts">
-  import { untrack } from 'svelte'
-  import { select } from '$lib/store.svelte'
-  import { selectDerived } from '@/features/preview/utils/select-derived.svelte'
-  import { toast } from 'svelte-sonner'
-  import { useMaskEditorStore } from '@/features/preview/stores/mask-editor-store'
-  import { useGizmoStore } from '@/features/preview/stores/gizmo-store'
-  import { addItem, commitMaskEdit, setTracks, useItemsStore, useKeyframesStore, useTimelineSettingsStore, useTimelineViewportStore, useTransitionsStore } from '@/features/preview/deps/timeline-store'
-  import { screenToCanvas, getEffectiveScale, transformToScreenBounds } from '@/features/preview/utils/coordinate-transform'
-  import { insertVertexBetween, removeVertex } from '@/features/preview/utils/mask-path-utils'
-  import { getPathBounds, fitShapePathToBounds } from '@/features/preview/utils/path-fit'
-  import { useSelectionStore } from '@/shared/state/selection'
-  import { usePlaybackStore } from '@/shared/state/playback'
   import type { CoordinateParams, Transform } from '@/features/preview/types/gizmo'
   import type { MaskVertex } from '@/types/masks'
-  import type { ShapeItem, TimelineTrack } from '@/types/timeline'
-  import type { TransformProperties } from '@/types/transform'
-  import { drawMaskSegment, drawMaskSelectionMarquee, drawMaskVertexWithHandles } from './mask-editor-drawing'
-  import { hitTestMaskVertices, hitTestPenVertices, type MaskHit, type PenHit } from './mask-editor-hit-testing'
-  import { MASK_GEOMETRY_TRANSFORM_PROPS, cloneVertices, cubicPointAt, drawSelectedVertexRing, getNextTrackName, toOverlayTransform, transformChanged } from './mask-editor-overlay-utils'
-  import { planPenPathRender, type OverlayPoint, type PenClosingPreview, type PenCursorHint, type PenHandleMark, type PenRubberBand, type PenSegmentGroup, type PenVertexMark } from './mask-editor-pen-render-plan'
-  import { createPenHitInteraction, createVertexHandleDragState, dragVerticesByCanvasDelta, resolvePenDragStart, resolvePenHitHandle, resolvePenPointerDownDragStart, type EditDragState, type PenDragStart, type PenInteraction } from './mask-editor-pointer-drag'
-  import { convertVerticesAtIndices, removeVerticesAtIndices, resolveSelectedVertexTargets, resolveSelectionAfterVertexRemoval, shouldHandleConvertVertexRequest } from './mask-editor-vertex-selection'
-  import { findBestCanvasDropPlacement, createClassicTrack, getTrackKind, resolveEffectiveTrackStates } from '@/features/preview/deps/timeline-utils'
-  import { getAutoKeyframeOperation, isFrameInTransitionRegion, resolveAnimatedShapeItem, type AutoKeyframeOperation } from '@/features/preview/deps/keyframes'
-  import { buildPathGeometryPersistence as planPathGeometryPersistence } from '@/features/preview/utils/path-geometry-persistence'
+  import { drawSelectedVertexRing } from './mask-editor-overlay-utils'
+  import { type OverlayPoint, type PenClosingPreview, type PenCursorHint, type PenHandleMark, type PenRubberBand, type PenSegmentGroup, type PenVertexMark } from './mask-editor-pen-render-plan'
+
 
   /** Radius of vertex control points in screen pixels */
   const VERTEX_RADIUS = 5
@@ -167,6 +147,29 @@
 </script>
 
 <script lang="ts">
+  import { MASK_GEOMETRY_TRANSFORM_PROPS, cloneVertices, cubicPointAt, getNextTrackName, toOverlayTransform, transformChanged } from './mask-editor-overlay-utils'
+  import { planPenPathRender } from './mask-editor-pen-render-plan'
+  import { untrack } from 'svelte'
+  import { select } from '$lib/store.svelte'
+  import { selectDerived } from '@/features/preview/utils/select-derived.svelte'
+  import { toast } from 'svelte-sonner'
+  import { useMaskEditorStore } from '@/features/preview/stores/mask-editor-store'
+  import { useGizmoStore } from '@/features/preview/stores/gizmo-store'
+  import { addItem, commitMaskEdit, setTracks, useItemsStore, useKeyframesStore, useTimelineSettingsStore, useTimelineViewportStore, useTransitionsStore } from '@/features/preview/deps/timeline-store'
+  import { screenToCanvas, getEffectiveScale, transformToScreenBounds } from '@/features/preview/utils/coordinate-transform'
+  import { insertVertexBetween, removeVertex } from '@/features/preview/utils/mask-path-utils'
+  import { getPathBounds, fitShapePathToBounds } from '@/features/preview/utils/path-fit'
+  import { useSelectionStore } from '@/shared/state/selection'
+  import { usePlaybackStore } from '@/shared/state/playback'
+  import type { ShapeItem, TimelineTrack } from '@/types/timeline'
+  import type { TransformProperties } from '@/types/transform'
+  import { drawMaskSegment, drawMaskSelectionMarquee, drawMaskVertexWithHandles } from './mask-editor-drawing'
+  import { hitTestMaskVertices, hitTestPenVertices, type MaskHit, type PenHit } from './mask-editor-hit-testing'
+  import { createPenHitInteraction, createVertexHandleDragState, dragVerticesByCanvasDelta, resolvePenDragStart, resolvePenHitHandle, resolvePenPointerDownDragStart, type EditDragState, type PenDragStart, type PenInteraction } from './mask-editor-pointer-drag'
+  import { convertVerticesAtIndices, removeVerticesAtIndices, resolveSelectedVertexTargets, resolveSelectionAfterVertexRemoval, shouldHandleConvertVertexRequest } from './mask-editor-vertex-selection'
+  import { findBestCanvasDropPlacement, createClassicTrack, getTrackKind, resolveEffectiveTrackStates } from '@/features/preview/deps/timeline-utils'
+  import { getAutoKeyframeOperation, isFrameInTransitionRegion, resolveAnimatedShapeItem, type AutoKeyframeOperation } from '@/features/preview/deps/keyframes'
+  import { buildPathGeometryPersistence as planPathGeometryPersistence } from '@/features/preview/utils/path-geometry-persistence'
   let { coordParams, playerSize, itemTransform }: MaskEditorOverlayProps = $props()
   const canvasRef: { current: HTMLCanvasElement | null } = { current: null }
   let hoveredShapeBody = $state.raw(false)

@@ -1,11 +1,5 @@
 <!-- SPDX-License-Identifier: MIT -->
 <script lang="ts" module>
-  import { TIMELINE_LIVE_SCROLL_EVENT } from '@/shared/timeline/live-scroll-sync'
-  import { RULER_HEIGHT } from './dopesheet-constants'
-  import {
-    formatDopesheetRulerCanvasLabel,
-    getDopesheetRulerTickLayout,
-  } from './dopesheet-live-ruler-layout'
   import type { Ref } from '../ref-state.svelte'
 
   interface DopesheetLiveRulerCanvasProps {
@@ -22,6 +16,9 @@
 </script>
 
 <script lang="ts">
+  import { TIMELINE_LIVE_SCROLL_EVENT } from '@/shared/timeline/live-scroll-sync'
+  import { RULER_HEIGHT } from './dopesheet-constants'
+  import { formatDopesheetRulerCanvasLabel, getDopesheetRulerTickLayout } from './dopesheet-live-ruler-layout'
   let {
     scrollContainerRef,
     getLivePixelsPerSecond,

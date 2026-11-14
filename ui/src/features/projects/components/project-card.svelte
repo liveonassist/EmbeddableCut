@@ -28,7 +28,7 @@
   } from '@/components/ui/alert-dialog'
   import { Button } from '@/components/ui/button'
   import Trans from '@/components/trans.svelte'
-  import { Link, useNavigate } from '@/app/router'
+  import { Link, useNavigate } from '$lib/router'
   import type { Project } from '@/types/project'
   import { formatRelativeTime } from '@/features/projects/utils/project-helpers'
   import {

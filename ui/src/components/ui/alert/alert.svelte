@@ -1,6 +1,6 @@
 <!-- SPDX-License-Identifier: MIT -->
 <script lang="ts" module>
-  import { cva, type VariantProps } from 'class-variance-authority'
+  import { cva } from 'class-variance-authority'
 
   const alertVariants = cva(
     'relative w-full rounded-lg border p-4 [&>svg~*]:pl-7 [&>svg+div]:translate-y-[-3px] [&>svg]:absolute [&>svg]:left-4 [&>svg]:top-4 [&>svg]:text-foreground',
@@ -20,6 +20,7 @@
 </script>
 
 <script lang="ts">
+  import { type VariantProps } from 'class-variance-authority'
   import type { HTMLAttributes } from 'svelte/elements'
   import { cn } from '$lib/cn'
 

@@ -3,15 +3,7 @@
   import type { FilmstripFrame } from '../../hooks/use-filmstrip.svelte'
   import { useTimelineViewportStore } from '@/features/timeline/stores/timeline-viewport-store'
   import { useZoomStore } from '@/features/timeline/stores/zoom-store'
-  import {
-    computeCoverDrawRect,
-    computeFilmstripCanvasGeometry,
-    computeFilmstripCanvasTiles,
-    computeTimelineFilmstripCanvasWindow,
-    type FilmstripCanvasGeometry,
-    type FilmstripCanvasTile,
-  } from './filmstrip-canvas-geometry'
-  import { getDecodedFilmstripImage, subscribeFilmstripImage } from './filmstrip-image-cache'
+  import { computeTimelineFilmstripCanvasWindow, type FilmstripCanvasTile } from './filmstrip-canvas-geometry'
   import {
     cancelTimelineCanvasUpdate,
     scheduleTimelineCanvasUpdate,
@@ -285,6 +277,8 @@
 </script>
 
 <script lang="ts">
+  import { computeCoverDrawRect, computeFilmstripCanvasGeometry, computeFilmstripCanvasTiles, type FilmstripCanvasGeometry } from './filmstrip-canvas-geometry'
+  import { getDecodedFilmstripImage, subscribeFilmstripImage } from './filmstrip-image-cache'
   import { untrack } from 'svelte'
 
   interface VisibleFilmstripCanvasProps {

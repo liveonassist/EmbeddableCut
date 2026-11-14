@@ -1,6 +1,6 @@
 <!-- SPDX-License-Identifier: MIT -->
 <script lang="ts" module>
-  import type { ExportProgress, ExportResult } from '@/features/project-bundle/types/bundle'
+  import type { ExportProgress } from '@/features/project-bundle/types/bundle'
 
   type ExportStatus = 'idle' | 'saving' | 'exporting' | 'completed' | 'failed'
 
@@ -21,6 +21,7 @@
 </script>
 
 <script lang="ts">
+  import type { ExportResult } from '@/features/project-bundle/types/bundle'
   import { untrack } from 'svelte'
   import Loader2 from 'lucide-svelte/icons/loader-2'
   import CheckCircle2 from 'lucide-svelte/icons/check-circle-2'

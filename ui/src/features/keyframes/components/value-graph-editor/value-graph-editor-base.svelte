@@ -1,6 +1,5 @@
 <!-- SPDX-License-Identifier: MIT -->
 <script lang="ts" module>
-  import type { AnimatableProperty, KeyframeRef } from '@/types/keyframe'
   import type { BlockedFrameRange } from '@/features/keyframes/utils/transition-region'
 
   const OVERLAY_COLORS = ['#6366f1', '#22d3ee', '#a3e635', '#f472b6', '#fb923c', '#a78bfa', '#34d399']
@@ -9,6 +8,7 @@
 </script>
 
 <script lang="ts">
+  import type { AnimatableProperty, KeyframeRef } from '@/types/keyframe'
   /**
    * Value Graph Editor - Main container component.
    * Interactive graph for editing keyframe values and timing.

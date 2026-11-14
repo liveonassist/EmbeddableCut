@@ -1,11 +1,7 @@
 <!-- SPDX-License-Identifier: MIT -->
 <script module lang="ts">
-  import { untrack } from 'svelte'
   import type { EditTwoUpPanelData } from '../edit-2up-panels'
-  import { useEditOverlayPanelPrewarm } from '../use-edit-overlay-panel-prewarm.svelte'
-  import { getItemAspectRatio } from '../edit-panel-media-utils'
-  import MainPanel from './main-panel.svelte'
-  import CornerThumbnail from './corner-thumbnail.svelte'
+
 
   const TEXT_SPACE = 56
 
@@ -22,6 +18,11 @@
 </script>
 
 <script lang="ts">
+  import { untrack } from 'svelte'
+  import { useEditOverlayPanelPrewarm } from '../use-edit-overlay-panel-prewarm.svelte'
+  import { getItemAspectRatio } from '../edit-panel-media-utils'
+  import MainPanel from './main-panel.svelte'
+  import CornerThumbnail from './corner-thumbnail.svelte'
   let { leftPanel, rightPanel, topLeftCorner, topRightCorner }: EditFourUpPanelsProps = $props()
   const containerRef: { current: HTMLDivElement | null } = { current: null }
   let containerSize = $state.raw({ width: 0, height: 0 })

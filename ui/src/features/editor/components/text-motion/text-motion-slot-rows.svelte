@@ -1,12 +1,6 @@
 <!-- SPDX-License-Identifier: MIT -->
 <script lang="ts" module>
-  import type {
-    TextMotionEffect,
-    TextMotionEffectBase,
-    TextMotionOrder,
-    TextMotionSlot,
-    TextMotionUnit,
-  } from '@/types/text-motion'
+  import type { TextMotionOrder, TextMotionSlot, TextMotionUnit } from '@/types/text-motion'
   import {
     TEXT_MOTION_IN_PRESETS,
     TEXT_MOTION_LOOP_PRESETS,
@@ -27,6 +21,7 @@
 </script>
 
 <script lang="ts">
+  import type { TextMotionEffect, TextMotionEffectBase } from '@/types/text-motion'
   import X from 'lucide-svelte/icons/x'
   import { t } from '$lib/i18n.svelte'
   import type { TextItem } from '@/types/timeline'

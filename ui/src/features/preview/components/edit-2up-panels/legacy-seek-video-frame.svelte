@@ -1,8 +1,7 @@
 <!-- SPDX-License-Identifier: MIT -->
 <script module lang="ts">
-  import { getGlobalVideoSourcePool } from '@/features/preview/deps/player-pool'
   import type { TimelineItem } from '@/types/timeline'
-  import { useResolvedVideoBlobUrl } from './use-resolved-video-blob-url.svelte'
+
 
   const FALLBACK_CANVAS_WIDTH = 280
 
@@ -21,6 +20,8 @@
 </script>
 
 <script lang="ts">
+  import { getGlobalVideoSourcePool } from '@/features/preview/deps/player-pool'
+  import { useResolvedVideoBlobUrl } from './use-resolved-video-blob-url.svelte'
   let { item, sourceTime, onFailure }: LegacySeekVideoFrameProps = $props()
   const canvasRef: { current: HTMLCanvasElement | null } = { current: null }
   const poolRef = { current: getGlobalVideoSourcePool() }

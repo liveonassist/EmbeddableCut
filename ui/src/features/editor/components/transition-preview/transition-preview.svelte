@@ -3,8 +3,8 @@
   import { transitionRegistry } from '@/shared/timeline/transitions'
   import { createLogger } from '@/shared/logging/logger'
   import type { WipeDirection, SlideDirection, FlipDirection } from '@/types/transition'
-  import { getSampleFrames, PREVIEW_WIDTH, PREVIEW_HEIGHT, type SampleFrames } from './sample-frames'
-  import { ensureGpuTransitionPipeline, getReadyGpuTransitionPipeline } from './gpu-transition-preview'
+  import { PREVIEW_WIDTH, PREVIEW_HEIGHT, type SampleFrames } from './sample-frames'
+  import { getReadyGpuTransitionPipeline } from './gpu-transition-preview'
 
   const log = createLogger('TransitionPreview')
 
@@ -86,6 +86,8 @@
 </script>
 
 <script lang="ts">
+  import { getSampleFrames } from './sample-frames'
+  import { ensureGpuTransitionPipeline } from './gpu-transition-preview'
   import { cn } from '@/shared/ui/cn'
 
   interface TransitionPreviewProps {

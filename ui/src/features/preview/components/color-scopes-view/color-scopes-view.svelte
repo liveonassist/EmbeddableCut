@@ -1,15 +1,5 @@
 <!-- SPDX-License-Identifier: MIT -->
 <script module lang="ts">
-  import { untrack } from 'svelte'
-  import { select } from '$lib/store.svelte'
-  import Activity from 'lucide-svelte/icons/activity'
-  import { getResolvedPlaybackFrame, usePlaybackStore } from '@/shared/state/playback'
-  import { usePreviewBridgeStore } from '@/shared/state/preview-bridge'
-  import { cn } from '@/shared/ui/cn'
-  import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-  import { ScopeRenderer } from '@/infrastructure/gpu-scopes'
-  import { ScopeCanvasFrame } from '../color-scope-overlays'
-  import ScopeModeBar from './scope-mode-bar.svelte'
 
   const SAMPLE_WIDTH_PAUSED = 384
 
@@ -418,6 +408,16 @@
 </script>
 
 <script lang="ts">
+  import { untrack } from 'svelte'
+  import { select } from '$lib/store.svelte'
+  import Activity from 'lucide-svelte/icons/activity'
+  import { getResolvedPlaybackFrame, usePlaybackStore } from '@/shared/state/playback'
+  import { usePreviewBridgeStore } from '@/shared/state/preview-bridge'
+  import { cn } from '@/shared/ui/cn'
+  import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+  import { ScopeRenderer } from '@/infrastructure/gpu-scopes'
+  import { ScopeCanvasFrame } from '../color-scope-overlays'
+  import ScopeModeBar from './scope-mode-bar.svelte'
   let { open, embedded = false, embeddedLayout = 'grid' }: ColorScopesViewProps = $props()
   let status = $state.raw<'idle' | 'live' | 'error'>('idle')
   const setStatus = (next: 'idle' | 'live' | 'error' | ((prev: 'idle' | 'live' | 'error') => 'idle' | 'live' | 'error')) => {

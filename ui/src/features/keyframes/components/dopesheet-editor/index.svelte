@@ -1,6 +1,6 @@
 <!-- SPDX-License-Identifier: MIT -->
 <script lang="ts" module>
-  import type { AnimatableProperty, DirectPropertyLink, Keyframe } from '@/types/keyframe'
+  import type { AnimatableProperty, DirectPropertyLink } from '@/types/keyframe'
   import type { CompoundPropertyInputConfig } from './compound-property-inputs'
   import type { DopesheetEditorProps } from './dopesheet-editor-props'
 
@@ -27,6 +27,7 @@
 </script>
 
 <script lang="ts">
+  import type { Keyframe } from '@/types/keyframe'
   /**
    * Dopesheet Editor - timeline-style keyframe editor.
    * Shows keyframes across properties as draggable diamonds on a frame grid.

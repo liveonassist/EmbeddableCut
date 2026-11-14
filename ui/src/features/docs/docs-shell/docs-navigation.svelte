@@ -2,7 +2,7 @@
 <script lang="ts">
   import BookOpen from 'lucide-svelte/icons/book-open'
   import Search from 'lucide-svelte/icons/search'
-  import { Link } from '@/app/router'
+  import { Link } from '$lib/router'
   import { cn } from '@/shared/ui/cn'
   import { DOC_GROUPS, DOC_PAGES } from '../docs-content'
   import { pageSearchText } from './search'

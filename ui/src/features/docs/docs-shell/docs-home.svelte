@@ -4,7 +4,7 @@
   import BookOpen from 'lucide-svelte/icons/book-open'
   import Search from 'lucide-svelte/icons/search'
   import { Button } from '@/components/ui/button'
-  import { Link } from '@/app/router'
+  import { Link } from '$lib/router'
   import { DOC_PAGES, type DocCategory } from '../docs-content'
 
   const groups = [

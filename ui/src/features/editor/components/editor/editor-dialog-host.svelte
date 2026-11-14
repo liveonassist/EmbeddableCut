@@ -23,20 +23,25 @@
   )
   const embeddedSubtitlePickerOpen = select(useEmbeddedSubtitlePickerStore, (s) => s.media !== null)
   const subtitleScanProgressOpen = select(useSubtitleScanProgressStore, (s) => s.open)
+
+  // Loaded on first use; a loader in the script lets static analysis see the import.
+  const loadClearKeyframesDialog = () => import('../clear-keyframes-dialog.svelte')
+  const loadProjectMediaMatchDialog = () => import('../project-media-match-dialog.svelte')
+  const loadTtsGenerateDialog = () => import('../tts-generate-dialog.svelte')
 </script>
 
 {#if clearKeyframesDialogOpen.current}
-  {#await import('../clear-keyframes-dialog.svelte') then { default: ClearKeyframesDialog }}
+  {#await loadClearKeyframesDialog() then { default: ClearKeyframesDialog }}
     <ClearKeyframesDialog />
   {/await}
 {/if}
 {#if projectMediaMatchDialogOpen.current}
-  {#await import('../project-media-match-dialog.svelte') then { default: ProjectMediaMatchDialog }}
+  {#await loadProjectMediaMatchDialog() then { default: ProjectMediaMatchDialog }}
     <ProjectMediaMatchDialog {projectId} />
   {/await}
 {/if}
 {#if ttsGenerateDialogOpen.current}
-  {#await import('../tts-generate-dialog.svelte') then { default: TtsGenerateDialog }}
+  {#await loadTtsGenerateDialog() then { default: TtsGenerateDialog }}
     <TtsGenerateDialog />
   {/await}
 {/if}

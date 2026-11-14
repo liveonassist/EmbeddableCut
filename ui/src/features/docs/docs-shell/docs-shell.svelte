@@ -3,7 +3,7 @@
   import type { Snippet } from 'svelte'
   import FreeCutLogo from '@/components/brand/freecut-logo.svelte'
   import { Button } from '@/components/ui/button'
-  import { Link } from '@/app/router'
+  import { Link } from '$lib/router'
   import DocsNavigation from './docs-navigation.svelte'
 
   interface DocsShellProps {

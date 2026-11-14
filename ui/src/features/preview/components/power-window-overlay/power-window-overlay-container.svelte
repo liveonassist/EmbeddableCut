@@ -1,14 +1,8 @@
 <!-- SPDX-License-Identifier: MIT -->
 <script module lang="ts">
-  import { select } from '$lib/store.svelte'
-  import { useSelectionStore } from '@/shared/state/selection'
   import type { ItemEffect } from '@/types/effects'
   import type { TimelineItem } from '@/types/timeline'
-  import { useGizmoStore } from '@/features/preview/stores/gizmo-store'
-  import { usePowerWindowEditorStore } from '@/features/preview/stores/power-window-editor-store'
-  import { useItemsStore } from '@/features/preview/deps/timeline-store'
-  import type { CoordinateParams } from '@/features/preview/types/gizmo'
-  import PowerWindowOverlay from './power-window-overlay.svelte'
+
 
   interface PowerWindowOverlayContainerProps {
     containerRect: DOMRect | null
@@ -31,6 +25,13 @@
 </script>
 
 <script lang="ts">
+  import { select } from '$lib/store.svelte'
+  import { useSelectionStore } from '@/shared/state/selection'
+  import { useGizmoStore } from '@/features/preview/stores/gizmo-store'
+  import { usePowerWindowEditorStore } from '@/features/preview/stores/power-window-editor-store'
+  import { useItemsStore } from '@/features/preview/deps/timeline-store'
+  import type { CoordinateParams } from '@/features/preview/types/gizmo'
+  import PowerWindowOverlay from './power-window-overlay.svelte'
   let { containerRect, playerSize, projectSize, zoom }: PowerWindowOverlayContainerProps = $props()
   const selectedItemIds = select(useSelectionStore, (s) => s.selectedItemIds)
   const items = select(useItemsStore, (s) => s.items)

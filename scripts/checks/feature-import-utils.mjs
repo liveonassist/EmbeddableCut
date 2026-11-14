@@ -1,7 +1,8 @@
 import fs from 'node:fs';
 import path from 'node:path';
 
-const SOURCE_EXTENSIONS = new Set(['.ts', '.tsx']);
+// EmbeddableCut: the editor UI is Svelte; its components import as modules do.
+const SOURCE_EXTENSIONS = new Set(['.ts', '.tsx', '.svelte']);
 const RESOLVE_EXTENSIONS = ['.ts', '.tsx', '.js', '.jsx', '.mjs', '.cjs'];
 
 const IMPORT_EXPORT_SPEC_REGEX =

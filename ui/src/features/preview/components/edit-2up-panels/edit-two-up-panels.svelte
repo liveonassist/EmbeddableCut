@@ -1,10 +1,7 @@
 <!-- SPDX-License-Identifier: MIT -->
 <script module lang="ts">
-  import { untrack } from 'svelte'
   import type { EditTwoUpPanelData } from './types'
-  import { getItemAspectRatio } from '../edit-panel-media-utils'
-  import { useEditOverlayPanelPrewarm } from '../use-edit-overlay-panel-prewarm.svelte'
-  import FramePanel from './frame-panel.svelte'
+
 
   const TEXT_SPACE = 56
 
@@ -17,6 +14,10 @@
 </script>
 
 <script lang="ts">
+  import { untrack } from 'svelte'
+  import { getItemAspectRatio } from '../edit-panel-media-utils'
+  import { useEditOverlayPanelPrewarm } from '../use-edit-overlay-panel-prewarm.svelte'
+  import FramePanel from './frame-panel.svelte'
   let { leftPanel, rightPanel }: EditTwoUpPanelsProps = $props()
   const containerRef: { current: HTMLDivElement | null } = { current: null }
   let containerSize = $state.raw({ width: 0, height: 0 })

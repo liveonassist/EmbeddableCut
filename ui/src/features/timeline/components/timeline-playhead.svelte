@@ -1,10 +1,6 @@
 <!-- SPDX-License-Identifier: MIT -->
 <script lang="ts" module>
-  import {
-    frameToPixelsNow,
-    getPixelsPerSecondNow,
-    pixelsToFrameNow,
-  } from '@/features/timeline/utils/zoom-conversions'
+  import { frameToPixelsNow } from '@/features/timeline/utils/zoom-conversions'
 
   function setTranslateXIfChanged(element: HTMLElement, left: number): void {
     const transform = `translate3d(${left}px, 0, 0)`
@@ -63,6 +59,7 @@
 </script>
 
 <script lang="ts">
+  import { getPixelsPerSecondNow, pixelsToFrameNow } from '@/features/timeline/utils/zoom-conversions'
   import { untrack } from 'svelte'
   import { select } from '$lib/store.svelte'
 

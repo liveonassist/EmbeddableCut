@@ -8,7 +8,7 @@
 <script lang="ts">
   import { toast } from 'svelte-sonner'
   import Github from 'lucide-svelte/icons/github'
-  import { Link, useNavigate } from '@/app/router'
+  import { Link, useNavigate } from '$lib/router'
   import { InlineCreateProjectForm } from '@/features/projects/components/project-form'
   import { useCreateProject } from '@/features/projects/hooks/use-project-actions.svelte'
   import FreeCutLogo from '@/components/brand/freecut-logo.svelte'

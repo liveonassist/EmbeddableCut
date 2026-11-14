@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-import type { RouteOptions } from '@/app/router'
+import type { RouteOptions } from '$lib/router'
 import { createLogger } from '@/shared/logging/logger'
 
 const logger = createLogger('NewProject')

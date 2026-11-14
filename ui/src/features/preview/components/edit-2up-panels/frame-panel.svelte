@@ -1,16 +1,7 @@
 <!-- SPDX-License-Identifier: MIT -->
 <script module lang="ts">
   import type { TimelineItem } from '@/types/timeline'
-  import {
-    computeFittedMediaSize,
-    getItemAspectRatio,
-    PANEL_MEDIA,
-    renderPanelMedia,
-  } from '../edit-panel-media-utils'
-  import CompositionFrame from './composition-frame.svelte'
-  import ImageFrame from './image-frame.svelte'
-  import VideoFrame from './video-frame.svelte'
-  import TypePlaceholder from './type-placeholder.svelte'
+
 
   interface FramePanelProps {
     item: TimelineItem | null
@@ -26,6 +17,16 @@
 </script>
 
 <script lang="ts">
+  import {
+    computeFittedMediaSize,
+    getItemAspectRatio,
+    PANEL_MEDIA,
+    renderPanelMedia,
+  } from '../edit-panel-media-utils'
+  import CompositionFrame from './composition-frame.svelte'
+  import ImageFrame from './image-frame.svelte'
+  import VideoFrame from './video-frame.svelte'
+  import TypePlaceholder from './type-placeholder.svelte'
   let { item, sourceTime, sourceFrame, timecode, label, areaHeight, panelWidth, placeholderText }: FramePanelProps = $props()
   const ar = $derived(getItemAspectRatio(item))
   const { mediaWidth, mediaHeight } = $derived(computeFittedMediaSize(panelWidth, areaHeight, ar))

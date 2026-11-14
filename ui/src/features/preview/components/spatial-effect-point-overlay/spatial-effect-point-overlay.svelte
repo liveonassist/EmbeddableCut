@@ -1,17 +1,11 @@
 <!-- SPDX-License-Identifier: MIT -->
 <script module lang="ts">
-  import { untrack } from 'svelte'
-  import { selectDerived } from '@/features/preview/utils/select-derived.svelte'
   import type { ItemEffect } from '@/types/effects'
   import type { TimelineItem } from '@/types/timeline'
-  import { usePlaybackStore } from '@/shared/state/playback'
-  import { applyAutoKeyframeOperations, setItemEffects, useKeyframesStore } from '@/features/preview/deps/timeline-store'
-  import { useGizmoStore } from '@/features/preview/stores/gizmo-store'
   import type { CoordinateParams, Point } from '@/features/preview/types/gizmo'
   import { screenToCanvas } from '@/features/preview/utils/coordinate-transform'
-  import { planEffectGizmoCommit } from '@/features/preview/utils/effect-gizmo-keyframes'
   import { canvasPointToSpatialEffectUv } from '@/features/preview/utils/spatial-effect-coordinates'
-  import { buildSpatialPointEffects } from '../spatial-effect-point-overlay-utils'
+
 
   interface SpatialEffectPointOverlayProps {
     coordParams: CoordinateParams
@@ -42,6 +36,13 @@
 </script>
 
 <script lang="ts">
+  import { untrack } from 'svelte'
+  import { selectDerived } from '@/features/preview/utils/select-derived.svelte'
+  import { usePlaybackStore } from '@/shared/state/playback'
+  import { applyAutoKeyframeOperations, setItemEffects, useKeyframesStore } from '@/features/preview/deps/timeline-store'
+  import { useGizmoStore } from '@/features/preview/stores/gizmo-store'
+  import { planEffectGizmoCommit } from '@/features/preview/utils/effect-gizmo-keyframes'
+  import { buildSpatialPointEffects } from '../spatial-effect-point-overlay-utils'
   let { coordParams, playerSize, item, effect: editedEffect, xParam, yParam }: SpatialEffectPointOverlayProps = $props()
   const handleRef: { current: HTMLButtonElement | null } = { current: null }
   const dragPointerIdRef: { current: number | null } = { current: null }

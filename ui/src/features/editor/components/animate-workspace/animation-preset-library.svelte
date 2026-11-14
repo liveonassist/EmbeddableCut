@@ -1,16 +1,13 @@
 <!-- SPDX-License-Identifier: MIT -->
 <script lang="ts" module>
-  import {
-    MOTION_MODULATORS,
-    MOTION_PRESET_CATEGORIES,
-    MOTION_PRESETS,
-  } from '@/features/editor/deps/keyframes'
+  import { MOTION_PRESETS } from '@/features/editor/deps/keyframes'
   import { EDIT_QUICK_PRESET_IDS } from './animation-preset-catalogue'
 
   const EDIT_QUICK_PRESETS = MOTION_PRESETS.filter((preset) => EDIT_QUICK_PRESET_IDS.has(preset.id))
 </script>
 
 <script lang="ts">
+  import { MOTION_MODULATORS, MOTION_PRESET_CATEGORIES } from '@/features/editor/deps/keyframes'
   import type { TFunction } from 'i18next'
   import { toast } from 'svelte-sonner'
   import { select, shallow } from '$lib/store.svelte'

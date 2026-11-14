@@ -1,8 +1,5 @@
 <!-- SPDX-License-Identifier: MIT -->
 <script module lang="ts">
-  import { untrack } from 'svelte'
-  import { useWaveform } from '@/features/preview/deps/timeline-ui'
-  import { getSourceWaveformSeekTime, sampleSourceWaveformAmplitudes } from './source-audio-waveform-utils'
 
   const SOURCE_WAVEFORM_HEIGHT = 320
 
@@ -167,6 +164,9 @@
 </script>
 
 <script lang="ts">
+  import { untrack } from 'svelte'
+  import { useWaveform } from '@/features/preview/deps/timeline-ui'
+  import { getSourceWaveformSeekTime, sampleSourceWaveformAmplitudes } from './source-audio-waveform-utils'
   let { mediaId, src, durationSeconds, currentTimeSeconds, onSeekSeconds }: SourceAudioWaveformProps = $props()
   const containerRef: { current: HTMLDivElement | null } = { current: null }
   const canvasRef: { current: HTMLCanvasElement | null } = { current: null }

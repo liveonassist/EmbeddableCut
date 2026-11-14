@@ -37,7 +37,7 @@
     removeKnownWorkspace,
   } from '@/infrastructure/storage/handles-db'
   import { t } from '$lib/i18n.svelte'
-  import { Link, findRouter, type ErrorComponentProps } from './router'
+  import { Link, findRouter, type ErrorComponentProps } from '$lib/router'
   import {
     formatRouteErrorDetails,
     getProjectNotFoundError,

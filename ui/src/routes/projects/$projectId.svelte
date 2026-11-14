@@ -1,6 +1,6 @@
 <!-- SPDX-License-Identifier: MIT -->
 <script lang="ts">
-  import { Navigate, type RouteComponentProps } from '@/app/router'
+  import { Navigate, type RouteComponentProps } from '$lib/router'
 
   let { params }: RouteComponentProps = $props()
 </script>

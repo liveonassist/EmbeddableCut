@@ -3,7 +3,6 @@
   import Sparkles from 'lucide-svelte/icons/sparkles'
   import Bug from 'lucide-svelte/icons/bug'
   import Zap from 'lucide-svelte/icons/zap'
-  import ArrowRight from 'lucide-svelte/icons/arrow-right'
   import { i18n } from '@/i18n'
   import changelogData from '@/data/changelog.json'
   import type {
@@ -63,13 +62,14 @@
 </script>
 
 <script lang="ts">
+  import ArrowRight from 'lucide-svelte/icons/arrow-right'
   import { t } from '$lib/i18n.svelte'
   import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
   import { ScrollArea } from '@/components/ui/scroll-area'
   import { Separator } from '@/components/ui/separator'
   import { cn } from '@/shared/ui/cn'
   import { markChangelogSeen } from './whats-new-seen'
-  import { Link, findRouter } from '@/app/router'
+  import { Link, findRouter } from '$lib/router'
 
   const router = findRouter()
 

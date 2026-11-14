@@ -1,14 +1,9 @@
 <!-- SPDX-License-Identifier: MIT -->
 <script module lang="ts">
-  import { select } from '$lib/store.svelte'
   import { getSpatialPointEffectConfig } from '@/infrastructure/gpu-effects/spatial-point-editor'
   import type { ItemEffect } from '@/types/effects'
   import type { TimelineItem } from '@/types/timeline'
-  import { useItemsStore } from '@/features/preview/deps/timeline-store'
-  import { useGizmoStore } from '@/features/preview/stores/gizmo-store'
-  import { useSpatialEffectEditorStore } from '@/features/preview/stores/spatial-effect-editor-store'
-  import type { CoordinateParams } from '@/features/preview/types/gizmo'
-  import SpatialEffectPointOverlay from './spatial-effect-point-overlay.svelte'
+
 
   interface SpatialEffectPointOverlayContainerProps {
     containerRect: DOMRect | null
@@ -25,6 +20,12 @@
 </script>
 
 <script lang="ts">
+  import { select } from '$lib/store.svelte'
+  import { useItemsStore } from '@/features/preview/deps/timeline-store'
+  import { useGizmoStore } from '@/features/preview/stores/gizmo-store'
+  import { useSpatialEffectEditorStore } from '@/features/preview/stores/spatial-effect-editor-store'
+  import type { CoordinateParams } from '@/features/preview/types/gizmo'
+  import SpatialEffectPointOverlay from './spatial-effect-point-overlay.svelte'
   let { containerRect, playerSize, projectSize, zoom }: SpatialEffectPointOverlayContainerProps = $props()
   const items = select(useItemsStore, (s) => s.items)
   const isEditing = select(useSpatialEffectEditorStore, (s) => s.isEditing)

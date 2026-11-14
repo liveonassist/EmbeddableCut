@@ -5,8 +5,9 @@
  * Runs one of FreeCut's architecture checks against FreeCut's original layout.
  *
  * The checks (and their allowlists) are keyed on paths under a single `src/`.
- * EmbeddableCut splits that tree between `engine/src/` and `web/src/`, which
- * mirror it: every path exists in exactly one of them. This assembles the
+ * EmbeddableCut splits that tree between `engine/src/` and `ui/src/` (the
+ * React UI ported to Svelte, file for file), which mirror it: every path exists
+ * in exactly one of them. This assembles the
  * union under `.cache/checks/` as real directories of hard-linked files (the
  * checks walk with `Dirent.isFile()`, which symlinks fail), beside the check
  * scripts and the configs they read, and runs the check there. Findings therefore
@@ -25,7 +26,7 @@ import { fileURLToPath } from 'node:url'
 const CHECKS_DIR = path.dirname(fileURLToPath(import.meta.url))
 const REPO_ROOT = path.resolve(CHECKS_DIR, '..', '..')
 const OVERLAY = path.join(REPO_ROOT, '.cache', 'checks')
-const SOURCE_ROOTS = ['engine/src', 'web/src'].map((root) => path.join(REPO_ROOT, root))
+const SOURCE_ROOTS = ['engine/src', 'ui/src'].map((root) => path.join(REPO_ROOT, root))
 
 /** Hard-links every file of `sources` into `target`; later sources win a clash. */
 function mergeInto(target, sources) {
@@ -42,7 +43,7 @@ function mergeInto(target, sources) {
       continue
     }
     // Each package keeps its own copy of the test setup and ambient types; the
-    // app's is the one FreeCut had.
+    // UI's is the one FreeCut's app had.
     fs.linkSync(present.at(-1), path.join(target, name))
   }
 }
@@ -61,15 +62,24 @@ mergeInto(path.join(OVERLAY, 'sdk', 'src'), [path.join(REPO_ROOT, 'sdk', 'src')]
 mergeInto(path.join(OVERLAY, 'headless'), [path.join(REPO_ROOT, 'render')])
 fs.symlinkSync(path.join(REPO_ROOT, 'node_modules'), path.join(OVERLAY, 'node_modules'))
 fs.linkSync(path.join(REPO_ROOT, '.fallowrc.json'), path.join(OVERLAY, '.fallowrc.json'))
-// Fallow finds entry points and test files through the app's Vite config and HTML.
-for (const file of ['vite.config.ts', 'index.html', 'headless.html', 'tsr.config.json']) {
+// Fallow finds entry points and test files through the UI's Vite config and the
+// app's HTML.
+fs.linkSync(path.join(REPO_ROOT, 'ui', 'vite.config.ts'), path.join(OVERLAY, 'vite.config.ts'))
+for (const file of ['index.html', 'headless.html']) {
   fs.linkSync(path.join(REPO_ROOT, 'web', file), path.join(OVERLAY, file))
 }
 fs.writeFileSync(
   path.join(OVERLAY, 'tsconfig.json'),
   JSON.stringify({
-    extends: '../../web/tsconfig.json',
-    compilerOptions: { paths: { '@/*': ['./src/*'], '@embeddablecut/engine/*': ['./src/*'] } },
+    extends: '../../ui/tsconfig.json',
+    compilerOptions: {
+      paths: {
+        '@/*': ['./src/*'],
+        '@embeddablecut/engine/*': ['./src/*'],
+        '$lib/*': ['./src/lib/*'],
+        '$components/*': ['./src/components/*'],
+      },
+    },
     include: ['src', 'sdk/src'],
   }),
 )
@@ -79,7 +89,7 @@ fs.writeFileSync(
     fs.readdirSync(CHECKS_DIR).filter((f) => /^(check|report)-.*\.mjs$/.test(f)).map((f) => [f, `node scripts/${f}`]),
   ), dependencies: {
     ...JSON.parse(fs.readFileSync(path.join(REPO_ROOT, 'engine', 'package.json'), 'utf8')).dependencies,
-    ...JSON.parse(fs.readFileSync(path.join(REPO_ROOT, 'web', 'package.json'), 'utf8')).dependencies,
+    ...JSON.parse(fs.readFileSync(path.join(REPO_ROOT, 'ui', 'package.json'), 'utf8')).dependencies,
   } }),
 )
 

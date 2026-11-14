@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-import type { RouteOptions } from '@/app/router'
+import type { RouteOptions } from '$lib/router'
 import { blobUrlManager } from '@/infrastructure/browser/blob-url-manager'
 import { clearPendingMediaRequests } from '@/features/media-library/utils/media-resolver-requests'
 

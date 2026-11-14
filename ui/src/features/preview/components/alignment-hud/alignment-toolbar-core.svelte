@@ -1,8 +1,5 @@
 <!-- SPDX-License-Identifier: MIT -->
 <script module lang="ts">
-  import { select } from '$lib/store.svelte'
-  import { t } from '$lib/i18n.svelte'
-  import { cssStyle } from '@/features/preview/utils/css-style'
   import AlignCenterHorizontal from 'lucide-svelte/icons/align-center-horizontal'
   import AlignCenterVertical from 'lucide-svelte/icons/align-center-vertical'
   import AlignEndHorizontal from 'lucide-svelte/icons/align-end-horizontal'
@@ -11,17 +8,8 @@
   import AlignStartHorizontal from 'lucide-svelte/icons/align-start-horizontal'
   import AlignStartVertical from 'lucide-svelte/icons/align-start-vertical'
   import AlignVerticalDistributeCenter from 'lucide-svelte/icons/align-vertical-distribute-center'
-  import Magnet from 'lucide-svelte/icons/magnet'
-  import { Button } from '@/components/ui/button'
-  import { cn } from '@/shared/ui/cn'
-  import { useSelectionStore } from '@/shared/state/selection'
-  import { usePlaybackStore } from '@/shared/state/playback'
-  import { useSettingsStore } from '@/features/preview/deps/settings'
-  import { applyAutoKeyframeOperations, updateItemsTransformMap, useKeyframesStore } from '@/features/preview/deps/timeline-store'
-  import { getAutoKeyframeOperation, type AutoKeyframeOperation } from '@/features/preview/deps/keyframes'
-  import { useVisualTransforms } from '../../hooks/use-visual-transform.svelte'
-  import type { TransformProperties } from '@/types/transform'
   import type { TimelineItem } from '@/types/timeline'
+
 
   type AlignmentType =
     | 'left'
@@ -71,6 +59,19 @@
 </script>
 
 <script lang="ts">
+  import { select } from '$lib/store.svelte'
+  import { t } from '$lib/i18n.svelte'
+  import { cssStyle } from '@/features/preview/utils/css-style'
+  import Magnet from 'lucide-svelte/icons/magnet'
+  import { Button } from '@/components/ui/button'
+  import { cn } from '@/shared/ui/cn'
+  import { useSelectionStore } from '@/shared/state/selection'
+  import { usePlaybackStore } from '@/shared/state/playback'
+  import { useSettingsStore } from '@/features/preview/deps/settings'
+  import { applyAutoKeyframeOperations, updateItemsTransformMap, useKeyframesStore } from '@/features/preview/deps/timeline-store'
+  import { getAutoKeyframeOperation, type AutoKeyframeOperation } from '@/features/preview/deps/keyframes'
+  import { useVisualTransforms } from '../../hooks/use-visual-transform.svelte'
+  import type { TransformProperties } from '@/types/transform'
   let { projectSize, items }: AlignmentToolbarCoreProps = $props()
 
   const selectedItemIds = select(useSelectionStore, (s) => s.selectedItemIds)

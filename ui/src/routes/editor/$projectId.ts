@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-import type { RouteContext, RouteOptions } from '@/app/router'
+import type { RouteContext, RouteOptions } from '$lib/router'
 import { ProjectNotFoundError } from '@/app/route-error-cause'
 
 /** Project metadata for the editor route (the timeline opens through the SDK editor). */

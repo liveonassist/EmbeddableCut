@@ -3,7 +3,7 @@
   import ArrowLeft from 'lucide-svelte/icons/arrow-left'
   import ArrowRight from 'lucide-svelte/icons/arrow-right'
   import { Button } from '@/components/ui/button'
-  import { Link } from '@/app/router'
+  import { Link } from '$lib/router'
   import { DOC_PAGES, type DocBlock, type DocPage, type DocSection } from '../docs-content'
   import Block from './block.svelte'
   import RelatedPages from './related-pages.svelte'

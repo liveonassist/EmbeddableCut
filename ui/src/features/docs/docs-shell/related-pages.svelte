@@ -1,7 +1,7 @@
 <!-- SPDX-License-Identifier: MIT -->
 <script lang="ts">
   import ArrowRight from 'lucide-svelte/icons/arrow-right'
-  import { Link } from '@/app/router'
+  import { Link } from '$lib/router'
   import { getDocPage, type DocPage } from '../docs-content'
 
   let { slugs }: { slugs?: string[] } = $props()

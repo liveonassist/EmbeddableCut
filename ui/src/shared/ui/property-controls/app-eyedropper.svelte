@@ -14,8 +14,6 @@
    * No OS overlay, no permission prompt, works anywhere in the app.
    */
 
-  import { usePreviewBridgeStore } from '@/shared/state/preview-bridge'
-  import { usePlaybackStore } from '@/shared/state/playback'
   import { clamp } from '@/shared/utils/math'
 
   const CURSOR_OFFSET = 20
@@ -209,6 +207,8 @@
 </script>
 
 <script lang="ts">
+  import { usePreviewBridgeStore } from '@/shared/state/preview-bridge'
+  import { usePlaybackStore } from '@/shared/state/playback'
   import { Portal } from 'bits-ui'
   import { portalTarget } from '$lib/context'
 

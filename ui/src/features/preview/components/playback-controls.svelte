@@ -1,27 +1,8 @@
 <!-- SPDX-License-Identifier: MIT -->
 <script module lang="ts">
-  import { untrack } from 'svelte'
-  import { select } from '$lib/store.svelte'
-  import { t } from '$lib/i18n.svelte'
-  import { i18n } from '@/i18n'
-  import { Button } from '@/components/ui/button'
-  import { Separator } from '@/components/ui/separator'
-  import Play from 'lucide-svelte/icons/play'
-  import Pause from 'lucide-svelte/icons/pause'
-  import SkipBack from 'lucide-svelte/icons/skip-back'
-  import SkipForward from 'lucide-svelte/icons/skip-forward'
-  import ChevronLeft from 'lucide-svelte/icons/chevron-left'
-  import ChevronRight from 'lucide-svelte/icons/chevron-right'
-  import Zap from 'lucide-svelte/icons/zap'
-  import Camera from 'lucide-svelte/icons/camera'
-  import Loader2 from 'lucide-svelte/icons/loader-circle'
-  import { usePlaybackStore } from '@/shared/state/playback'
-  import { usePreviewBridgeStore } from '@/shared/state/preview-bridge'
   import { EDITOR_LAYOUT_CSS_VALUES } from '@/config/editor-layout'
-  import { importMediaLibraryService, useMediaLibraryStore } from '@/features/preview/deps/media-library-contract'
   import { formatTimecode } from '@/shared/utils/time-utils'
-  import { toast } from 'svelte-sonner'
-  import MonitorVolumeControl from './monitor-volume-control.svelte'
+
 
   interface PlaybackControlsProps {
     totalFrames: number
@@ -94,6 +75,26 @@
   - Volume control
 -->
 <script lang="ts">
+  import { untrack } from 'svelte'
+  import { select } from '$lib/store.svelte'
+  import { t } from '$lib/i18n.svelte'
+  import { i18n } from '@/i18n'
+  import { Button } from '@/components/ui/button'
+  import { Separator } from '@/components/ui/separator'
+  import Play from 'lucide-svelte/icons/play'
+  import Pause from 'lucide-svelte/icons/pause'
+  import SkipBack from 'lucide-svelte/icons/skip-back'
+  import SkipForward from 'lucide-svelte/icons/skip-forward'
+  import ChevronLeft from 'lucide-svelte/icons/chevron-left'
+  import ChevronRight from 'lucide-svelte/icons/chevron-right'
+  import Zap from 'lucide-svelte/icons/zap'
+  import Camera from 'lucide-svelte/icons/camera'
+  import Loader2 from 'lucide-svelte/icons/loader-circle'
+  import { usePlaybackStore } from '@/shared/state/playback'
+  import { usePreviewBridgeStore } from '@/shared/state/preview-bridge'
+  import { importMediaLibraryService, useMediaLibraryStore } from '@/features/preview/deps/media-library-contract'
+  import { toast } from 'svelte-sonner'
+  import MonitorVolumeControl from './monitor-volume-control.svelte'
   let { totalFrames, fps }: PlaybackControlsProps = $props()
 
   let isSavingFrame = $state.raw(false)

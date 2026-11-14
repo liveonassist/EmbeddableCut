@@ -1,11 +1,6 @@
 <!-- SPDX-License-Identifier: MIT -->
 <script lang="ts" module>
-  import { getAudioTargetTimeSeconds } from '@/runtime/composition-runtime/utils/video-timing'
-  import {
-    getOrDecodeAudioSliceForPlayback,
-    isPreviewAudioDecodePending,
-    type PlaybackAudioSlice,
-  } from '@/runtime/composition-runtime/utils/audio-decode-cache'
+  import { type PlaybackAudioSlice } from '@/runtime/composition-runtime/utils/audio-decode-cache'
   import { createLogger } from '@/shared/logging/logger'
 
   const log = createLogger('CustomDecoderBufferedAudio')
@@ -80,6 +75,8 @@
 </script>
 
 <script lang="ts">
+  import { getAudioTargetTimeSeconds } from '@/runtime/composition-runtime/utils/video-timing'
+  import { getOrDecodeAudioSliceForPlayback, isPreviewAudioDecodePending } from '@/runtime/composition-runtime/utils/audio-decode-cache'
   import { untrack } from 'svelte'
   import { getBrowserMediaPlaybackRate } from '@/shared/state/playback/shuttle'
   import { useAudioPlaybackState } from './hooks/use-audio-playback-state.svelte'

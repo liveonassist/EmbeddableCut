@@ -1,13 +1,8 @@
 <!-- SPDX-License-Identifier: MIT -->
 <script module lang="ts">
-  import { untrack } from 'svelte'
-  import { SharedVideoExtractorPool, type VideoFrameSource } from '@/features/preview/deps/export'
-  import { backgroundBatchPreseek, backgroundPreseek, getCachedPredecodedBitmap, waitForInflightPredecodedBitmap } from '@/features/preview/utils/decoder-prewarm'
-  import { getCachedEditOverlayFrame, getEditOverlayFrameCacheKey, hasCachedEditOverlayFrame, putCachedEditOverlayFrame } from '@/features/preview/utils/edit-overlay-frame-cache'
-  import { collectEditOverlayDirectionalPrewarmTimes } from '@/features/preview/utils/edit-overlay-prewarm-plan'
-  import { getActivePreviewScrubbingCache, getActivePreviewVideoFrameEntry } from '@/features/preview/utils/preview-scrubbing-cache-bridge'
+  import { SharedVideoExtractorPool } from '@/features/preview/deps/export'
   import type { TimelineItem } from '@/types/timeline'
-  import { useResolvedVideoBlobUrl } from './use-resolved-video-blob-url.svelte'
+
 
   const FALLBACK_CANVAS_WIDTH = 280
 
@@ -49,6 +44,13 @@
 </script>
 
 <script lang="ts">
+  import { type VideoFrameSource } from '@/features/preview/deps/export'
+  import { untrack } from 'svelte'
+  import { backgroundBatchPreseek, backgroundPreseek, getCachedPredecodedBitmap, waitForInflightPredecodedBitmap } from '@/features/preview/utils/decoder-prewarm'
+  import { getCachedEditOverlayFrame, getEditOverlayFrameCacheKey, hasCachedEditOverlayFrame, putCachedEditOverlayFrame } from '@/features/preview/utils/edit-overlay-frame-cache'
+  import { collectEditOverlayDirectionalPrewarmTimes } from '@/features/preview/utils/edit-overlay-prewarm-plan'
+  import { getActivePreviewScrubbingCache, getActivePreviewVideoFrameEntry } from '@/features/preview/utils/preview-scrubbing-cache-bridge'
+  import { useResolvedVideoBlobUrl } from './use-resolved-video-blob-url.svelte'
   let { item, sourceTime, onDecodeFailure }: StrictDecodedVideoFrameProps = $props()
   const canvasRef: { current: HTMLCanvasElement | null } = { current: null }
   const decoderPoolRef = { current: getEditOverlayDecoderPool() }

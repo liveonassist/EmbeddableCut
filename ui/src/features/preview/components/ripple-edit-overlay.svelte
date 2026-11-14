@@ -1,12 +1,7 @@
 <!-- SPDX-License-Identifier: MIT -->
 <script module lang="ts">
-  import { select } from '$lib/store.svelte'
   import type { TimelineItem } from '@/types/timeline'
-  import { useItemsStore } from '@/features/preview/deps/timeline-store'
-  import { useRippleEditPreviewStore } from '@/features/preview/deps/timeline-edit-preview'
-  import { EditTwoUpPanels } from './edit-2up-panels'
-  import { getSourceFrameInfo } from './edit-overlay-utils'
-  import { resolveEditOverlayVisualItem } from './edit-overlay-visual-item'
+
 
   interface RippleEditOverlayProps {
     fps: number
@@ -62,7 +57,6 @@
 
     return best
   }
-  import type { EditTwoUpPanelData } from './edit-2up-panels'
 </script>
 
 <!--
@@ -78,6 +72,13 @@
   - Start handle: OUT = previous clip's last frame,    IN = trimmed clip's new first frame
 -->
 <script lang="ts">
+  import { select } from '$lib/store.svelte'
+  import { useItemsStore } from '@/features/preview/deps/timeline-store'
+  import { useRippleEditPreviewStore } from '@/features/preview/deps/timeline-edit-preview'
+  import { EditTwoUpPanels } from './edit-2up-panels'
+  import { getSourceFrameInfo } from './edit-overlay-utils'
+  import { resolveEditOverlayVisualItem } from './edit-overlay-visual-item'
+  import type { EditTwoUpPanelData } from './edit-2up-panels'
   let { fps }: RippleEditOverlayProps = $props()
   const trimmedItemId = select(useRippleEditPreviewStore, (s) => s.trimmedItemId)
   const handle = select(useRippleEditPreviewStore, (s) => s.handle)

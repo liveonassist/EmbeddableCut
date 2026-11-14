@@ -1,6 +1,6 @@
 <!-- SPDX-License-Identifier: MIT -->
 <script module lang="ts">
-  import { PREVIEW_PERF_PANEL_QUERY_KEY, type PreviewPerfSnapshot } from '@/features/preview/utils/preview-constants'
+  import { type PreviewPerfSnapshot } from '@/features/preview/utils/preview-constants'
 
   interface PreviewPerfPanelProps {
     snapshot: PreviewPerfSnapshot
@@ -17,6 +17,7 @@
 </script>
 
 <script lang="ts">
+  import { PREVIEW_PERF_PANEL_QUERY_KEY } from '@/features/preview/utils/preview-constants'
   let { snapshot, latestRenderSourceSwitch }: PreviewPerfPanelProps = $props()
   const srcLabel = $derived(formatRenderSource(snapshot.renderSource))
   const srcColor = $derived(snapshot.renderSource === 'player' ? '#4ade80' : '#60a5fa')

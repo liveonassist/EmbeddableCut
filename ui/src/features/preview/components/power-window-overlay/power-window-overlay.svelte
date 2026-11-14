@@ -1,16 +1,10 @@
 <!-- SPDX-License-Identifier: MIT -->
 <script module lang="ts">
-  import { cssStyle } from '@/features/preview/utils/css-style'
-  import { selectDerived } from '@/features/preview/utils/select-derived.svelte'
   import type { ItemEffect } from '@/types/effects'
   import type { TimelineItem } from '@/types/timeline'
-  import { usePlaybackStore } from '@/shared/state/playback'
-  import { useGizmoStore } from '@/features/preview/stores/gizmo-store'
-  import { applyAutoKeyframeOperations, setItemEffects, useKeyframesStore } from '@/features/preview/deps/timeline-store'
   import type { CoordinateParams, Point } from '@/features/preview/types/gizmo'
   import { screenToCanvas } from '@/features/preview/utils/coordinate-transform'
-  import { planEffectGizmoCommit } from '@/features/preview/utils/effect-gizmo-keyframes'
-  import { buildPowerWindowEffects, derivePowerWindowDragParams, readPowerWindowParams, type PowerWindowDragState, type PowerWindowHandle, type PowerWindowParams } from '../power-window-overlay-utils'
+
 
   interface PowerWindowOverlayProps {
     coordParams: CoordinateParams
@@ -36,6 +30,13 @@
 </script>
 
 <script lang="ts">
+  import { cssStyle } from '@/features/preview/utils/css-style'
+  import { selectDerived } from '@/features/preview/utils/select-derived.svelte'
+  import { usePlaybackStore } from '@/shared/state/playback'
+  import { useGizmoStore } from '@/features/preview/stores/gizmo-store'
+  import { applyAutoKeyframeOperations, setItemEffects, useKeyframesStore } from '@/features/preview/deps/timeline-store'
+  import { planEffectGizmoCommit } from '@/features/preview/utils/effect-gizmo-keyframes'
+  import { buildPowerWindowEffects, derivePowerWindowDragParams, readPowerWindowParams, type PowerWindowDragState, type PowerWindowHandle, type PowerWindowParams } from '../power-window-overlay-utils'
   let { coordParams, effect, item, playerSize }: PowerWindowOverlayProps = $props()
   const dragRef: { current: PowerWindowDragState | null } = { current: null }
   const dragEffectsRef: { current: ItemEffect[] | null } = { current: null }

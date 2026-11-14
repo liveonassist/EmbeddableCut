@@ -312,6 +312,10 @@
   // Color replaces the default editor shell. Motion deliberately keeps it and
   // swaps the preview/timeline surfaces while retaining the shared sidebars.
   const hidesDefaultSidebars = $derived(isColorWorkspace)
+
+  // Loaded on first use; a loader in the script lets static analysis see the import.
+  const loadColorTimelineNavigator = () => import('../color-timeline-navigator.svelte')
+  const loadColorGradingDock = () => import('../color-grading-dock.svelte')
 </script>
 
 {#snippet slot(name: ReplaceableSlot, fallback: Snippet)}
@@ -432,7 +436,7 @@
             {@render slot('preview', previewDefault)}
           </ErrorBoundary>
         </div>
-        {#await import('../color-timeline-navigator.svelte') then { default: ColorTimelineNavigator }}
+        {#await loadColorTimelineNavigator() then { default: ColorTimelineNavigator }}
           <ColorTimelineNavigator />
         {/await}
         <InteractionLockRegion
@@ -440,7 +444,7 @@
           class="h-[37%] min-h-[288px] max-h-[39vh] shrink-0"
         >
           <ErrorBoundary level="feature">
-            {#await import('../color-grading-dock.svelte') then { default: ColorGradingDock }}
+            {#await loadColorGradingDock() then { default: ColorGradingDock }}
               <ColorGradingDock />
             {/await}
           </ErrorBoundary>

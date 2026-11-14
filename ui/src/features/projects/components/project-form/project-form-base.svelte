@@ -24,7 +24,7 @@
     SelectValue,
   } from '@/components/ui/select'
   import { Separator } from '@/components/ui/separator'
-  import { Link } from '@/app/router'
+  import { Link } from '$lib/router'
   import {
     createProjectFormSchema,
     type ProjectTemplate,

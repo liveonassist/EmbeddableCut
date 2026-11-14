@@ -1,12 +1,8 @@
 <!-- SPDX-License-Identifier: MIT -->
 <script module lang="ts">
-  import { usePlaybackStore } from '@/shared/state/playback'
-  import { getResolvedPlaybackFrame } from '@/shared/state/playback/frame-resolution'
-  import { usePreviewBridgeStore } from '@/shared/state/preview-bridge'
   import type { CompositionInputProps } from '@/types/export'
-  import { HeadlessPlayer, type PlayerRef } from '@/features/preview/deps/player-core'
-  import { MainComposition } from '@/features/preview/deps/composition-runtime-ui'
-  import { useItemsStore } from '@/features/preview/deps/timeline-store'
+  import { type PlayerRef } from '@/features/preview/deps/player-core'
+
 
   interface DomTextScrubOverlayProps {
     playerRef: { current: PlayerRef | null }
@@ -24,6 +20,12 @@
 </script>
 
 <script lang="ts">
+  import { HeadlessPlayer } from '@/features/preview/deps/player-core'
+  import { usePlaybackStore } from '@/shared/state/playback'
+  import { getResolvedPlaybackFrame } from '@/shared/state/playback/frame-resolution'
+  import { usePreviewBridgeStore } from '@/shared/state/preview-bridge'
+  import { MainComposition } from '@/features/preview/deps/composition-runtime-ui'
+  import { useItemsStore } from '@/features/preview/deps/timeline-store'
   let { playerRef, visible, durationInFrames, fps, renderSize, layoutSize, inputProps }: DomTextScrubOverlayProps = $props()
   const pendingFrameRef: { current: number | null } = { current: null }
   const rafRef: { current: number | null } = { current: null }

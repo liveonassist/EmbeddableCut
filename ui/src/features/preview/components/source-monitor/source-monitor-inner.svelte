@@ -1,14 +1,5 @@
 <!-- SPDX-License-Identifier: MIT -->
 <script module lang="ts">
-  import { select } from '$lib/store.svelte'
-  import X from 'lucide-svelte/icons/x'
-  import { SourceComposition } from '../source-composition'
-  import { getExclusiveSourceOutPoint } from '@/features/preview/utils/source-io'
-  import { useSettingsStore } from '@/features/preview/deps/settings'
-  import { useSourcePlayerStore } from '@/shared/state/source-player'
-  import { EDITOR_LAYOUT_CSS_VALUES, getEditorLayout } from '@/config/editor-layout'
-  import { getPreviewPixelSnapSize } from '@/features/preview/utils/preview-pixel-snap'
-  import SourcePlaybackControls from './source-playback-controls.svelte'
 
   const SOURCE_MONITOR_RESIZE_MIN_UPDATE_MS = 33
 
@@ -36,6 +27,15 @@
 </script>
 
 <script lang="ts">
+  import { select } from '$lib/store.svelte'
+  import X from 'lucide-svelte/icons/x'
+  import { SourceComposition } from '../source-composition'
+  import { getExclusiveSourceOutPoint } from '@/features/preview/utils/source-io'
+  import { useSettingsStore } from '@/features/preview/deps/settings'
+  import { useSourcePlayerStore } from '@/shared/state/source-player'
+  import { EDITOR_LAYOUT_CSS_VALUES, getEditorLayout } from '@/config/editor-layout'
+  import { getPreviewPixelSnapSize } from '@/features/preview/utils/preview-pixel-snap'
+  import SourcePlaybackControls from './source-playback-controls.svelte'
   let { mediaId, src, mediaType, hasAudio, fileName, mediaWidth, mediaHeight, durationInFrames, fps, variant, interactive, seekFrame, onClose }: SourceMonitorInnerProps = $props()
   const containerRef: { current: HTMLDivElement | null } = { current: null }
   const contentHostRef: { current: HTMLDivElement | null } = { current: null }

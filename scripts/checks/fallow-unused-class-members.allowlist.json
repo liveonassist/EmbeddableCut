@@ -341,11 +341,6 @@
         },
         {
           "parentName": "Clock",
-          "memberName": "isPlaying",
-          "kind": "class_method"
-        },
-        {
-          "parentName": "Clock",
           "memberName": "loop",
           "kind": "class_method",
           "count": 2
@@ -548,6 +543,74 @@
         {
           "parentName": "ExtensionHost",
           "memberName": "subscribe",
+          "kind": "class_method"
+        }
+      ]
+    },
+    {
+      "path": "src/components/ui/select/context.ts",
+      "reason": "svelte-port: the Select primitive's context, read by its parts in Svelte markup that fallow does not read.",
+      "members": [
+        {
+          "parentName": "SelectState",
+          "memberName": "value",
+          "kind": "class_method"
+        },
+        {
+          "parentName": "SelectState",
+          "memberName": "open",
+          "kind": "class_method"
+        },
+        {
+          "parentName": "SelectState",
+          "memberName": "register",
+          "kind": "class_method"
+        },
+        {
+          "parentName": "SelectState",
+          "memberName": "label",
+          "kind": "class_method"
+        }
+      ]
+    },
+    {
+      "path": "src/extensions/registry.svelte.ts",
+      "reason": "The UI contributions API, read by the editor regions in Svelte markup and $derived expressions that fallow does not read.",
+      "members": [
+        {
+          "parentName": "ContributionRegistry",
+          "memberName": "panels",
+          "kind": "class_method"
+        },
+        {
+          "parentName": "ContributionRegistry",
+          "memberName": "toolbar",
+          "kind": "class_method"
+        },
+        {
+          "parentName": "ContributionRegistry",
+          "memberName": "inspector",
+          "kind": "class_method"
+        },
+        {
+          "parentName": "ContributionRegistry",
+          "memberName": "menu",
+          "kind": "class_method"
+        },
+        {
+          "parentName": "ContributionRegistry",
+          "memberName": "replacement",
+          "kind": "class_method"
+        }
+      ]
+    },
+    {
+      "path": "src/lib/router/router.svelte.ts",
+      "reason": "svelte-port: TanStack Router's router API; used by its tests.",
+      "members": [
+        {
+          "parentName": "Router",
+          "memberName": "buildHref",
           "kind": "class_method"
         }
       ]

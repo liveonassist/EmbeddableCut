@@ -1,6 +1,6 @@
 <!-- SPDX-License-Identifier: MIT -->
 <script lang="ts">
-  import { Link, type RouteComponentProps } from '@/app/router'
+  import { Link, type RouteComponentProps } from '$lib/router'
   import { DocsArticle, DocsShell } from '@/features/docs/docs-shell'
   import { getDocPage } from '@/features/docs/docs-content'
   import { Button } from '@/components/ui/button'

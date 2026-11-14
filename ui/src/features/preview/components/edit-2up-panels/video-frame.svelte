@@ -1,9 +1,7 @@
 <!-- SPDX-License-Identifier: MIT -->
 <script module lang="ts">
-  import { untrack } from 'svelte'
   import type { TimelineItem } from '@/types/timeline'
-  import StrictDecodedVideoFrame from './strict-decoded-video-frame.svelte'
-  import LegacySeekVideoFrame from './legacy-seek-video-frame.svelte'
+
 
   const EDIT_OVERLAY_LEGACY_SEEK_SPEED_EPSILON = 0.01
 
@@ -14,6 +12,9 @@
 </script>
 
 <script lang="ts">
+  import { untrack } from 'svelte'
+  import StrictDecodedVideoFrame from './strict-decoded-video-frame.svelte'
+  import LegacySeekVideoFrame from './legacy-seek-video-frame.svelte'
   let { item: itemProp, sourceTime }: VideoFrameProps = $props()
 
   // React memoized this component on (sourceTime, item.id, item.mediaId): other

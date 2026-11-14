@@ -1,12 +1,8 @@
 <!-- SPDX-License-Identifier: MIT -->
 <script module lang="ts">
-  import { select } from '$lib/store.svelte'
-  import { selectDerived } from '@/features/preview/utils/select-derived.svelte'
-  import { useCornerPinStore, type CornerPinHandle, type CornerPinValues } from '@/features/preview/stores/corner-pin-store'
-  import { resolveCornerPinTargetRect, resolveCornerPinForSize, withCornerPinReferenceSize } from '@/features/preview/deps/composition-runtime'
-  import { updateItem, useItemsStore } from '@/features/preview/deps/timeline-store'
+  import { type CornerPinHandle, type CornerPinValues } from '@/features/preview/stores/corner-pin-store'
   import type { CoordinateParams, Transform } from '@/features/preview/types/gizmo'
-  import { getEffectiveScale } from '@/features/preview/utils/coordinate-transform'
+
 
   interface CornerPinOverlayProps {
     coordParams: CoordinateParams
@@ -31,6 +27,12 @@
 </script>
 
 <script lang="ts">
+  import { useCornerPinStore } from '@/features/preview/stores/corner-pin-store'
+  import { select } from '$lib/store.svelte'
+  import { selectDerived } from '@/features/preview/utils/select-derived.svelte'
+  import { resolveCornerPinTargetRect, resolveCornerPinForSize, withCornerPinReferenceSize } from '@/features/preview/deps/composition-runtime'
+  import { updateItem, useItemsStore } from '@/features/preview/deps/timeline-store'
+  import { getEffectiveScale } from '@/features/preview/utils/coordinate-transform'
   let { coordParams, playerSize, itemTransform }: CornerPinOverlayProps = $props()
   const canvasRef: { current: HTMLCanvasElement | null } = { current: null }
   const isDraggingRef = { current: false }

@@ -1,20 +1,12 @@
 <!-- SPDX-License-Identifier: MIT -->
 <script module lang="ts">
-  import { untrack } from 'svelte'
   import { select } from '$lib/store.svelte'
   import { selectDerived } from '@/features/preview/utils/select-derived.svelte'
-  import { AbsoluteFill } from '@/features/preview/deps/player-core'
-  import { useClock, useClockIsPlaying, useClockPlaybackRate, useVideoConfig } from '@/features/preview/deps/player-context'
-  import { getBrowserMediaPlaybackRate } from '@/shared/state/playback/shuttle'
-  import { getGlobalVideoSourcePool } from '@/features/preview/deps/player-pool'
-  import { SharedVideoExtractorPool, type VideoFrameSource } from '@/features/preview/deps/export'
+  import { SharedVideoExtractorPool } from '@/features/preview/deps/export'
   import { resolveProxyUrl } from '@/features/preview/utils/media-resolver'
-  import { backgroundBatchPreseek, getCachedPredecodedBitmap, waitForInflightPredecodedBitmap } from '@/features/preview/utils/decoder-prewarm'
-  import { getDirectionalPrewarmOffsets } from '@/features/preview/utils/fast-scrub-prewarm'
   import { usePlaybackStore } from '@/shared/state/playback'
-  import { useSourcePlayerStore } from '@/shared/state/source-player'
   import { useMediaLibraryStore } from '@/features/preview/deps/media-library'
-  import { shouldSeekPlayingMedia } from '@/features/preview/utils/source-media-sync'
+
 
   let sourceMonitorVideoInstanceCounter = 0
 
@@ -75,6 +67,16 @@
 </script>
 
 <script lang="ts">
+  import { type VideoFrameSource } from '@/features/preview/deps/export'
+  import { untrack } from 'svelte'
+  import { AbsoluteFill } from '@/features/preview/deps/player-core'
+  import { useClock, useClockIsPlaying, useClockPlaybackRate, useVideoConfig } from '@/features/preview/deps/player-context'
+  import { getBrowserMediaPlaybackRate } from '@/shared/state/playback/shuttle'
+  import { getGlobalVideoSourcePool } from '@/features/preview/deps/player-pool'
+  import { backgroundBatchPreseek, getCachedPredecodedBitmap, waitForInflightPredecodedBitmap } from '@/features/preview/utils/decoder-prewarm'
+  import { getDirectionalPrewarmOffsets } from '@/features/preview/utils/fast-scrub-prewarm'
+  import { useSourcePlayerStore } from '@/shared/state/source-player'
+  import { shouldSeekPlayingMedia } from '@/features/preview/utils/source-media-sync'
   let { mediaId, src, pausedFrameSource, forceFastScrub }: {
     mediaId?: string
     src: string

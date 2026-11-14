@@ -6,7 +6,7 @@
   import EditorRoot from './editor-root.svelte'
   import PwaInstallPrompt from './pwa-install-prompt.svelte'
   import RouteErrorScreen from './route-error.svelte'
-  import { Router, RouterProvider } from './router'
+  import { Router, RouterProvider } from '$lib/router'
   import { routeTree } from './route-tree'
 
   /**

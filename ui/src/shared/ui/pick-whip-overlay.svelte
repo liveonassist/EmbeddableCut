@@ -1,9 +1,6 @@
 <!-- SPDX-License-Identifier: MIT -->
 <script lang="ts" module>
-  import type {
-    MotionPickWhipOverlaySnapshot,
-    MotionPickWhipPresentation,
-  } from '@/shared/hooks/use-pick-whip-drag.svelte'
+  import type { MotionPickWhipOverlaySnapshot } from '@/shared/hooks/use-pick-whip-drag.svelte'
 
   function getOverlayGeometry(drag: MotionPickWhipOverlaySnapshot) {
     const controlDistance = Math.max(48, Math.abs(drag.currentX - drag.startX) * 0.45)
@@ -44,6 +41,7 @@
 </script>
 
 <script lang="ts">
+  import type { MotionPickWhipPresentation } from '@/shared/hooks/use-pick-whip-drag.svelte'
   import { untrack } from 'svelte'
 
   let {

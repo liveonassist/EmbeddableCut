@@ -1,6 +1,5 @@
 <!-- SPDX-License-Identifier: MIT -->
 <script lang="ts" module>
-  import type { WindowPortalProps } from './types'
 
 
   interface WindowPosition {
@@ -90,6 +89,7 @@
 </script>
 
 <script lang="ts">
+  import type { WindowPortalProps } from './types'
   import { untrack } from 'svelte'
   import { Portal } from 'bits-ui'
   import { portalTarget } from '$lib/context'

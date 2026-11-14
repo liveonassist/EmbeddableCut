@@ -7,17 +7,7 @@
    * this component updates its position directly so the editor does not need to
    * re-render on every frame.
    */
-  import { usePlaybackStore } from '@/shared/state/playback'
-  import {
-    mainTimelineScrubActiveRef,
-    mainTimelineScrubHandoffFrameRef,
-  } from '@/shared/timeline/main-timeline-scrub'
-  import {
-    TIMELINE_LIVE_SCROLL_EVENT,
-    TIMELINE_SCRUB_VISUAL_FRAME_EVENT,
-    getTimelineScrubViewportX,
-    type TimelineScrubVisualFrameDetail,
-  } from '@/shared/timeline/live-scroll-sync'
+  import { mainTimelineScrubHandoffFrameRef } from '@/shared/timeline/main-timeline-scrub'
   import type { Ref } from '../ref-state.svelte'
 
   function setTranslateXIfChanged(element: HTMLElement, left: number): void {
@@ -127,6 +117,9 @@
 </script>
 
 <script lang="ts">
+  import { usePlaybackStore } from '@/shared/state/playback'
+  import { mainTimelineScrubActiveRef } from '@/shared/timeline/main-timeline-scrub'
+  import { TIMELINE_LIVE_SCROLL_EVENT, TIMELINE_SCRUB_VISUAL_FRAME_EVENT, getTimelineScrubViewportX, type TimelineScrubVisualFrameDetail } from '@/shared/timeline/live-scroll-sync'
   import PlayheadMarks from '@/shared/ui/playhead-marks.svelte'
 
   let {

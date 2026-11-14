@@ -8,6 +8,11 @@
     // beside FreeCut's tree by scripts/checks/overlay.mjs).
     "src/schema/index.ts",
     "sdk/src/index.ts",
+    "sdk/src/harness/harness.ts",
+    // The app's entry (index.html loads it as @embeddablecut/ui/app) and the
+    // editor page iframes load.
+    "src/bootstrap.ts",
+    "src/embed/frame-entry.ts",
     "headless/probe.mjs",
     "headless/smoke.mjs",
     "headless/media-smoke.mjs"

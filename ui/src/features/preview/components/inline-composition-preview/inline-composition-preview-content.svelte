@@ -1,18 +1,8 @@
 <!-- SPDX-License-Identifier: MIT -->
 <script module lang="ts">
-  import { untrack } from 'svelte'
-  import { select } from '$lib/store.svelte'
-  import { selectDerived } from '@/features/preview/utils/select-derived.svelte'
   import type { CompositionInputProps } from '@/types/export'
-  import { usePlaybackStore } from '@/shared/state/playback'
-  import { EDITOR_LAYOUT_CSS_VALUES } from '@/config/editor-layout'
-  import { buildSubCompositionInput, buildSubCompositionPreviewSignature, useCompositionsStore } from '@/features/preview/deps/timeline-contract'
-  import { resolveMediaUrls } from '@/features/preview/deps/media-library-contract'
-  import { importCompositionRenderer, type CompositionRendererInstance } from '@/features/preview/deps/export'
   import { createLogger } from '@/shared/logging/logger'
-  import { getPreviewNeedsOverflow, getPreviewPlayerSize } from '@/features/preview/utils/preview-pixel-snap'
-  import { useBlobUrlVersion } from '@/infrastructure/browser/use-blob-url-version.svelte'
-  import { useComparisonCompositionFrame } from '../use-comparison-composition-frame.svelte'
+
 
   const RESOLVED_TRACK_CACHE_LIMIT = 12
 
@@ -127,6 +117,17 @@
 </script>
 
 <script lang="ts">
+  import { untrack } from 'svelte'
+  import { select } from '$lib/store.svelte'
+  import { selectDerived } from '@/features/preview/utils/select-derived.svelte'
+  import { usePlaybackStore } from '@/shared/state/playback'
+  import { EDITOR_LAYOUT_CSS_VALUES } from '@/config/editor-layout'
+  import { buildSubCompositionInput, buildSubCompositionPreviewSignature, useCompositionsStore } from '@/features/preview/deps/timeline-contract'
+  import { resolveMediaUrls } from '@/features/preview/deps/media-library-contract'
+  import { importCompositionRenderer, type CompositionRendererInstance } from '@/features/preview/deps/export'
+  import { getPreviewNeedsOverflow, getPreviewPlayerSize } from '@/features/preview/utils/preview-pixel-snap'
+  import { useBlobUrlVersion } from '@/infrastructure/browser/use-blob-url-version.svelte'
+  import { useComparisonCompositionFrame } from '../use-comparison-composition-frame.svelte'
   let { compositionId, seekFrame, containerSize, presentation = 'workspace' }: InlineCompositionPreviewProps = $props()
   const composition = selectDerived(useCompositionsStore, (s) => s.compositionById[compositionId])
   const compositionGraphSignature = selectDerived(useCompositionsStore, (s) =>
