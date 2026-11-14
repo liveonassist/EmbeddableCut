@@ -8,9 +8,9 @@
 import type { Project } from '@/types/project'
 import type { MediaMetadata } from '@/types/storage'
 import {
-  ProjectSnapshot,
-  SnapshotExportOptions,
-  SnapshotMediaReference,
+  type ProjectSnapshot,
+  type SnapshotExportOptions,
+  type SnapshotMediaReference,
   SNAPSHOT_VERSION,
   mediaToSnapshotReference,
 } from '../types/snapshot'

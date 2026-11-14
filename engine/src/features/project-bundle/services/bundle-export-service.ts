@@ -7,10 +7,10 @@
 import { Zip, ZipPassThrough, ZipDeflate } from 'fflate'
 import type { MediaMetadata } from '@/types/storage'
 import {
-  BundleManifest,
-  BundleProject,
-  ExportProgress,
-  ExportResult,
+  type BundleManifest,
+  type BundleProject,
+  type ExportProgress,
+  type ExportResult,
   BUNDLE_VERSION,
   BUNDLE_EXTENSION,
   BUNDLE_ANIMATION_PRESETS_PATH,
