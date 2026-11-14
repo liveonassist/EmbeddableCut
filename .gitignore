@@ -47,6 +47,12 @@ coverage
 # DevTools performance trace exports
 Trace-*.json
 
+# Nix
+/result
+/result-*
+.direnv/
+.envrc.local
+
 # TanStack Router auto-generated files
 # Note: Some teams commit this, uncomment if you prefer to commit
 # src/routeTree.gen.ts
@@ -56,7 +62,6 @@ Trace-*.json
 
 .vercel
 .env*.local
-CLAUDE.md
 crates/*/target/
 crates/*/Cargo.lock
 .knip-report.json
@@ -64,9 +69,9 @@ crates/*/Cargo.lock
 tmp
 
 # Headless render harness: generated outputs, test assets, scratch workspaces.
-# (The harness source — headless/*.mjs, src/headless/ — is committed.)
-headless/output/
-headless/assets/
+# (The harness source — render/*.mjs, engine/src/headless/ — is committed.)
+render/output/
+render/assets/
 tmp-workspace/
 
 .vercel
@@ -85,6 +90,7 @@ tmp-workspace/
 /waveform-bin/
 
 *.lock
+!flake.lock
 plans/
 
 .compound-engineering/*.local.yaml

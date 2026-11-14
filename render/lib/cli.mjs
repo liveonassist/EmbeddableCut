@@ -1,0 +1,61 @@
+// Shared CLI helpers for the headless scripts: argv parsing + Chrome launch args.
+
+/** Parse `--key value` / boolean `--flag` argv into an object; positionals go in `_`. */
+export function parseArgs(argv, { allowed, aliases = {} } = {}) {
+  const args = { _: [] }
+  for (let i = 0; i < argv.length; i++) {
+    const token = argv[i]
+    if (token.startsWith('--')) {
+      const rawKey = token.slice(2)
+      const key = aliases[rawKey] ?? rawKey
+      if (allowed && !allowed.has(key)) throw new Error(`Unknown option: --${rawKey}`)
+      const next = argv[i + 1]
+      if (next === undefined || next.startsWith('--')) args[key] = true
+      else {
+        args[key] = next
+        i++
+      }
+    } else {
+      args._.push(token)
+    }
+  }
+  return args
+}
+
+/**
+ * Chrome launch args for headless WebGPU, per platform. The ANGLE backend is
+ * platform-specific (d3d11 on Windows, metal on macOS, vulkan on Linux). Extra
+ * args can be appended via FREECUT_CHROME_ARGS (space-separated) — e.g. in
+ * Docker: "--no-sandbox --use-vulkan=swiftshader" for software WebGPU.
+ */
+/**
+ * Which Chrome Playwright launches: `FREECUT_CHROME_PATH` names an executable
+ * (Nix and other installs outside /opt/google), otherwise Google Chrome's
+ * stable channel. Chromium lacks the proprietary codecs export needs.
+ */
+export function chromeLaunchTarget() {
+  const executablePath = process.env.FREECUT_CHROME_PATH
+  return executablePath ? { executablePath } : { channel: 'chrome' }
+}
+
+export function chromeLaunchArgs() {
+  // Full override (space-separated) — for tuning the GPU/WebGPU backend, esp.
+  // in containers (e.g. SwiftShader). Replaces ALL args including the defaults.
+  const replace = process.env.FREECUT_CHROME_ARGS_REPLACE
+  if (replace) return replace.split(/\s+/).filter(Boolean)
+
+  const angle =
+    process.platform === 'win32'
+      ? '--use-angle=d3d11'
+      : process.platform === 'darwin'
+        ? '--use-angle=metal'
+        : '--use-angle=vulkan'
+  const base = [
+    '--enable-unsafe-webgpu',
+    '--enable-features=Vulkan',
+    '--ignore-gpu-blocklist',
+    angle,
+  ]
+  const extra = (process.env.FREECUT_CHROME_ARGS ?? '').split(/\s+/).filter(Boolean)
+  return [...base, ...extra]
+}

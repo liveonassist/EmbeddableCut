@@ -1,0 +1,26 @@
+{
+  "name": "@embeddablecut/render",
+  "version": "0.0.0",
+  "private": true,
+  "license": "MIT",
+  "type": "module",
+  "description": "Headless Chrome rendering for EmbeddableCut projects: CLI, HTTP service and container.",
+  "scripts": {
+    "render": "node render.mjs",
+    "frame": "node frame.mjs",
+    "oracle": "node frame-oracle.mjs",
+    "layout": "node layout.mjs",
+    "edit": "node edit.mjs",
+    "serve": "node serve.mjs",
+    "agent": "node agent.mjs",
+    "gpu:probe": "node probe.mjs",
+    "test": "node --test *.test.mjs",
+    "test:chrome": "node test.mjs --skip-build && node edit-operations.mjs && node lifecycle-e2e.mjs && node export-media-video.mjs",
+    "test:media": "node media-test.mjs",
+    "test:portable": "npm run test && npm run test:chrome && npm run test:media"
+  },
+  "dependencies": {
+    "zod": "4.3.6",
+    "playwright": "1.60.0"
+  }
+}

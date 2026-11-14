@@ -1,8 +1,13 @@
 # Dependencies
 node_modules
+**/node_modules
 
 # Build output
 dist
+**/dist
+.cache
+.direnv
+result
 
 # Environment files (use environment variables in production)
 .env
@@ -31,8 +36,8 @@ server/temp/media/*
 server/temp/output/*
 
 # Headless scratch / outputs / sample workspace (rebuilt or not needed in image)
-headless/output
-headless/assets
+render/output
+render/assets
 tmp-workspace
 tmp
 *.mp4
