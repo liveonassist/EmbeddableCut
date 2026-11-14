@@ -12,7 +12,7 @@ Every format EmbeddableCut persists or exchanges has one owner, an explicit vers
 | Workspace layout | `"2.0"` in `.freecut-workspace.json` | FreeCut: `engine/src/infrastructure/storage/workspace-fs/` | the workspace folder |
 | Bundle manifest (`.freecut.zip`) | `"1.0"` | FreeCut: `engine/src/features/project-bundle/` | project bundles |
 | JSON snapshot | `"1.0"` | FreeCut: `engine/src/features/project-bundle/` | FreeCut's JSON export |
-| Render API | `apiVersion`, `HEADLESS_API_VERSION` | FreeCut: `render/lib/contract.mjs` | the HTTP service's requests and responses |
+| Render API | `apiVersion`, `HEADLESS_API_VERSION` | FreeCut: `render/lib/contract.mjs` | the HTTP service's requests and responses; EmbeddableCut's additions are announced in `/v1/capabilities` |
 
 `SCHEMA_VERSIONS` in `engine/src/schema/versions.ts` lists the current version of each data format in one place.
 

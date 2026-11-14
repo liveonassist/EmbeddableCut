@@ -535,8 +535,9 @@ export class TransitionPipeline {
     return true
   }
 
+  /** Whether this pipeline can render `transitionId`: compiled, or registered since and compiled on first use. */
   has(transitionId: string): boolean {
-    return this.pipelines.has(transitionId)
+    return this.pipelines.has(transitionId) || Boolean(getGpuTransition(transitionId))
   }
 
   destroy(): void {

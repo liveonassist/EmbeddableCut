@@ -6,7 +6,8 @@
   "type": "module",
   "description": "EmbeddableCut's SDK: drive FreeCut's editing engine headless, or mount the full editor, from any app.",
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./src/index.ts",
+    "./harness": "./src/harness/harness.ts"
   },
   "scripts": {
     "check": "vp check --no-fmt src vite.config.ts",

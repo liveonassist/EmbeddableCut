@@ -37,6 +37,7 @@ Everything FreeCut's editor does, the SDK keeps. Projects and media stay local: 
 
 - **The editor's own engine, headless.** The render service drives the same engine in Google Chrome, so a server render matches the editor's export.
 - **A CLI, an HTTP API and a container:** render, grab frames, measure layouts and apply edit operations from a script or a service, with revisions, idempotent writes and crash-safe operations.
+- **Stateless, portable jobs:** send a project document whose media are URLs, and any render node can take it; the custom effects and transitions it needs load as extension modules, and a node without them refuses the job.
 
 ## Layout & Tech Stack
 
@@ -74,6 +75,7 @@ just            # every other command
 - [`docs/UPSTREAM.md`](docs/UPSTREAM.md): how FreeCut's changes are merged in.
 - [`docs/SCHEMAS.md`](docs/SCHEMAS.md): the versioned formats and their migration policy.
 - [`docs/MEDIA.md`](docs/MEDIA.md): local files and URL media, authentication, caching.
+- [`docs/RENDERING.md`](docs/RENDERING.md): preview, browser export and the render service; extensions on servers; scaling.
 - [`sdk/README.md`](sdk/README.md): driving the editor from your own app.
 - [`docs/DESIGN.md`](docs/DESIGN.md) and [`docs/PRODUCT.md`](docs/PRODUCT.md): FreeCut's design system and who it's for.
 - [`render/AGENTS.md`](render/AGENTS.md): the render CLIs, HTTP service and container.

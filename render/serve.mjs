@@ -41,7 +41,9 @@ import {
 import { parseArgs, chromeLaunchArgs, chromeLaunchTarget } from './lib/cli.mjs'
 import {
   assertHardwareGpuForJob,
+  acceptProjectDocument,
   prepareJob,
+  readProjectDocumentInPage,
   renderJob,
   startHarness,
   warningsHeaderValue,
@@ -109,7 +111,7 @@ const MIME_BY_RENDER_CONTAINER = {
   m4a: 'audio/mp4',
 }
 
-const HELP = `Usage: node render/serve.mjs --workspace <dir> [options]\n\nOptions:\n  --host <address>           Bind address (default: 127.0.0.1)\n  --port <n>                 HTTP port (default: 8787)\n  --render-timeout-ms <n>    Whole render deadline (default: 1800000)\n  --edit-timeout-ms <n>      Whole edit deadline (default: 120000)\n  --max-queue-depth <n>      Waiting operations allowed behind the active one (default: 8)\n  --shutdown-timeout-ms <n>  Graceful queue drain deadline (default: 30000)\n  --build  --head  --harness-url <url>\n`
+const HELP = `Usage: node render/serve.mjs --workspace <dir> [options]\n\nOptions:\n  --host <address>           Bind address (default: 127.0.0.1)\n  --port <n>                 HTTP port (default: 8787)\n  --render-timeout-ms <n>    Whole render deadline (default: 1800000)\n  --edit-timeout-ms <n>      Whole edit deadline (default: 120000)\n  --max-queue-depth <n>      Waiting operations allowed behind the active one (default: 8)\n  --shutdown-timeout-ms <n>  Graceful queue drain deadline (default: 30000)\n  --extension <a.js,b.js>    EmbeddableCut extension modules to install (or FREECUT_EXTENSIONS)\n  --build  --head  --harness-url <url>\n`
 const SERVE_OPTIONS = new Set([
   'workspace',
   'host',
@@ -122,6 +124,7 @@ const SERVE_OPTIONS = new Set([
   'edit-timeout-ms',
   'max-queue-depth',
   'shutdown-timeout-ms',
+  'extension',
 ])
 
 /** Resolve the service bind address without exposing native runs by default. */
@@ -234,11 +237,16 @@ async function main() {
   const shutdownTimeoutMs = positiveInt('shutdown-timeout-ms', 30_000)
 
   const transientMedia = new Map()
-  const { harnessUrl, mediaUrlOf, closeServers } = await startHarness({
+  const extensionFiles = String(args.extension ?? process.env.FREECUT_EXTENSIONS ?? '')
+    .split(',')
+    .map((file) => file.trim())
+    .filter(Boolean)
+  const { harnessUrl, mediaUrlOf, extensionUrls, closeServers } = await startHarness({
     workspace,
     devUrl: args['harness-url'],
     build: args.build,
     resolveAdditionalMedia: (mediaId) => transientMedia.get(mediaId),
+    extensions: extensionFiles,
   })
 
   const browser = await chromium.launch({
@@ -250,10 +258,14 @@ async function main() {
   const session = new PageSession({
     browser,
     harnessUrl,
+    extensionUrls,
     onPageError: (e) => console.error('[pageerror]', e.message),
     onProgress: (progress) => serviceStatus.reportProgress(progress),
   })
   await session.open()
+  // What the page renders: its SDK, schema versions and installed extensions.
+  const renderer = await session.page.evaluate(() => window.freecut.describe())
+  if (renderer.extensions.length) console.log(`Extensions: ${renderer.extensions.join(', ')}`)
 
   // Report the WebGPU adapter so it's obvious whether this is a real GPU.
   let gpu = await probeGpu(session.page)
@@ -454,10 +466,26 @@ async function main() {
     })
   }
 
+  // An EmbeddableCut project document becomes the project inside it plus the
+  // media its URL assets supply; the page validates and migrates it.
+  const readDocument = async (document) =>
+    acceptProjectDocument(
+      await queue.enqueue(() => readProjectDocumentInPage(session.page, document), {
+        timeoutMs: editTimeoutMs,
+        kind: 'edit',
+      }),
+    )
+
   const handleRender = async (req, res, { normalizeInline = false } = {}) => {
     let body = validate(renderRequestSchema, await readJsonBody(req))
     if (normalizeInline && body.projectObject) {
       body = { ...body, projectObject: await browserNormalize(body.projectObject) }
+    }
+    let extraMedia = []
+    if (body.projectDocument) {
+      const read = await readDocument(body.projectDocument)
+      body = { ...body, projectDocument: undefined, projectObject: read.project }
+      extraMedia = read.extraMedia
     }
     if (body.project) {
       assertSinglePathComponent(body.project, 'project id')
@@ -468,7 +496,7 @@ async function main() {
       }
     }
     const outPath = path.join(tmpDir, `render-${process.pid}-${++counter}.out`)
-    const job = prepareJob(workspace, { ...body, out: outPath }, mediaUrlOf)
+    const job = prepareJob(workspace, { ...body, out: outPath }, mediaUrlOf, extraMedia)
     assertHardwareGpuForJob(job, isSoftwareGpu(gpu))
 
     const t0 = Date.now()
@@ -763,10 +791,19 @@ async function main() {
   const handleFrame = async (req, res) => {
     const body = validate(frameRequestSchema, await readJsonBody(req))
     if (body.project) assertSinglePathComponent(body.project, 'project id')
+    const read = body.projectDocument ? await readDocument(body.projectDocument) : null
     const project = projectForEngine(
-      body.projectObject ?? loadJobProject(workspace, { project: body.project }).project,
+      read?.project ??
+        body.projectObject ??
+        loadJobProject(workspace, { project: body.project }).project,
     )
-    const { media, missing } = resolveProjectMedia(workspace, project, mediaUrlOf, null)
+    const { media, missing } = resolveProjectMedia(
+      workspace,
+      project,
+      mediaUrlOf,
+      null,
+      read?.extraMedia,
+    )
     const format = (body.format ?? 'png').toLowerCase()
     const mime = IMAGE_MIME_BY_FORMAT[format]
     const outPath = path.join(
@@ -818,11 +855,14 @@ async function main() {
   const handleLayout = async (req, res) => {
     const body = validate(layoutRequestSchema, await readJsonBody(req))
     if (body.project) assertSinglePathComponent(body.project, 'project id')
+    const read = body.projectDocument ? await readDocument(body.projectDocument) : null
     const project = projectForEngine(
-      body.projectObject ?? loadJobProject(workspace, { project: body.project }).project,
+      read?.project ??
+        body.projectObject ??
+        loadJobProject(workspace, { project: body.project }).project,
     )
     // Only metadata (source dimensions) is used; media URLs are never fetched.
-    const { media } = resolveProjectMedia(workspace, project, mediaUrlOf, null)
+    const { media } = resolveProjectMedia(workspace, project, mediaUrlOf, null, read?.extraMedia)
     const layout = await queue.enqueue(
       () =>
         session.page.evaluate((payload) => window.freecut.dumpLayout(payload), {
@@ -878,19 +918,20 @@ async function main() {
               software: isSoftwareGpu(gpu),
               harnessUrl,
               workspace: workspaceIdentity,
+              extensions: renderer.extensions,
             })
           }
         : route === 'GET /capabilities'
           ? async () =>
               sendJson(res, 200, {
-                ...capabilities(),
+                ...capabilities(renderer),
                 workspace: await workspaceFingerprint(workspace),
               })
           : route === 'GET /v1/capabilities'
             ? async () =>
                 sendJson(res, 200, {
                   ok: true,
-                  ...capabilities(),
+                  ...capabilities(renderer),
                   workspace: await workspaceFingerprint(workspace),
                 })
             : route === 'POST /v1/checkpoint-operations'

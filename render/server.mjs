@@ -53,13 +53,20 @@ function contentType(filePath) {
 }
 
 /**
- * @param {{ distDir: string, resolveMedia?: (mediaId: string) => string | null, port?: number }} opts
+ * @param {{ distDir: string, resolveMedia?: (mediaId: string) => string | null, port?: number, extensions?: string[] }} opts
  *   resolveMedia maps a media id to an absolute source-file path (or null). Omit
- *   to serve no media (e.g. edit-only).
- * @returns {Promise<{ base: string, harnessUrl: string, mediaUrl: (id: string) => string, close: () => Promise<void> }>}
+ *   to serve no media (e.g. edit-only). `extensions` are ES module files the
+ *   page imports and installs (EmbeddableCut extensions), served same-origin.
+ * @returns {Promise<{ base: string, harnessUrl: string, mediaUrl: (id: string) => string, extensionUrls: string[], close: () => Promise<void> }>}
  */
-export async function createHarnessServer({ distDir, resolveMedia = () => null, port = 0 }) {
+export async function createHarnessServer({
+  distDir,
+  resolveMedia = () => null,
+  port = 0,
+  extensions = [],
+}) {
   const resolvedDist = path.resolve(distDir)
+  const extensionFiles = extensions.map((file) => path.resolve(file))
 
   const server = http.createServer(async (req, res) => {
     // Cross-origin isolation for the harness page (matches the Vite dev server).
@@ -93,6 +100,18 @@ export async function createHarnessServer({ distDir, resolveMedia = () => null, 
         return
       }
 
+      const extensionMatch = pathname.match(/^\/extensions\/(\d+)\/[^/]+$/)
+      if (extensionMatch) {
+        const filePath = extensionFiles[Number(extensionMatch[1])]
+        if (!filePath) {
+          res.writeHead(404)
+          res.end('extension not found')
+          return
+        }
+        await serveFile(req, res, filePath, { contentType: 'text/javascript', allowRange: false })
+        return
+      }
+
       let rel = pathname
       if (rel === '/') rel = '/headless.html'
       rel = rel.replace(/^[/\\]+/, '')
@@ -111,6 +130,9 @@ export async function createHarnessServer({ distDir, resolveMedia = () => null, 
     base,
     harnessUrl: `${base}/headless.html`,
     mediaUrl: (mediaId) => `${base}/media/${encodeURIComponent(mediaId)}`,
+    extensionUrls: extensionFiles.map(
+      (file, index) => `${base}/extensions/${index}/${encodeURIComponent(path.basename(file))}`,
+    ),
     close: () => new Promise((resolve) => server.close(() => resolve())),
   }
 }

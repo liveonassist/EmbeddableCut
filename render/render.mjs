@@ -27,6 +27,8 @@
 //   --head                 Run headed (visible browser) for debugging
 //   --build                Build dist/ first if the harness isn't built
 //   --harness-url <url>    Dev mode: drive a running Vite dev server instead of dist/
+//   --document <file>      Render an EmbeddableCut project document instead of a project
+//   --extension <a.js,b.js> EmbeddableCut extension modules the page installs first
 //
 // By default this serves the built harness (dist/) itself — no dev server
 // needed. Run `npm run build` once (or pass --build) to produce dist/.
@@ -34,7 +36,14 @@ import { chromium } from 'playwright'
 import fs from 'node:fs'
 import { listProjects } from './lib/workspace.mjs'
 import { parseArgs, chromeLaunchArgs, chromeLaunchTarget } from './lib/cli.mjs'
-import { prepareJob, renderJob, startHarness } from './lib/render-core.mjs'
+import {
+  acceptProjectDocument,
+  prepareJob,
+  readProjectDocumentInPage,
+  renderJob,
+  startHarness,
+} from './lib/render-core.mjs'
+import { installExtensions } from './lib/page-session.mjs'
 import { normalizeRenderInput, renderRequestSchema, validate } from './lib/contract.mjs'
 
 const RENDER_OPTIONS = new Set([
@@ -59,8 +68,10 @@ const RENDER_OPTIONS = new Set([
   'list',
   'help',
   'json',
+  'document',
+  'extension',
 ])
-const HELP = `Usage:\n  node render/render.mjs --workspace <dir> --project <id|project.json> [options]\n  node render/render.mjs --workspace <dir> --batch <jobs.json>\n  node render/render.mjs --workspace <dir> --list [--json]\n\nOptions: --out --codec --container --resolution --fps --quality --in --out-sec --duration --audio-only --strict --allow-missing-media --head --build --harness-url --json\n`
+const HELP = `Usage:\n  node render/render.mjs --workspace <dir> --project <id|project.json> [options]\n  node render/render.mjs --workspace <dir> --document <document.json> [options]\n  node render/render.mjs --workspace <dir> --batch <jobs.json>\n  node render/render.mjs --workspace <dir> --list [--json]\n\nOptions: --out --codec --container --resolution --fps --quality --in --out-sec --duration --audio-only --strict --allow-missing-media --extension <a.js,b.js> --head --build --harness-url --json\n`
 
 async function main() {
   const args = parseArgs(process.argv.slice(2), { allowed: RENDER_OPTIONS })
@@ -100,7 +111,9 @@ async function main() {
     )
     if (jobArgsList.length === 0) throw new Error('Batch file is empty')
   } else {
-    if (!args.project) throw new Error('Missing --project <id|project.json> (or --batch <file>)')
+    if (!args.project && !args.document) {
+      throw new Error('Missing --project <id|project.json>, --document <file> or --batch <file>')
+    }
     const {
       workspace: _workspace,
       batch: _batch,
@@ -111,16 +124,23 @@ async function main() {
       help: _help,
       json: _json,
       'allow-missing-media': _allowMissingMedia,
+      extension: _extension,
+      document: documentPath,
       _: _positionals,
       ...job
     } = args
+    if (documentPath) job.projectDocument = JSON.parse(fs.readFileSync(documentPath, 'utf8'))
     jobArgsList = [validate(renderRequestSchema, normalizeRenderInput(job))]
   }
 
-  const { harnessUrl, mediaUrlOf, closeServers } = await startHarness({
+  const { harnessUrl, mediaUrlOf, extensionUrls, closeServers } = await startHarness({
     workspace,
     devUrl: args['harness-url'],
     build: args.build,
+    extensions: String(args.extension ?? process.env.FREECUT_EXTENSIONS ?? '')
+      .split(',')
+      .map((file) => file.trim())
+      .filter(Boolean),
   })
   if (!args.json) console.log(`Harness: ${harnessUrl}`)
 
@@ -160,10 +180,20 @@ async function main() {
 
     await page.goto(harnessUrl, { waitUntil: 'load', timeout: 60_000 })
     await page.waitForFunction(() => Boolean(window.freecut?.ready), { timeout: 30_000 })
+    await installExtensions(page, extensionUrls)
 
     const jsonResults = []
     for (let i = 0; i < jobArgsList.length; i++) {
-      const job = prepareJob(workspace, jobArgsList[i], mediaUrlOf)
+      let jobArgs = jobArgsList[i]
+      let extraMedia = []
+      if (jobArgs.projectDocument) {
+        const read = acceptProjectDocument(
+          await readProjectDocumentInPage(page, jobArgs.projectDocument),
+        )
+        jobArgs = { ...jobArgs, projectDocument: undefined, projectObject: read.project }
+        extraMedia = read.extraMedia
+      }
+      const job = prepareJob(workspace, jobArgs, mediaUrlOf, extraMedia)
       const range = job.hasRange ? ` frames ${job.inPoint}..${job.outPoint ?? 'end'}` : ''
       if (!args.json)
         console.log(

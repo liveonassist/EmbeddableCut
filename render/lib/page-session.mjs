@@ -14,6 +14,7 @@ export async function withHarnessPage(options, operation) {
     launchArgs,
     acceptDownloads = false,
     ignoreConsoleError = () => false,
+    extensionUrls = [],
   } = options
   const browser = await chromium.launch({
     ...chromeLaunchTarget(),
@@ -31,10 +32,17 @@ export async function withHarnessPage(options, operation) {
     })
     await page.goto(harnessUrl, { waitUntil: 'load', timeout: 60_000 })
     await page.waitForFunction(() => Boolean(window.freecut?.ready), { timeout: 30_000 })
+    await installExtensions(page, extensionUrls)
     return await operation(page)
   } finally {
     await browser.close().catch(() => {})
   }
+}
+
+/** Installs EmbeddableCut extensions in a ready harness page; returns their ids. */
+export async function installExtensions(page, extensionUrls) {
+  if (!extensionUrls?.length) return []
+  return page.evaluate((urls) => window.freecut.installExtensions(urls), extensionUrls)
 }
 
 export async function probeGpu(page) {
@@ -59,9 +67,16 @@ export class PageSession {
   #context
   #page
 
-  constructor({ browser, harnessUrl, onPageError = () => {}, onProgress = () => {} }) {
+  constructor({
+    browser,
+    harnessUrl,
+    extensionUrls = [],
+    onPageError = () => {},
+    onProgress = () => {},
+  }) {
     this.browser = browser
     this.harnessUrl = harnessUrl
+    this.extensionUrls = extensionUrls
     this.onPageError = onPageError
     this.onProgress = onProgress
   }
@@ -81,6 +96,7 @@ export class PageSession {
       )
       await page.goto(this.harnessUrl, { waitUntil: 'load', timeout: 60_000 })
       await page.waitForFunction(() => Boolean(window.freecut?.ready), { timeout: 30_000 })
+      await installExtensions(page, this.extensionUrls)
       this.#context = context
       this.#page = page
       return page

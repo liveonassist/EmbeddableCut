@@ -21,16 +21,22 @@ const imageFormat = z.preprocess(
   z.enum(['png', 'jpg', 'jpeg', 'webp']),
 )
 
+/** An EmbeddableCut project document (docs/SCHEMAS.md), read and validated in the page. */
+const projectDocument = z.object({ format: z.literal('embeddablecut.project') }).passthrough()
+
 const projectFrameFields = {
   project: id.optional(),
   projectObject: projectObject.optional(),
+  projectDocument: projectDocument.optional(),
   frame: finite.nonnegative().optional(),
   at: finite.nonnegative().optional(),
   atSeconds: finite.nonnegative().optional(),
 }
 
 const hasExactlyOneProjectSource = (value) =>
-  Boolean(value.project) !== Boolean(value.projectObject)
+  [value.project, value.projectObject, value.projectDocument].filter(Boolean).length === 1
+const EXACTLY_ONE_PROJECT_SOURCE =
+  'provide exactly one of project, projectObject or projectDocument'
 
 const GPU_EFFECT_TYPES = [
   'gpu-ascii',
@@ -612,6 +618,7 @@ export const renderRequestSchema = z
   .object({
     project: id.optional(),
     projectObject: projectObject.optional(),
+    projectDocument: projectDocument.optional(),
     out: id.optional(),
     codec: z.enum(RENDER_OPTIONS.codecs).optional(),
     container: z.enum(RENDER_OPTIONS.containers).optional(),
@@ -632,8 +639,8 @@ export const renderRequestSchema = z
     strict: z.boolean().optional(),
   })
   .strict()
-  .refine((v) => Boolean(v.project) !== Boolean(v.projectObject), {
-    message: 'provide exactly one of project or projectObject',
+  .refine(hasExactlyOneProjectSource, {
+    message: EXACTLY_ONE_PROJECT_SOURCE,
     path: ['project'],
   })
   .refine((v) => !(v.outSec !== undefined && v.duration !== undefined), {
@@ -663,7 +670,7 @@ export const frameRequestSchema = z
   })
   .strict()
   .refine(hasExactlyOneProjectSource, {
-    message: 'provide exactly one of project or projectObject',
+    message: EXACTLY_ONE_PROJECT_SOURCE,
     path: ['project'],
   })
 
@@ -671,7 +678,7 @@ export const layoutRequestSchema = z
   .object(projectFrameFields)
   .strict()
   .refine(hasExactlyOneProjectSource, {
-    message: 'provide exactly one of project or projectObject',
+    message: EXACTLY_ONE_PROJECT_SOURCE,
     path: ['project'],
   })
 
@@ -1037,9 +1044,16 @@ export function validate(schema, value) {
   throw new ContractValidationError('Request validation failed', fields)
 }
 
-export function capabilities() {
+/**
+ * What this service can do. `renderer` is the page's own report (SDK version,
+ * schema versions, installed extensions), merged in by the service once its
+ * page is up; a client checks it before sending a document that needs more.
+ */
+export function capabilities(renderer = null) {
   return {
     apiVersion: HEADLESS_API_VERSION,
+    projectDocument: true,
+    ...(renderer ? { renderer } : {}),
     operations: EDIT_OPERATION_NAMES,
     operationDescriptions: EDIT_OPERATION_DESCRIPTIONS,
     options: {

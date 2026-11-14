@@ -139,11 +139,18 @@ async function ensureHarnessReachable(url) {
  * edit path (no rendering): no media server is started and `mediaUrlOf` is a
  * no-op.
  */
-export async function startHarness({ workspace, devUrl, build, resolveAdditionalMedia }) {
+export async function startHarness({
+  workspace,
+  devUrl,
+  build,
+  resolveAdditionalMedia,
+  extensions = [],
+}) {
   const resolveMedia = workspace
     ? (mediaId) => resolveAdditionalMedia?.(mediaId) ?? resolveMediaFile(workspace, mediaId)
     : undefined
   if (devUrl) {
+    if (extensions.length) throw new Error('Extensions need the built harness, not --harness-url')
     await ensureHarnessReachable(devUrl)
     if (!resolveMedia)
       return { harnessUrl: devUrl, mediaUrlOf: () => undefined, closeServers: async () => {} }
@@ -164,10 +171,11 @@ export async function startHarness({ workspace, devUrl, build, resolveAdditional
       )
     }
   }
-  const server = await createHarnessServer({ distDir, resolveMedia })
+  const server = await createHarnessServer({ distDir, resolveMedia, extensions })
   return {
     harnessUrl: server.harnessUrl,
     mediaUrlOf: (id) => server.mediaUrl(id),
+    extensionUrls: server.extensionUrls,
     closeServers: () => server.close(),
   }
 }
@@ -178,8 +186,10 @@ export async function startHarness({ workspace, devUrl, build, resolveAdditional
  * media overlapping a slice; pass null for the whole project. Shared by the
  * render, frame-grab, and layout-dump paths (no browser involved).
  */
-export function resolveProjectMedia(workspace, project, mediaUrlOf, range = null) {
-  const mediaIds = collectMediaIds(project, range)
+export function resolveProjectMedia(workspace, project, mediaUrlOf, range = null, extraMedia = []) {
+  // Media a project document supplies itself (its URL assets) needs nothing from the workspace.
+  const supplied = new Set(extraMedia.map((entry) => entry.mediaId))
+  const mediaIds = collectMediaIds(project, range).filter((id) => !supplied.has(id))
   // URL media is read where it lives, by the page, exactly as the editor reads it.
   const remote = new Map()
   for (const id of mediaIds) {
@@ -197,8 +207,14 @@ export function resolveProjectMedia(workspace, project, mediaUrlOf, range = null
       metadata: readMediaMetadata(workspace, id) ?? undefined,
     })),
     ...[...remote].map(([id, metadata]) => ({ mediaId: id, url: metadata.remote.url, metadata })),
+    ...extraMedia,
   ]
-  return { media, missing, mediaResolved: files.size + remote.size, mediaTotal: mediaIds.length }
+  return {
+    media,
+    missing,
+    mediaResolved: files.size + remote.size + extraMedia.length,
+    mediaTotal: mediaIds.length + extraMedia.length,
+  }
 }
 
 /** Load a project from a job's `project` id/path or inline `projectObject`. */
@@ -210,7 +226,7 @@ export function loadJobProject(workspace, jobArgs) {
 }
 
 /** Resolve everything needed to render one job (no browser involved). */
-export function prepareJob(workspace, jobArgs, mediaUrlOf) {
+export function prepareJob(workspace, jobArgs, mediaUrlOf, extraMedia = []) {
   jobArgs = validate(renderRequestSchema, normalizeRenderInput(jobArgs))
   const { project, projectJsonPath } = loadJobProject(workspace, jobArgs)
   const settings = buildSettings(project, jobArgs)
@@ -224,6 +240,7 @@ export function prepareJob(workspace, jobArgs, mediaUrlOf) {
     project,
     mediaUrlOf,
     range,
+    extraMedia,
   )
 
   const outName = `${(project.name ?? 'freecut-export').replace(/[^\w.-]+/g, '_')}.${settings.container}`
@@ -363,4 +380,35 @@ export async function renderJob(
   for (const warning of warnings)
     warn(`  WARNING [${warning.code ?? 'UNKNOWN'}]: ${warningMessage(warning)}`)
   return { ...summary, fileName: path.basename(outputPath), outputPath, warnings }
+}
+
+/**
+ * Reads an EmbeddableCut project document in the page, under the SDK's schema
+ * rules. Returns the page's verdict as is; `acceptProjectDocument` turns it
+ * into a job's project or a refusal. They're apart so a service can run the
+ * read on its page queue and refuse outside it: a refused document is the
+ * client's error, not the page's.
+ */
+export function readProjectDocumentInPage(page, document) {
+  return page.evaluate((value) => window.freecut.readDocument(value), document)
+}
+
+/**
+ * The project and the media its URL assets supply, from a document the page read.
+ *
+ * @throws {HttpError} 400 with the schema error's code, or 422
+ *   `EXTENSION_MISSING` when the document needs an extension this renderer
+ *   hasn't installed.
+ */
+export function acceptProjectDocument(read) {
+  if (!read.ok) {
+    const error = new HttpError(
+      read.code === 'EXTENSION_MISSING' ? 422 : 400,
+      read.code,
+      read.message,
+    )
+    error.fields = read.issues ?? []
+    throw error
+  }
+  return { project: read.project, extraMedia: read.remoteMedia, warnings: read.warnings }
 }
