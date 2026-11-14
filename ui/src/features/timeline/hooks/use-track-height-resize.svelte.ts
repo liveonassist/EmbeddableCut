@@ -11,7 +11,7 @@ import { resizeAllTracksInList, resizeTrackInList } from '@/features/timeline/ut
 import { getTrackKind } from '@/features/timeline/utils/classic-tracks'
 import { flushTrackHeightOverrides } from '@/features/timeline/utils/track-heights'
 import { createRafCoalescedCallback } from '@/features/timeline/utils/raf-coalesced-callback'
-import { setGlobalCursorStyle } from '@/features/timeline/utils/global-cursor-roots'
+import { setGlobalCursorStyle } from '@/shared/ui/global-cursor-roots'
 
 interface TrackResizeState {
   trackId: string | null

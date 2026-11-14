@@ -45,7 +45,7 @@ import {
   queryEditorElements,
   removeGlobalCursorClass,
   setGlobalCursorStyle,
-} from '../utils/global-cursor-roots'
+} from '@/shared/ui/global-cursor-roots'
 
 const logger = createLogger('TimelineDrag')
 

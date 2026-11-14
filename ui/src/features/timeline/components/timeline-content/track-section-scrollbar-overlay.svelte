@@ -2,7 +2,7 @@
 <script lang="ts">
   import { untrack } from 'svelte'
   import { withPerfMeasure } from '@/shared/logging/perf-marks'
-  import { setGlobalCursorStyle } from '../../utils/global-cursor-roots'
+  import { setGlobalCursorStyle } from '@/shared/ui/global-cursor-roots'
   import type { TrackScrollbarSection } from './types'
 
   interface TrackSectionScrollbarOverlayProps {

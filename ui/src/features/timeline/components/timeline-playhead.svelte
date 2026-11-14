@@ -96,7 +96,7 @@
     getEdgeScrollDelta,
     getPlayheadEdgeScrollVelocity,
   } from '@/features/timeline/utils/playhead-edge-scroll'
-  import { setGlobalCursorStyle } from '../utils/global-cursor-roots'
+  import { setGlobalCursorStyle } from '@/shared/ui/global-cursor-roots'
 
   interface TimelinePlayheadProps {
     inRuler?: boolean // If true, shows diamond indicator for ruler

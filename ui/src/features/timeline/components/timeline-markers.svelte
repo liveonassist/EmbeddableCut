@@ -111,7 +111,7 @@
   import { sanitizeInOutPoints } from '@/features/timeline/utils/in-out-points'
   import { frameToPixelsNow, pixelsToFrameNow } from '@/features/timeline/utils/zoom-conversions'
   import { drawTimelineRulerViewportCanvas } from './timeline-ruler-viewport-canvas'
-  import { setGlobalCursorStyle } from '../utils/global-cursor-roots'
+  import { setGlobalCursorStyle } from '@/shared/ui/global-cursor-roots'
   import { IO_LANE_HEIGHT } from './timeline-markers'
 
   interface TimelineMarkersProps {

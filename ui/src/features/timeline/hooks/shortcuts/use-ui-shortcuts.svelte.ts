@@ -14,7 +14,7 @@ import { HOTKEY_OPTIONS } from '@/config/hotkeys'
 import type { TimelineShortcutCallbacks } from '../use-timeline-shortcuts.svelte'
 import { useSettingsStore } from '@/features/timeline/deps/settings'
 import { useResolvedHotkeys } from '@/features/timeline/deps/settings-ui'
-import { queryEditorElement } from '@/features/timeline/utils/global-cursor-roots'
+import { queryEditorElement } from '@/shared/ui/global-cursor-roots'
 import { useHotkeys } from '$lib/hotkeys.svelte'
 
 function zoomTo100AtCursor(event: KeyboardEvent): void {

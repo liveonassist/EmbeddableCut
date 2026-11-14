@@ -87,7 +87,7 @@
   import { getDefaultActiveTrackId } from '@/features/timeline/utils/default-active-track'
   import KeyframeGraphPanel from './keyframe-graph-panel.svelte'
   import { createRafCoalescedCallback } from '@/features/timeline/utils/raf-coalesced-callback'
-  import { registerGlobalCursorRoots, setGlobalCursorStyle } from '../utils/global-cursor-roots'
+  import { registerGlobalCursorRoots, setGlobalCursorStyle } from '@/shared/ui/global-cursor-roots'
   import type { TimelineTrack } from '@/types/timeline'
 
   interface TimelineProps {

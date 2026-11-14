@@ -30,7 +30,7 @@ import {
   wouldCreateCompositionCycle,
 } from '@/features/timeline/utils/composition-graph'
 import { handleTranscriptClipboardCopy } from '@/features/timeline/utils/transcript-copy-bridge'
-import { queryEditorElement } from '@/features/timeline/utils/global-cursor-roots'
+import { queryEditorElement } from '@/shared/ui/global-cursor-roots'
 import { useHotkeys } from '$lib/hotkeys.svelte'
 
 function revealPastedItems(itemIds: readonly string[]): void {

@@ -8,7 +8,7 @@
   import { beginIoPointerDrag, IoRangeHandles } from '@/shared/timeline/io-range'
   import { formatTimecodeCompact } from '@/shared/utils/time-utils'
   import { pixelsToFrameNow } from '@/features/timeline/utils/zoom-conversions'
-  import { setGlobalCursorStyle } from '../utils/global-cursor-roots'
+  import { setGlobalCursorStyle } from '@/shared/ui/global-cursor-roots'
   import { select } from '$lib/store.svelte'
 
   // Matches the ruler's top IO lane height in timeline-markers.

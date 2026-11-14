@@ -13,7 +13,7 @@
   import { useTimelineCommittedZoomContext } from '../../contexts/timeline-zoom-context.svelte'
   import { resolveMarkerNames } from '@/shared/timeline/marker-names'
   import { pixelsToFrameNow } from '@/features/timeline/utils/zoom-conversions'
-  import { setGlobalCursorStyle } from '../../utils/global-cursor-roots'
+  import { setGlobalCursorStyle } from '@/shared/ui/global-cursor-roots'
   import MarkerIndicator from './marker-indicator.svelte'
 
   /**

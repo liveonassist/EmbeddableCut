@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-import { addGlobalCursorClass, removeGlobalCursorClass } from '../../utils/global-cursor-roots'
+import { addGlobalCursorClass, removeGlobalCursorClass } from '@/shared/ui/global-cursor-roots'
 
 const ACTIVE_CURSOR_CLASSES = [
   'timeline-cursor-trim-left',

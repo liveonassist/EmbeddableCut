@@ -37,6 +37,10 @@ export function removeGlobalCursorClass(...classes: string[]): void {
   for (const target of getGlobalCursorTargets()) target.classList.remove(...classes)
 }
 
+export function toggleGlobalCursorClass(className: string, force: boolean): void {
+  for (const target of getGlobalCursorTargets()) target.classList.toggle(className, force)
+}
+
 /**
  * `document.querySelector` that also looks inside the registered editor
  * roots, for module-level code that has no element to start from.

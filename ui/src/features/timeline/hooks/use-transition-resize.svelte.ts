@@ -8,7 +8,7 @@ import { useItemsStore } from '@/features/timeline/stores/items-store'
 import { pixelsToTimeNow } from '@/features/timeline/utils/zoom-conversions'
 import { getMaxTransitionDurationForHandles } from '@/features/timeline/utils/transition-utils'
 import { select } from '$lib/store.svelte'
-import { setGlobalCursorStyle } from '../utils/global-cursor-roots'
+import { setGlobalCursorStyle } from '@/shared/ui/global-cursor-roots'
 
 type ResizeHandle = 'left' | 'right'
 

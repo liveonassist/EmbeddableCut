@@ -5,7 +5,7 @@ import { useItemsStore } from '@/features/timeline/stores/items-store'
 import { moveItems, moveItemsWithTrackChanges } from '@/features/timeline/stores/timeline-actions'
 import { useSelectionStore } from '@/shared/state/selection'
 import { DRAG_THRESHOLD_PIXELS } from '@/features/timeline/constants'
-import { queryEditorElement, setGlobalCursorStyle } from '../utils/global-cursor-roots'
+import { queryEditorElement, setGlobalCursorStyle } from '@/shared/ui/global-cursor-roots'
 import {
   buildTrackContentCreateTrackMovePlan,
   buildTrackContentMoveUpdates,
