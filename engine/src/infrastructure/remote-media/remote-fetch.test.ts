@@ -65,6 +65,11 @@ afterEach(() => {
   vi.unstubAllGlobals()
 })
 
+// toEqual walks a megabyte of bytes for seconds; this compares them directly.
+function sameBytes(actual: Uint8Array, expected: Uint8Array): boolean {
+  return actual.length === expected.length && actual.every((byte, i) => byte === expected[i])
+}
+
 async function read(remoteFetch: typeof fetch, url: string, start: number, end: number) {
   const response = await remoteFetch(url, { headers: { Range: `bytes=${start}-${end}` } })
   return { response, bytes: new Uint8Array(await response.arrayBuffer()) }
@@ -79,7 +84,7 @@ describe('remote media fetch', () => {
     const first = await read(remoteFetch, 'https://cdn.test/clip.mp4', start, end)
     expect(first.response.status).toBe(206)
     expect(first.response.headers.get('Content-Range')).toBe(`bytes ${start}-${end}/${FILE_SIZE}`)
-    expect(first.bytes).toEqual(file.slice(start, end + 1))
+    expect(sameBytes(first.bytes, file.slice(start, end + 1))).toBe(true)
     // The first block tells the size; the rest of the range comes as one aligned run.
     const runs = [
       `bytes=0-${REMOTE_BLOCK_SIZE - 1}`,
@@ -88,7 +93,7 @@ describe('remote media fetch', () => {
     expect(requests.map((r) => r.range)).toEqual(runs)
 
     const second = await read(remoteFetch, 'https://cdn.test/clip.mp4', start + 5, end - 5)
-    expect(second.bytes).toEqual(file.slice(start + 5, end - 4))
+    expect(sameBytes(second.bytes, file.slice(start + 5, end - 4))).toBe(true)
     expect(requests.map((r) => r.range)).toEqual(runs)
   })
 
