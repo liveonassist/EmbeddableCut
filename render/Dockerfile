@@ -40,6 +40,8 @@ ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
 # which aren't present/needed in the image).
 COPY package.json package-lock.json ./
 COPY engine/package.json engine/
+COPY sdk/package.json sdk/
+COPY ui/package.json ui/
 COPY web/package.json web/
 COPY render/package.json render/
 RUN npm ci --ignore-scripts
