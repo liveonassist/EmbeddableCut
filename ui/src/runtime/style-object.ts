@@ -82,6 +82,36 @@ function cssValue(name: string, value: string | number): string {
   return isUnitless(name) ? String(value) : `${value}px`
 }
 
+function isEmpty(value: CSSProperties[string]): value is null | undefined | false | '' {
+  return value === null || value === undefined || value === false || value === ''
+}
+
+/**
+ * Applies `next` to `node` property by property, as React DOM patches a
+ * `style` object: only changed properties are written and dropped ones
+ * removed, so properties set imperatively elsewhere (a drag's `translate`)
+ * survive. Returns `next`, to pass as `previous` on the following call.
+ */
+export function patchStyle(
+  node: HTMLElement,
+  previous: CSSProperties | null,
+  next: CSSProperties,
+): CSSProperties {
+  if (previous) {
+    for (const name in previous) {
+      if (!isEmpty(previous[name]) && isEmpty(next[name])) {
+        node.style.removeProperty(cssName(name))
+      }
+    }
+  }
+  for (const name in next) {
+    const value = next[name]
+    if (isEmpty(value) || previous?.[name] === value) continue
+    node.style.setProperty(cssName(name), cssValue(name, value))
+  }
+  return next
+}
+
 /** Serializes a React-style object to a `style` attribute string. */
 export function styleToString(style: CSSProperties | null | undefined): string {
   if (!style) return ''
