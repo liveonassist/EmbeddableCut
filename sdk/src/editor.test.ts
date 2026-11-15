@@ -5,6 +5,7 @@ import type { ProjectDocument } from '@embeddablecut/engine/schema/index'
 import { createEditor, type Editor } from './editor'
 import { EditorError } from './errors'
 import type { Extension } from './extensions'
+import { useSettingsStore } from '@embeddablecut/engine/features/settings/stores/settings-store'
 
 let editor: Editor | null = null
 
@@ -114,6 +115,50 @@ describe('editor', () => {
     await expect(e.loadDocument(document)).rejects.toSatisfy(
       (error) => codeOf(error) === 'MEDIA_SOURCE_DISABLED',
     )
+  })
+})
+
+describe('host policy', () => {
+  it('refuses an operation that removes a guarded item, stopping the batch there', async () => {
+    const e = await newEditor({
+      guards: { remove: (items) => !items.some((i) => 'text' in i && i.text === 'Keep') },
+    })
+    await e.createProject({ name: 'Guarded' })
+    const [, keep, other] = e.apply([
+      { op: 'addTrack', kind: 'video' },
+      { op: 'addText', text: 'Keep' },
+      { op: 'addText', text: 'Other' },
+    ])
+    const idOf = (result: typeof keep) => (result!.detail as { id: string }).id
+
+    let refusal: unknown
+    try {
+      e.apply([
+        { op: 'removeItems', ids: [idOf(keep)] },
+        { op: 'removeItems', ids: [idOf(other)] },
+      ])
+    } catch (error) {
+      refusal = error
+    }
+
+    expect(codeOf(refusal)).toBe('EDIT_REFUSED')
+    expect((refusal as EditorError).details).toEqual([expect.objectContaining({ id: idOf(keep) })])
+    expect(e.timeline.items).toHaveLength(2)
+    e.apply({ op: 'removeItems', ids: [idOf(other)] })
+    expect(e.timeline.items).toHaveLength(1)
+  })
+
+  it('holds its settings policy until disposed', async () => {
+    useSettingsStore.getState().setSetting('showWaveforms', false)
+    const e = await newEditor({
+      settings: { values: { showWaveforms: true }, locked: ['showWaveforms'] },
+    })
+
+    useSettingsStore.getState().setSetting('showWaveforms', false)
+    expect(useSettingsStore.getState().showWaveforms).toBe(true)
+
+    e.dispose()
+    expect(useSettingsStore.getState().showWaveforms).toBe(false)
   })
 })
 

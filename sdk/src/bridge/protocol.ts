@@ -75,8 +75,17 @@ export interface BridgeMethods {
     params: { settings?: Record<string, unknown>; inFrame?: number; outFrame?: number }
     result: BinaryResult & { durationSeconds: number; settings: unknown; warnings: unknown[] }
   }
+  /** Replaces the editor's settings policy (`EditorOptions.settings`); `null` removes it. */
+  'settings.setPolicy': {
+    params: {
+      policy: { values?: Record<string, unknown>; locked?: string[]; hidden?: string[] } | null
+    }
+    result: null
+  }
   /** Editor UI only: switch the theme by preset name, or override tokens. */
   'ui.setTheme': { params: { theme: string | Record<string, string> }; result: null }
+  /** Editor UI only: hide (`false`) or lock (`'locked'`) built-in features by id; replaces the last set. */
+  'ui.setFeatures': { params: { features: Record<string, boolean | 'locked'> }; result: null }
 }
 
 export type BridgeMethod = keyof BridgeMethods

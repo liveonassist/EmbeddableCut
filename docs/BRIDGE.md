@@ -53,7 +53,9 @@ Every message carries `"protocol": "embeddablecut.bridge"` and `"version": 1`.
 | `media.addUrl` | `url`, `fileName?`, `mimeType?`, `key?`, `expiresAt?` | the new asset record |
 | `render.frame` | `frame?`, `atSeconds?`, `width?`, `height?`, `format?`, `quality?` | a binary result |
 | `render.export` | `settings?`, `inFrame?`, `outFrame?` | a binary result with `durationSeconds`, `settings`, `warnings` |
+| `settings.setPolicy` | `policy`: `{ "values"?, "locked"?, "hidden"? }` (setting keys), or `null` | `null` |
 | `ui.setTheme` | `theme`: `"dark"`, `"light"`, `"system"`, or `{ "mode", "tokens" }` | `null` |
+| `ui.setFeatures` | `features`: `{ "<feature id>": true \| false \| "locked" }`, replacing the last set ([EMBEDDING.md](EMBEDDING.md#hiding-and-locking-features)) | `null` |
 
 A **binary result** is `{ "mimeType", "fileName"?, "data", "encoding"? }`. Over a port `data` is an `ArrayBuffer`, transferred; over strings it's base64 and `encoding` is `"base64"`.
 

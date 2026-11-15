@@ -4,7 +4,7 @@ import { captureSnapshot, restoreSnapshot, snapshotsEqual } from './commands/sna
 import { useSettingsStore } from '@/features/timeline/deps/settings'
 import { formatTimelineCommandLabel } from './commands/labels'
 import { emitUiSound } from '@/shared/ui/ui-sound'
-import { isEditRefused } from './edit-guards'
+import { findRefusedEdit, reportEditRefused } from './edit-guards'
 
 /**
  * Sentinel context key for the Main timeline (activeCompositionId === null).
@@ -135,8 +135,10 @@ export const useTimelineCommandStore = create<CommandStoreState & CommandStoreAc
       const afterSnapshot = captureSnapshot()
 
       // An edit the host's guards refuse leaves no trace, not even an undo step.
-      if (isEditRefused(command, beforeSnapshot, afterSnapshot)) {
+      const refusal = findRefusedEdit(command, beforeSnapshot, afterSnapshot)
+      if (refusal) {
         restoreSnapshot(beforeSnapshot)
+        reportEditRefused(refusal)
         return result
       }
 

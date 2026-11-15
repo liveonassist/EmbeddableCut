@@ -74,6 +74,17 @@ import {
   setRemoteMediaResolver,
 } from '@embeddablecut/engine/features/media-library/services/remote-media'
 import { SDK_VERSION } from './version'
+import {
+  onEditRefused,
+  setEditGuards,
+  type EditGuards,
+  type RefusedEdit,
+} from '@embeddablecut/engine/features/timeline/stores/edit-guards'
+import {
+  installSettingsPolicy,
+  type SettingsPolicy,
+} from '@embeddablecut/engine/features/settings/stores/settings-policy'
+import { toast } from '@embeddablecut/engine/shared/notifications/index'
 
 export interface EditorOptions {
   /**
@@ -93,6 +104,17 @@ export interface EditorOptions {
   media?: Partial<MediaSourcePolicy> & MediaAcceptOptions & { resolve?: MediaResolver }
   /** Installed before anything loads; a document may depend on them. */
   extensions?: Extension[]
+  /**
+   * Settings this editor's users don't choose: forced values, locked keys,
+   * and keys the settings UI leaves out. The user's own values stay persisted
+   * for other editors on the origin.
+   */
+  settings?: SettingsPolicy
+  /**
+   * Edits the host forbids, judged on what they'd do whichever way they're
+   * made (shortcut, menu, drag or `apply`). A refused edit is rolled back.
+   */
+  guards?: EditGuards
 }
 
 /** A wire edit operation: `op` names a built-in or extension op, the rest are its fields. */
@@ -188,6 +210,10 @@ export class Editor {
   private readonly events = new Emitter<EditorEvents>()
   private readonly teardown: Array<() => void> = []
   private readonly policy: MediaSourcePolicy
+  private removeSettingsPolicy: (() => void) | null = null
+  /** Set while `apply` runs, which reports a refusal as an error instead of a notice. */
+  private applying = false
+  private refusal: RefusedEdit | null = null
   /** Set while the loaded project is the workspace's own, which `save` writes back. */
   private workspaceProjectId: string | null = null
   private disposed = false
@@ -217,6 +243,21 @@ export class Editor {
     for (const extension of options.extensions ?? []) this.extensions.install(extension)
 
     this.teardown.push(onNotification((notice) => this.events.emit('notification', notice)))
+    if (options.settings) this.setSettingsPolicy(options.settings)
+    this.teardown.push(() => this.setSettingsPolicy(null))
+    setEditGuards(options.guards ?? null)
+    this.teardown.push(() => setEditGuards(null))
+    this.teardown.push(
+      onEditRefused((refusal) => {
+        if (!this.applying) {
+          toast.warning(refusalMessage(refusal))
+          return
+        }
+        // Stops the batch at this op; the edit op runner rewraps what it throws.
+        this.refusal = refusal
+        throw new Error(refusalMessage(refusal))
+      }),
+    )
     const emitChange = () => this.events.emit('change', undefined)
     for (const store of [
       useItemsStore,
@@ -256,6 +297,18 @@ export class Editor {
     listener: (payload: EditorEvents[K]) => void,
   ): () => void {
     return this.events.on(event, listener)
+  }
+
+  /** Replaces the settings policy from `EditorOptions.settings`; `null` removes it. */
+  setSettingsPolicy(policy: SettingsPolicy | null): void {
+    this.removeSettingsPolicy?.()
+    this.removeSettingsPolicy = policy ? installSettingsPolicy(policy) : null
+  }
+
+  /** Replaces the edit guards from `EditorOptions.guards`; `null` allows every edit. */
+  setGuards(guards: EditGuards | null): void {
+    this.assertLive()
+    setEditGuards(guards)
   }
 
   // --- projects --------------------------------------------------------------
@@ -449,8 +502,10 @@ export class Editor {
    * earlier one's result: give that op a `callerId`, then pass
    * `{ "$ref": "<callerId>#/detail/id" }` for an id field.
    *
-   * @throws {EditorError} `OPERATION_FAILED` at the first op refused; the ops
-   *   before it stay applied and undo as a unit.
+   * @throws {EditorError} `OPERATION_FAILED` at the first op refused, or
+   *   `EDIT_REFUSED` at the first one the host's guards refuse (rolled back,
+   *   with the removed items as `details`); the ops before it stay applied and
+   *   undo as a unit.
    */
   apply(operations: EditOperation | EditOperation[]): EditResult[] {
     this.requireProject()
@@ -467,6 +522,8 @@ export class Editor {
         .getState()
         .addUndoEntry({ type: 'SDK_APPLY', payload: { ops: ops.length } }, before)
     }
+    this.applying = true
+    this.refusal = null
     try {
       const results = applyEditOperations(ops)
       finish()
@@ -477,10 +534,16 @@ export class Editor {
       }))
     } catch (error) {
       finish()
+      // Set by the refusal listener during the ops, which narrowing can't see.
+      const refusal = this.refusal as RefusedEdit | null
+      if (refusal) throw new EditorError('EDIT_REFUSED', refusalMessage(refusal), refusal.items)
       throw new EditorError(
         'OPERATION_FAILED',
         error instanceof Error ? error.message : String(error),
       )
+    } finally {
+      this.applying = false
+      this.refusal = null
     }
   }
 
@@ -647,6 +710,12 @@ async function openOpfsWorkspace(
     if (requested) throw error
     return null
   }
+}
+
+function refusalMessage(refusal: RefusedEdit): string {
+  return refusal.items.length === 1
+    ? `"${refusal.items[0]!.label}" can't be removed from this project`
+    : `${refusal.items.length} clips can't be removed from this project`
 }
 
 function infoOf(project: Project): ProjectInfo {

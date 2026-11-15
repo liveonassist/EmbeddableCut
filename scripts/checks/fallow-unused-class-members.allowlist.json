@@ -512,6 +512,11 @@
           "parentName": "Editor",
           "memberName": "canRedo",
           "kind": "class_method"
+        },
+        {
+          "parentName": "Editor",
+          "memberName": "setGuards",
+          "kind": "class_method"
         }
       ]
     },

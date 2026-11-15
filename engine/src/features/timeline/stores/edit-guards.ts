@@ -68,23 +68,26 @@ function itemsById(snapshot: TimelineSnapshot): Map<string, TimelineItem> {
   return byId
 }
 
-/**
- * Whether the guards refuse the edit that turned `before` into `after`.
- * Reports the refusal to listeners when they do.
- */
-export function isEditRefused(
+/** The edit that turned `before` into `after`, when the guards refuse it. */
+export function findRefusedEdit(
   command: TimelineCommand,
   before: TimelineSnapshot,
   after: TimelineSnapshot,
-): boolean {
+): RefusedEdit | null {
   const remove = guards?.remove
-  if (!remove) return false
-  if (before.items === after.items && before.compositions === after.compositions) return false
+  if (!remove) return null
+  if (before.items === after.items && before.compositions === after.compositions) return null
   const remaining = itemsById(after)
   const removed = [...itemsById(before).values()].filter((item) => !remaining.has(item.id))
-  if (removed.length === 0) return false
+  if (removed.length === 0) return null
   const edit = { type: command.type }
-  if (remove(removed, edit)) return false
-  for (const listener of refusalListeners) listener({ ...edit, items: removed })
-  return true
+  return remove(removed, edit) ? null : { ...edit, items: removed }
+}
+
+/**
+ * Tells listeners about an edit that was refused and rolled back. A listener
+ * may throw to abort whatever made the edit, as the SDK's `apply` does.
+ */
+export function reportEditRefused(refusal: RefusedEdit): void {
+  for (const listener of [...refusalListeners]) listener(refusal)
 }

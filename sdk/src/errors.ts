@@ -26,6 +26,8 @@ export type EditorErrorCode =
   | 'MEDIA_NOT_FOUND'
   /** An edit operation was refused; nothing after it ran. */
   | 'OPERATION_FAILED'
+  /** An edit operation would remove items the host's guards protect; nothing after it ran. */
+  | 'EDIT_REFUSED'
 
 export class EditorError extends Error {
   readonly code: EditorErrorCode

@@ -27,6 +27,8 @@ type Handlers = {
 export interface ServeBridgeOptions {
   /** Applies `ui.setTheme`; without it the method fails with `UNSUPPORTED`. */
   setTheme?: (theme: string | Record<string, string>) => void
+  /** Applies `ui.setFeatures`; without it the method fails. */
+  setFeatures?: (features: Record<string, boolean | 'locked'>) => void
 }
 
 /**
@@ -114,6 +116,16 @@ export function serveBridge(
         settings: result.settings,
         warnings: result.warnings,
       }
+    },
+    'settings.setPolicy': ({ policy }) => {
+      editor.setSettingsPolicy(policy as Parameters<Editor['setSettingsPolicy']>[0])
+      return null
+    },
+    'ui.setFeatures': ({ features }) => {
+      if (!options.setFeatures)
+        throw new EditorError('OPERATION_FAILED', 'This editor has no UI to configure')
+      options.setFeatures(features)
+      return null
     },
     'ui.setTheme': ({ theme }) => {
       if (!options.setTheme)

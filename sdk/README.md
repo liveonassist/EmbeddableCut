@@ -38,6 +38,23 @@ editor.dispose()
 
 `apply(op | ops)` runs edit operations as one undo step: `addTrack`, `addText`, `addItem`, `addClip`, `updateItem`, `moveItem`, `removeItems`, `split`, `trimStart`, `trimEnd`, the transition, keyframe, effect and transform ops, and any an extension adds (`editor.operations` lists them). An op can refer to an earlier op's result with `{ "$ref": "<callerId>#/detail/<field>" }`. `undo()`, `redo()`, `canUndo` and `canRedo` work as in the editor.
 
+## Settings and guards
+
+A host decides what its users may change. Both apply to every path into the engine: the editor UI, its shortcuts and `apply`.
+
+```ts
+const editor = await createEditor({
+  // Forced over the user's persisted values for this editor; their own stay saved.
+  settings: { values: { autoSaveInterval: 0 }, locked: ['autoSaveInterval'], hidden: ['hotkeyOverrides'] },
+  // Asked with every item an edit would take off the timeline; false rolls the edit back.
+  guards: { remove: (items) => !items.some((item) => item.mediaId === streamMediaId) },
+})
+```
+
+- A locked setting can't be changed; a hidden one is left out of the settings dialog. `setSettingsPolicy(policy | null)` replaces the policy, and `dispose()` removes it.
+- A refused edit leaves no undo step. In the UI it raises a `notification`; in `apply` it throws `EDIT_REFUSED` with the protected items as `details`, and the ops after it don't run. `setGuards(guards | null)` replaces the guards.
+- Trimming, splitting (the left half keeps its id) or cutting a range out of an item doesn't remove it; deleting its media does, and is refused with it.
+
 ## Extensions
 
 ```ts

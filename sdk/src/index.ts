@@ -49,6 +49,15 @@ export {
   type UrlMedia,
 } from './media'
 export { SDK_VERSION } from './version'
+export type {
+  EditGuards,
+  GuardedEdit,
+} from '@embeddablecut/engine/features/timeline/stores/edit-guards'
+export type {
+  AppSettingKey,
+  AppSettingValues,
+  SettingsPolicy,
+} from '@embeddablecut/engine/features/settings/stores/settings-policy'
 export * from './bridge/index'
 export {
   PROJECT_DOCUMENT_FORMAT,
