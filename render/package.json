@@ -15,7 +15,7 @@
     "agent": "node agent.mjs",
     "gpu:probe": "node probe.mjs",
     "test": "node --test *.test.mjs",
-    "test:chrome": "node test.mjs --skip-build && node edit-operations.mjs && node export-media-video.mjs && node remote-media-e2e.mjs && node extensions-e2e.mjs && node lifecycle-e2e.mjs",
+    "test:chrome": "node test.mjs --skip-build && node edit-operations.mjs && node export-media-video.mjs && node remote-media-e2e.mjs && node hls-e2e.mjs && node extensions-e2e.mjs && node lifecycle-e2e.mjs",
     "test:media": "node media-test.mjs",
     "test:portable": "npm run test && npm run test:chrome && npm run test:media"
   },
