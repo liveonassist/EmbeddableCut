@@ -36,3 +36,13 @@ export type {
   ToolbarContribution,
   UiContext,
 } from './extensions/contributions'
+export {
+  FEATURE_IDS,
+  type EditorFeatures,
+  type FeatureContext,
+  type FeatureId,
+  type FeatureMode,
+  type FeatureSetting,
+  type FeatureTarget,
+  type FeatureValue,
+} from './extensions/features'

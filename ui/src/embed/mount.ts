@@ -17,6 +17,8 @@ import {
   type UiContributions,
 } from '@embeddablecut/sdk'
 import { ContributionRegistry } from '../extensions/registry.svelte'
+import { FeatureGate } from '../extensions/feature-gate.svelte'
+import type { EditorFeatures, FeatureId, FeatureSetting } from '../extensions/features'
 import type { Theme, ThemeMode } from '../theme/theme'
 import { createEditorShell } from './shell'
 import EditorApp from '../app/editor-app.svelte'
@@ -32,6 +34,8 @@ export interface MountEditorOptions extends EditorOptions {
   theme?: ThemeMode | Theme
   /** Panels, toolbar items, inspector sections, menus and replacements from the host. */
   ui?: UiContributions
+  /** Built-in features to hide (`false`) or lock (`'locked'`), by id; see `FEATURE_IDS`. */
+  features?: EditorFeatures
   /** A project document to open. */
   document?: unknown
   /** A workspace project to open instead (needs `workspace`). */
@@ -45,6 +49,8 @@ export interface MountedEditor {
   setTheme(theme: ThemeMode | Theme | Record<string, string>): void
   /** Replaces the host's own UI contributions. */
   configure(ui: UiContributions): void
+  /** Replaces every feature switch given in `features`. */
+  setFeatures(features: EditorFeatures): void
   /** Removes the editor and disposes it, so another can be mounted. */
   unmount(): Promise<void>
 }
@@ -58,6 +64,7 @@ export async function mountEditor(
     isolation = 'shadow',
     theme = 'dark',
     ui = {},
+    features = {},
     document: doc,
     projectId,
     allowUpgrade,
@@ -68,9 +75,10 @@ export async function mountEditor(
   const { root, portalTarget, themes } = shell
 
   const contributions = new ContributionRegistry(editor, ui)
+  const gate = new FeatureGate(editor, features)
   const app = mount(EditorApp, {
     target: root,
-    props: { ui: { editor, contributions, theme: themes, portalTarget } },
+    props: { ui: { editor, contributions, features: gate, theme: themes, portalTarget } },
   })
 
   try {
@@ -84,6 +92,7 @@ export async function mountEditor(
   async function teardown() {
     await unmount(app)
     contributions.dispose()
+    gate.dispose()
     shell.dispose()
     editor.dispose()
   }
@@ -92,6 +101,7 @@ export async function mountEditor(
     editor,
     setTheme: (next) => themes.setTheme(next),
     configure: (next) => contributions.setHost(next),
+    setFeatures: (next) => gate.set(next),
     unmount: teardown,
   }
 }
@@ -100,6 +110,8 @@ export interface MountEditorFrameOptions {
   /** The editor page: `embed.html` from the UI build, served with COOP and COEP. */
   src: string
   theme?: ThemeMode | Theme
+  /** Built-in features to hide or lock, as in `mountEditor`; values only, as they cross to the frame. */
+  features?: Partial<Record<FeatureId, FeatureSetting>>
   /** Attributes for the iframe element, such as `title` or `class`. */
   attributes?: Record<string, string>
 }
@@ -108,6 +120,7 @@ export interface MountedEditorFrame {
   readonly editor: RemoteEditor
   readonly frame: HTMLIFrameElement
   setTheme(theme: ThemeMode | Theme | Record<string, string>): Promise<void>
+  setFeatures(features: Partial<Record<FeatureId, FeatureSetting>>): Promise<void>
   unmount(): void
 }
 
@@ -132,11 +145,15 @@ export async function mountEditorFrame(
   target.append(frame)
   const editor = await connected
   if (options.theme) await editor.call('ui.setTheme', { theme: options.theme as never })
+  if (options.features) await editor.call('ui.setFeatures', { features: options.features })
   return {
     editor,
     frame,
     setTheme: async (theme) => {
       await editor.call('ui.setTheme', { theme: theme as never })
+    },
+    setFeatures: async (features) => {
+      await editor.call('ui.setFeatures', { features })
     },
     unmount: () => {
       editor.close()

@@ -34,6 +34,8 @@ const parents = params.getAll('parent')
 let mounted: MountedEditor | null = null
 const setTheme = (theme: string | Record<string, string>) =>
   mounted?.setTheme(theme as Parameters<MountedEditor['setTheme']>[0])
+const setFeatures = (features: Record<string, boolean | 'locked'>) =>
+  mounted?.setFeatures(features as Parameters<MountedEditor['setFeatures']>[0])
 
 const ready = mountEditor(document.body, {
   isolation: 'none',
@@ -59,9 +61,12 @@ if (native) {
           return () => listeners.delete(listener)
         },
       ),
-      { setTheme },
+      { setTheme, setFeatures },
     ),
   )
 } else {
-  acceptFrameConnection(ready, parents.length > 0 ? parents : [location.origin], { setTheme })
+  acceptFrameConnection(ready, parents.length > 0 ? parents : [location.origin], {
+    setTheme,
+    setFeatures,
+  })
 }
