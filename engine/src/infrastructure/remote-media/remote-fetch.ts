@@ -78,6 +78,17 @@ function rebase(target: RemoteTarget, renewed: string): string | null {
   }
 }
 
+/**
+ * Runs `fetch` holding an origin-wide lock on one block, so readers in other
+ * workers and tabs that reach the same block wait for its bytes instead of
+ * fetching them again.
+ */
+async function withBlockLock<T>(cacheKey: string, index: number, fetch: () => Promise<T>) {
+  const locks = typeof navigator === 'undefined' ? undefined : navigator.locks
+  if (!locks) return fetch()
+  return locks.request(`embeddablecut-remote-media:${cacheKey}:${index}`, fetch)
+}
+
 function isPlaylist(url: string): boolean {
   try {
     return /\.m3u8?$/i.test(new URL(url).pathname)
@@ -299,17 +310,31 @@ export function createRemoteFetch(metadata: RemoteRequestMetadata): typeof fetch
         }
         let block = pending.get(next) ?? (await cachedBlock(next))
         if (!block) {
-          let runEnd = next
-          while (runEnd < lastBlock && runEnd - next + 1 < RUN_BLOCKS && !pending.has(runEnd + 1)) {
-            if (await cache.match(blockUrl(cacheKey, runEnd + 1))) break
-            runEnd++
-          }
-          const run = await fetchRun(next, runEnd)
-          if (run instanceof Response) {
-            controller.error(new Error(`Range request failed: HTTP ${run.status}`))
+          const failure = await withBlockLock(cacheKey, next, async () => {
+            // Another reader (a worker, another tab) may have fetched it meanwhile.
+            const fetchedMeanwhile = await cachedBlock(next)
+            if (fetchedMeanwhile) {
+              pending.set(next, fetchedMeanwhile)
+              return null
+            }
+            let runEnd = next
+            while (
+              runEnd < lastBlock &&
+              runEnd - next + 1 < RUN_BLOCKS &&
+              !pending.has(runEnd + 1)
+            ) {
+              if (await cache.match(blockUrl(cacheKey, runEnd + 1))) break
+              runEnd++
+            }
+            const run = await fetchRun(next, runEnd)
+            if (run instanceof Response) return `Range request failed: HTTP ${run.status}`
+            for (const [index, fetched] of run) pending.set(index, fetched)
+            return null
+          })
+          if (failure) {
+            controller.error(new Error(failure))
             return
           }
-          for (const [index, fetched] of run) pending.set(index, fetched)
           block = pending.get(next) ?? null
           if (!block) {
             controller.error(new Error('Range request returned too little'))
