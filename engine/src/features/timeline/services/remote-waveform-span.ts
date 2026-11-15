@@ -8,7 +8,7 @@ import { getObjectUrlSourceMetadata } from '@/infrastructure/browser/object-url-
  * byte of it: a whole four-hour stream is gigabytes. Longer requests are left
  * to the visible range once the timeline is zoomed in that far.
  */
-export const REMOTE_WAVEFORM_MAX_SPAN_SEC = 10 * 60
+const REMOTE_WAVEFORM_MAX_SPAN_SEC = 10 * 60
 
 /** Whether decoding `spanSec` of the media at `url` (its whole length when omitted) is too much to fetch. */
 export function exceedsRemoteWaveformSpan(url: string, spanSec?: number): boolean {
