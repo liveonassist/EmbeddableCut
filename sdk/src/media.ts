@@ -18,6 +18,11 @@ export type {
   MediaCandidate,
 } from '@embeddablecut/engine/features/media-library/services/media-accept-policy'
 
+import {
+  cacheKeyForUrl,
+  seedRemoteMediaCache,
+} from '@embeddablecut/engine/infrastructure/remote-media/remote-fetch'
+
 export {
   /** Empties the shared cache of URL media blocks, for every asset and tab. */
   clearRemoteMediaCache as clearUrlMediaCache,
@@ -227,6 +232,9 @@ export class MediaApi {
     if (!current || current.storageType === 'url') {
       throw new EditorError('MEDIA_NOT_FOUND', `No local media ${id} in the project`)
     }
+    // The bytes are the ones just uploaded: reading the URL needn't fetch them again.
+    const bytes = await this.read(id).catch(() => null)
+    if (bytes) await seedRemoteMediaCache(media.key ?? cacheKeyForUrl(media.url), bytes)
     const moved = await relocateMediaToUrl(id, {
       url: media.url,
       ...(media.expiresAt === undefined ? {} : { expiresAt: media.expiresAt }),

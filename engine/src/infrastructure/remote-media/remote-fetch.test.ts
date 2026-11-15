@@ -5,6 +5,7 @@ import {
   REMOTE_BLOCK_SIZE,
   cacheKeyForUrl,
   createRemoteFetch,
+  seedRemoteMediaCache,
   setRemoteMediaCacheBudget,
   setRemoteUrlHooks,
 } from './remote-fetch'
@@ -169,6 +170,20 @@ describe('remote media fetch', () => {
       `https://embeddablecut.invalid/remote-media/${encodeURIComponent('stream/720p/2.ts')}/0`,
       `https://embeddablecut.invalid/remote-media/${encodeURIComponent('stream/720p/3.ts')}/0`,
     ])
+  })
+
+  it('serves an asset seeded from local bytes without fetching it', async () => {
+    await seedRemoteMediaCache('upload', new Blob([file]))
+
+    const { bytes } = await read(
+      createRemoteFetch({ cacheKey: 'upload' }),
+      'https://cdn.test/u.mp4',
+      5,
+      FILE_SIZE - 1,
+    )
+
+    expect(sameBytes(bytes, file.slice(5))).toBe(true)
+    expect(requests).toHaveLength(0)
   })
 
   it('passes a server without range support through uncached', async () => {

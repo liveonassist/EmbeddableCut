@@ -364,3 +364,18 @@ export function createRemoteFetch(metadata: RemoteRequestMetadata): typeof fetch
 export async function clearRemoteMediaCache(): Promise<void> {
   if (typeof caches !== 'undefined') await caches.delete(CACHE_NAME)
 }
+
+/**
+ * Stores bytes the page already has as a remote asset's blocks, so reading
+ * it at its URL fetches nothing: a file the host just uploaded, say.
+ */
+export async function seedRemoteMediaCache(cacheKey: string, bytes: Blob): Promise<void> {
+  const cache = await openCache()
+  if (!cache) return
+  for (let index = 0; index * REMOTE_BLOCK_SIZE < bytes.size; index++) {
+    const block = bytes.slice(index * REMOTE_BLOCK_SIZE, (index + 1) * REMOTE_BLOCK_SIZE)
+    await cache.put(blockUrl(cacheKey, index), new Response(block))
+  }
+  await cache.put(sizeUrl(cacheKey), new Response(String(bytes.size)))
+  await recordUsage(cache, cacheKey, bytes.size)
+}

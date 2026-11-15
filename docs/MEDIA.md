@@ -14,7 +14,7 @@ A host that keeps its media at URLs can let users add files freely and upload on
 
 ```ts
 const editor = await createEditor({
-  // No workspace: added files stay in memory. `workspace: 'opfs'` keeps them across reloads instead.
+  // Added files are kept in the origin's private storage (OPFS), across reloads; `workspace: 'none'` holds them in memory.
   media: {
     accept: ({ mimeType, duration, width, height }) => {
       if (!['video/mp4', 'audio/mpeg', 'image/png', 'image/jpeg', 'image/webp'].includes(mimeType))
@@ -41,7 +41,7 @@ async function save() {
 ```
 
 - **`pending()`** lists the assets the timeline uses that aren't at a URL: held in memory, or in a workspace. Media the user added but didn't use is left out.
-- **`replaceWithUrl(id, media)`** keeps the asset's id, so no clip changes, and everything extracted from it: metadata, thumbnail, keyframe index. Readers move to the URL through the host's resolver, as they do when a signed URL renews. The rest of the session reads the URL, so give it one that stays valid or a `key` the resolver renews it from.
+- **`replaceWithUrl(id, media)`** keeps the asset's id, so no clip changes, and everything extracted from it: metadata, thumbnail, keyframe index. Readers move to the URL through the host's resolver, as they do when a signed URL renews, and the uploaded bytes seed the block cache, so nothing is downloaded back. Give it a URL that stays valid or a `key` the resolver renews it from.
 - **`accept`** sees each file's probed metadata before anything is stored, for files the host adds and files users drop or pick alike. A string refuses the file: `addFiles` throws `MEDIA_REFUSED` (with `details.fileName` and `details.reason`), and the media library shows the reason as a notification.
 - **A document can be a draft.** `toDocument()` writes held files as `source.type: 'memory'`. Store it as a draft if you like, but only this page has those bytes: a later session that loads it shows them missing. Refuse to save a document with `memory` assets anywhere else, or upload them first.
 
