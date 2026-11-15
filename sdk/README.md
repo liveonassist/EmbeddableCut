@@ -30,7 +30,7 @@ editor.dispose()
 ## Media
 
 - `media.addUrl({ url, key })` adds a remote file, read in place with range requests; `media.resolve` in the options signs and renews URLs ([`docs/MEDIA.md`](../docs/MEDIA.md)).
-- `media.addFiles(files)` adds `File`s: into the workspace, or held in memory when the editor has none. `media.accept` in the options refuses files by type, length or size (`MEDIA_REFUSED`).
+- `media.addFiles(files)` adds `File`s: into the workspace (OPFS unless the host names another), or held in memory with `workspace: 'none'`. `media.accept` in the options refuses files by type, length or size (`MEDIA_REFUSED`).
 - `media.pending()`, `media.read(id)` and `media.replaceWithUrl(id, { url, key })` upload what the timeline uses when the user saves, swapping each asset to its URL in place ([deferred uploads](../docs/MEDIA.md#deferred-uploads)).
 - `media.list()`, `media.get(id)` and `media.remove(ids)` read and remove the project's media, as asset records.
 

@@ -51,10 +51,35 @@ URL media is a first-class kind of asset (`storageType: 'url'` in the media libr
 
 - **Probing reads a few ranges.** `editor.media.addUrl({ url })` reads the container's index and one frame for the thumbnail through range requests, with FreeCut's own metadata extraction running in its worker.
 - **Playback streams.** The preview's `<video>` elements read the URL directly, and seeking fetches only what the new position needs.
-- **Decoding reads ranges, once.** Everything that decodes through mediabunny (scrub frames, filmstrips, waveforms, export, server renders) reads through one fetch layer (`infrastructure/remote-media/remote-fetch.ts`). It fetches 1 MiB blocks into a cache in Cache Storage that every worker and tab shares, so a byte the preview fetched isn't fetched again by the waveform worker or by an export. Reads stream block by block, so a reader that stops early fetches no more.
+- **Decoding reads ranges, once.** Everything that decodes through mediabunny (scrub frames, filmstrips, waveforms, export, server renders) reads through one fetch layer (`infrastructure/remote-media/remote-fetch.ts`). It fetches 1 MiB blocks into a cache in Cache Storage that every worker and tab shares, so a byte the preview fetched isn't fetched again by the waveform worker or by an export. Reads stream block by block, so a reader that stops early fetches no more, and a block two contexts reach at once is fetched once, under a Web Lock.
+- **Derived data persists.** Filmstrips, waveforms and thumbnails live in the workspace, which is the origin's private storage (OPFS) unless the host names another, so reopening a project rebuilds none of them. `workspace: 'none'` keeps them in memory for the session.
 - **The cache survives renewal.** Blocks are keyed by the asset's stable `key`, or its URL without the query, so a re-signed URL still hits them. The cache is capped at 2 GiB by default (`setRemoteMediaCacheBudget`) and evicts whole assets, least recently used first.
 
 Measured by `render/remote-media-e2e.mjs` on a 10 MB clip: a frame grab from its middle reads 69% of the file in three requests (mostly mediabunny's read-ahead), and exporting the whole clip afterwards downloads only the rest, so each byte crosses the network once.
+
+### HLS
+
+An HLS playlist URL (`.m3u8`, or `application/vnd.apple.mpegurl`) is added like any other: `editor.media.addUrl({ url })`. It's stored with the playlist's MIME type and edited as video.
+
+- **The engine reads the stream itself.** mediabunny parses the master and media playlists and demuxes MPEG-TS, fMP4, AAC and MP3 segments, through the same fetch layer: each segment is cached under its path beside the playlist, and moves with it when the playlist's URL is renewed. Playlists themselves are never cached, since a live one grows.
+- **The highest-bandwidth variant** is the one probed, decoded and exported. The preview's `<video>` plays the playlist natively (Chrome, Safari) with its own adaptive bitrate.
+- **Time starts at the first segment.** `#EXT-X-PROGRAM-DATE-TIME` doesn't move timestamps into Unix time (`MEDIA_INPUT_FORMAT_OPTIONS`), so source frames count from the stream's start as they do for a file. MPEG-TS has no edit lists: when the encoder delayed the first video frame behind the audio, frame 0 of the stream shows what a player shows at 0, a frame or so after the encoder's first picture.
+- **Seeking is a binary search over the playlist**, then one segment. A four-hour stream (2,400 segments) imports in about 0.4 s, renders a frame from its third hour in about 0.2 s, and exports ten seconds from there reading under 10 MB.
+- **Signing:** the resolver signs and renews the playlist's URL. Segments are read at the URLs the playlist gives, so ones that need their own signatures must come signed in it; a segment the server refuses is retried beside the renewed playlist.
+
+### Long media
+
+Hours-long sources edit like short ones, as long as nothing reads them whole. Measured on a four-hour 960×540 source in the editor, with the whole stream on the timeline, seeking to the third hour and playing:
+
+| | Read before playing | Read in total | Heap |
+| --- | --- | --- | --- |
+| MP4, faststart (2.9 GB) | 88 MB | 122 MB | 204 MB |
+| HLS, 6 s segments | 15 MB | 23 MB | 146 MB |
+
+- **An MP4's index scales with its length**: about 29 MB for four hours at 30 fps. The probe reads it once into the block cache, but each preview `<video>` reads it again on its own. Prefer HLS for streams longer than an hour or so.
+- **Waveforms decode at most ten minutes of a URL asset per request** (`REMOTE_WAVEFORM_MAX_SPAN_SEC`). Audio interleaves with video, so decoding any stretch of audio reads every byte of it: a timeline zoomed out over a whole stream shows no waveform until it's zoomed in that far, and the audio meters read what the visible ranges decoded.
+- **Keyframe indexes are only built where they're free.** An MP4's comes from its sample table; for HLS and other remote streams the decoder seeks with a fixed backtrack instead of walking every segment.
+- Whole-file jobs (proxies, transcription, scene analysis, bundles) still download the asset. Run them on short media, or on a server.
 
 ### Authentication and signed URLs
 

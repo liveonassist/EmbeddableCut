@@ -67,6 +67,10 @@ Don't break these without an architecture discussion in the PR description.
 - `features/media-library/services/remote-media.ts` owns which URL each asset reads now, renews through the host's resolver, and moves readers over by invalidating the asset's entry in `blobUrlManager`.
 - Credentials (`headers`) live only in memory, in the remote registry; `MediaMetadata.remote` and asset records never hold them.
 - Remote preview `<video>` elements are CORS (`crossOrigin`, set in `VideoSourcePool`); the export engine gives remote sources no fallback element.
+- **A fetch's first URL is its asset; any other is a file the asset references** (an HLS playlist's variants and segments), cached under its path beside the asset and never rewritten to the asset's current URL. Playlists (`.m3u8`) are never block-cached.
+- **Every `Input` that may read a URL passes `formatOptions: MEDIA_INPUT_FORMAT_OPTIONS`**, so HLS timestamps start at the stream rather than at Unix time.
+- HLS keeps its playlist MIME type; test kinds with `isVideoMimeType` (`shared/utils/media-mime.ts`), not a `video/` prefix, where a stream must count as video.
+- **Nothing reads a URL asset whole on the editing path.** `getMediaBlobUrl` hands back its URL, waveform requests cap at `REMOTE_WAVEFORM_MAX_SPAN_SEC` of its source, and lazy keyframe indexes are built only for ISOBMFF. Whole-file jobs (proxies, transcription, analysis, bundles) are the exception, and stay opt-in.
 
 ### Rendering
 
