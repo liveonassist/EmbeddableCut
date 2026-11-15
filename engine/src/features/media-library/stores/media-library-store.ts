@@ -9,6 +9,7 @@ import type {
 } from '../types'
 import type { MediaMetadata } from '@/types/storage'
 import { loadMediaLibraryService } from './media-library-service-access'
+import { setLibraryMediaLookup } from '../services/library-media-lookup'
 import { getMediaType } from '../utils/validation'
 import { createLogger, createOperationId } from '@/shared/logging/logger'
 import { proxyService } from '../services/proxy-service'
@@ -653,6 +654,8 @@ export const useMediaLibraryStore = newStore
 // previous module execution is still live on the store — re-wiring here
 // would leak a listener on every file save, eventually double-updating
 // `mediaById` and double-firing proxy status changes.
+setLibraryMediaLookup((id) => useMediaLibraryStore.getState().mediaById[id])
+
 if (!hotStore) {
   // Keep mediaById synchronized even when action modules update mediaItems directly.
   let prevMediaItemsRef = useMediaLibraryStore.getState().mediaItems

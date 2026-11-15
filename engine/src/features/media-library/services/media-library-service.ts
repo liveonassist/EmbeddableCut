@@ -88,6 +88,7 @@ import { getSharedProxyKey } from '../utils/proxy-key'
 import { mediaProcessorService } from './media-processor-service'
 import { generateThumbnail } from '../utils/thumbnail-generator'
 import { getWorkspaceRoot } from '@/infrastructure/storage/workspace-fs/root'
+import { findLibraryMedia } from './library-media-lookup'
 import {
   cacheKeyForUrl,
   createRemoteFetch,
@@ -890,8 +891,15 @@ class MediaLibraryService {
    * Get a single media item by ID
    */
   async getMedia(id: string): Promise<MediaMetadata | null> {
-    const media = await getMediaDB(id)
-    return media || null
+    // URL media and what a project document brought live only in the library
+    // store, as does everything without a workspace.
+    let stored: MediaMetadata | undefined
+    try {
+      stored = await getMediaDB(id)
+    } catch (error) {
+      if (getWorkspaceRoot()) throw error
+    }
+    return stored ?? findLibraryMedia(id)
   }
 
   /**
@@ -2110,6 +2118,13 @@ class MediaLibraryService {
    * Get media file as blob URL (for preview/playback)
    */
   async getMediaBlobUrl(id: string): Promise<string | null> {
+    // URL media is read in place, a range at a time: its own URL serves every
+    // reader a blob URL would, without downloading it whole.
+    const media = await this.getMedia(id)
+    if (media?.storageType === 'url' && media.remote) {
+      const { resolveRemoteMediaUrl } = await import('./remote-media')
+      return resolveRemoteMediaUrl(media)
+    }
     const file = await this.getMediaFile(id)
 
     if (!file) {
