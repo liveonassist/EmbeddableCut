@@ -56,6 +56,36 @@ export function cacheKeyForUrl(url: string): string {
   }
 }
 
+/** Where one request goes, and the cache key its bytes are stored under. */
+interface RemoteTarget {
+  url: string
+  cacheKey: string
+  /**
+   * For a file the asset references, its path relative to the asset's
+   * directory, so it moves with the asset when the asset's URL is renewed.
+   */
+  relative?: string
+}
+
+/** A referenced file's URL beside a renewed asset URL, keeping the file's own query. */
+function rebase(target: RemoteTarget, renewed: string): string | null {
+  if (target.relative === undefined) return null
+  try {
+    const moved = new URL(target.relative, renewed)
+    return `${moved.origin}${moved.pathname}${new URL(target.url).search}`
+  } catch {
+    return null
+  }
+}
+
+function isPlaylist(url: string): boolean {
+  try {
+    return /\.m3u8?$/i.test(new URL(url).pathname)
+  } catch {
+    return false
+  }
+}
+
 function parseRange(header: string | null): { start: number; end: number | null } | null {
   const match = header ? /^bytes=(\d+)-(\d*)$/.exec(header.trim()) : null
   if (!match) return null
@@ -150,36 +180,59 @@ async function cachedSize(cache: Cache, cacheKey: string): Promise<number | null
  * @param metadata what to send and how to cache; see {@link RemoteRequestMetadata}.
  */
 export function createRemoteFetch(metadata: RemoteRequestMetadata): typeof fetch {
-  const network = async (url: string, init: RequestInit): Promise<Response> => {
+  // The first URL read is the asset's own. Any other is a file it references,
+  // as an HLS playlist references its variants and segments: each of those is
+  // cached under its own path, and read where it is rather than at the asset's
+  // current URL.
+  let rootPath: string | null = null
+  const locate = (url: string): RemoteTarget => {
+    const path = cacheKeyForUrl(url)
+    rootPath ??= path
+    if (path === rootPath) {
+      return { url: hooks?.currentUrl(metadata.cacheKey) ?? url, cacheKey: metadata.cacheKey }
+    }
+    const directory = rootPath.slice(0, rootPath.lastIndexOf('/') + 1)
+    if (!path.startsWith(directory)) return { url, cacheKey: path }
+    const relative = path.slice(directory.length)
+    return { url, cacheKey: `${metadata.cacheKey}/${relative}`, relative }
+  }
+
+  const network = async (target: RemoteTarget, init: RequestInit): Promise<Response> => {
     const headers = new Headers(init.headers)
     for (const [name, value] of Object.entries(metadata.headers ?? {})) headers.set(name, value)
-    const send = (target: string) =>
-      fetch(target, { ...init, headers, credentials: metadata.credentials ?? init.credentials })
-    const current = hooks?.currentUrl(metadata.cacheKey) ?? url
-    const response = await send(current)
+    const send = (url: string) =>
+      fetch(url, { ...init, headers, credentials: metadata.credentials ?? init.credentials })
+    const response = await send(target.url)
     if ((response.status === 401 || response.status === 403) && hooks) {
       const renewed = await hooks.renew(metadata.cacheKey)
-      if (renewed && renewed !== current) return send(renewed)
+      const retry =
+        renewed && (target.cacheKey === metadata.cacheKey ? renewed : rebase(target, renewed))
+      if (retry && retry !== target.url) return send(retry)
     }
     return response
   }
 
   return (async (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
     const request = input instanceof Request ? input : null
-    const url = request ? request.url : String(input)
+    const target = locate(request ? request.url : String(input))
     const requestInit: RequestInit = {
       method: init?.method ?? request?.method ?? 'GET',
       headers: init?.headers ?? request?.headers,
       signal: init?.signal ?? request?.signal,
     }
     const range = parseRange(new Headers(requestInit.headers).get('Range'))
+    // A playlist can grow while it's read (a live stream's does), so its
+    // bytes are never cached; they're small and read once per input.
     const cache =
-      metadata.noCache || requestInit.method !== 'GET' || !range ? null : await openCache()
-    if (!cache || !range) return network(url, requestInit)
+      metadata.noCache || requestInit.method !== 'GET' || !range || isPlaylist(target.url)
+        ? null
+        : await openCache()
+    if (!cache || !range) return network(target, requestInit)
+    const { cacheKey } = target
 
     // Fetches blocks `from..to` with one request and stores them. A response
     // other than 206 is handed back for the caller to pass through.
-    let size = await cachedSize(cache, metadata.cacheKey)
+    let size = await cachedSize(cache, cacheKey)
     const fetchRun = async (
       from: number,
       to: number,
@@ -189,11 +242,11 @@ export function createRemoteFetch(metadata: RemoteRequestMetadata): typeof fetch
         'Range',
         `bytes=${from * REMOTE_BLOCK_SIZE}-${(to + 1) * REMOTE_BLOCK_SIZE - 1}`,
       )
-      const response = await network(url, { ...requestInit, headers: runHeaders })
+      const response = await network(target, { ...requestInit, headers: runHeaders })
       if (response.status !== 206) return response
       if (size === null) {
         size = totalFromContentRange(response.headers.get('Content-Range'))
-        if (size !== null) await cache.put(sizeUrl(metadata.cacheKey), new Response(String(size)))
+        if (size !== null) await cache.put(sizeUrl(cacheKey), new Response(String(size)))
       }
       const bytes = new Uint8Array(await response.arrayBuffer())
       const fetched = new Map<number, Uint8Array>()
@@ -206,15 +259,15 @@ export function createRemoteFetch(metadata: RemoteRequestMetadata): typeof fetch
         // Only a whole block, or the file's last one, is stored.
         const isLast = size !== null && index * REMOTE_BLOCK_SIZE + block.length >= size
         if (block.length === REMOTE_BLOCK_SIZE || isLast) {
-          await cache.put(blockUrl(metadata.cacheKey, index), new Response(block))
+          await cache.put(blockUrl(cacheKey, index), new Response(block))
           storedBytes += block.length
         }
       }
-      await touch(cache, metadata.cacheKey, storedBytes)
+      await touch(cache, cacheKey, storedBytes)
       return fetched
     }
     const cachedBlock = async (index: number): Promise<Uint8Array | null> => {
-      const hit = await cache.match(blockUrl(metadata.cacheKey, index))
+      const hit = await cache.match(blockUrl(cacheKey, index))
       return hit ? new Uint8Array(await hit.arrayBuffer()) : null
     }
 
@@ -227,7 +280,7 @@ export function createRemoteFetch(metadata: RemoteRequestMetadata): typeof fetch
       if (first instanceof Map) for (const [index, block] of first) pending.set(index, block)
       else pending.set(firstBlock, first)
     }
-    if (size === null) return network(url, requestInit)
+    if (size === null) return network(target, requestInit)
     const total: number = size
     const lastByte = Math.min(range.end ?? total - 1, total - 1)
     if (range.start > lastByte) {
@@ -248,7 +301,7 @@ export function createRemoteFetch(metadata: RemoteRequestMetadata): typeof fetch
         if (!block) {
           let runEnd = next
           while (runEnd < lastBlock && runEnd - next + 1 < RUN_BLOCKS && !pending.has(runEnd + 1)) {
-            if (await cache.match(blockUrl(metadata.cacheKey, runEnd + 1))) break
+            if (await cache.match(blockUrl(cacheKey, runEnd + 1))) break
             runEnd++
           }
           const run = await fetchRun(next, runEnd)

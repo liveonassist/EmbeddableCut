@@ -144,6 +144,33 @@ describe('remote media fetch', () => {
     ])
   })
 
+  it('reads the files an asset references where they are, each cached apart', async () => {
+    const renew = vi.fn(async () => 'https://cdn2.test/vod/master.m3u8?sig=new')
+    setRemoteUrlHooks({ currentUrl: () => 'https://cdn.test/vod/master.m3u8?sig=old', renew })
+    const remoteFetch = createRemoteFetch({ cacheKey: 'stream' })
+
+    await read(remoteFetch, 'https://cdn.test/vod/master.m3u8?sig=old', 0, 9)
+    await read(remoteFetch, 'https://cdn.test/vod/720p/1.ts', 0, 9)
+    await read(remoteFetch, 'https://cdn.test/vod/720p/2.ts', 0, 9)
+    await read(remoteFetch, 'https://cdn.test/vod/720p/1.ts', 0, 9)
+    refuse.add('https://cdn.test/vod/720p/3.ts?t=1')
+    await read(remoteFetch, 'https://cdn.test/vod/720p/3.ts?t=1', 0, 9)
+
+    expect(requests.map((r) => r.url)).toEqual([
+      'https://cdn.test/vod/master.m3u8?sig=old',
+      'https://cdn.test/vod/720p/1.ts',
+      'https://cdn.test/vod/720p/2.ts',
+      'https://cdn.test/vod/720p/3.ts?t=1',
+      'https://cdn2.test/vod/720p/3.ts?t=1',
+    ])
+    // Playlists are never cached, as a live one grows.
+    expect([...cache.entries.keys()].filter((url) => url.endsWith('/0'))).toEqual([
+      `https://embeddablecut.invalid/remote-media/${encodeURIComponent('stream/720p/1.ts')}/0`,
+      `https://embeddablecut.invalid/remote-media/${encodeURIComponent('stream/720p/2.ts')}/0`,
+      `https://embeddablecut.invalid/remote-media/${encodeURIComponent('stream/720p/3.ts')}/0`,
+    ])
+  })
+
   it('passes a server without range support through uncached', async () => {
     vi.stubGlobal(
       'fetch',
