@@ -11,6 +11,7 @@ import {
   useSequencesStore,
 } from '@/features/media-library/deps/timeline-stores'
 import { i18n, t } from '$lib/i18n.svelte'
+import { useFeatures } from '../../../extensions/feature-gate.svelte'
 
 const logger = createLogger('MediaLibrary')
 
@@ -36,6 +37,7 @@ interface UseMediaLibraryDeletionParams {
  * handlers that remove timeline references, media, and compound clips.
  */
 export function useMediaLibraryDeletion(params: () => UseMediaLibraryDeletionParams) {
+  const features = useFeatures()
   let isFocused = false
   let showDeleteDialog = $state(false)
   let pendingDeletion = $state.raw<PendingLibraryDeletion>({
@@ -74,6 +76,7 @@ export function useMediaLibraryDeletion(params: () => UseMediaLibraryDeletionPar
 
       // Don't trigger if media library is not focused
       if (!isFocused) return
+      if (features.mode('media.delete') !== 'on') return
 
       const { selectedAssetCount, selectedMediaIds, selectedCompositionIds } = params()
       // Don't trigger if no items selected
@@ -147,7 +150,7 @@ export function useMediaLibraryDeletion(params: () => UseMediaLibraryDeletionPar
 
   const handleDeleteSelected = () => {
     const { selectedAssetCount, selectedMediaIds, selectedCompositionIds } = params()
-    if (selectedAssetCount === 0) return
+    if (selectedAssetCount === 0 || features.mode('media.delete') !== 'on') return
     // Capture the IDs BEFORE opening dialog (selection may be cleared by click outside)
     pendingDeletion = {
       mediaIds: [...selectedMediaIds],

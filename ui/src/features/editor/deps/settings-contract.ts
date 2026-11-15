@@ -16,3 +16,4 @@ export { default as LocalInferenceUnloadControl } from '@/features/settings/comp
 export { default as LocalModelCacheControl } from '@/features/settings/components/local-model-cache-control.svelte'
 export { useResolvedHotkeys } from '@/features/settings/hooks/use-resolved-hotkeys.svelte'
 export { HotkeyEditor } from '@/features/settings/components/hotkey-editor'
+export { default as SettingGate } from '@/features/settings/components/setting-gate.svelte'

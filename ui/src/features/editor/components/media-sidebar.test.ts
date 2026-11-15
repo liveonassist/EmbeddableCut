@@ -6,6 +6,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vite-plus/test'
 import type { EditorUi } from '$lib/context'
 import { i18n } from '$lib/i18n.svelte'
 import type { PanelContribution } from '../../../extensions/contributions'
+import { FeatureGate } from '../../../extensions/feature-gate.svelte'
 import { useEditorStore } from '@/shared/state/editor'
 import MediaSidebarHarness from './media-sidebar.harness.svelte'
 
@@ -72,5 +73,28 @@ describe('MediaSidebar contributed panels', () => {
     )
     expect(useEditorStore.getState().activeTab).toBe('shapes')
     expect(renderPanel).toHaveBeenCalledTimes(1)
+  })
+})
+
+describe('MediaSidebar feature switches', () => {
+  afterEach(() => {
+    document.body.innerHTML = ''
+  })
+
+  it('leaves out hidden tabs, disables locked ones, and never shows either as active', () => {
+    // The persisted tab is one the host hides.
+    useEditorStore.setState({ activeTab: 'ai', leftSidebarOpen: true })
+    const ui = fakeUi([])
+    ui.features = new FeatureGate(ui.editor, { ai: false, 'sidebar.media': 'locked' })
+    render(MediaSidebarHarness, { props: { ui } })
+
+    const tab = (key: string) =>
+      document.querySelector<HTMLButtonElement>(`[data-tooltip="${i18n.t(key)}"]`)
+    expect(tab('editor.mediaSidebar.ai')).toBeNull()
+    expect(tab('transcript.tabLabel')).toBeNull()
+    expect(tab('editor.mediaSidebar.media')).toBeDisabled()
+    // The first tab left on stands in for the hidden one.
+    expect(tab('editor.mediaSidebar.text')!.className).toContain('bg-primary')
+    ui.features.dispose()
   })
 })

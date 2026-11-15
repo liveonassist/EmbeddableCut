@@ -29,6 +29,7 @@
   import { Button } from '@/components/ui/button'
   import DiscordIcon from '@/components/brand/discord-icon.svelte'
   import Contribution from '@/components/contribution.svelte'
+  import Feature from '@/components/feature.svelte'
   import ContributionIcon from '@/components/contribution-icon.svelte'
   import { DISCORD_INVITE_URL } from '@/config/community'
   import {
@@ -56,6 +57,7 @@
   import { useItemsStore, useTimelineSettingsStore } from '@/features/editor/deps/timeline-store'
   import { useMediaLibraryStore } from '@/features/editor/deps/media-library'
   import { maybeEditorUi } from '../editor-ui'
+  import { useFeatures } from '../../../extensions/feature-gate.svelte'
   import { findRouter } from '$lib/router'
 
   interface ToolbarProps {
@@ -84,6 +86,9 @@
   const leftItems = $derived(editorUi?.contributions.toolbar('left') ?? [])
   const centerItems = $derived(editorUi?.contributions.toolbar('center') ?? [])
   const rightItems = $derived(editorUi?.contributions.toolbar('right') ?? [])
+  const features = useFeatures()
+  const exportVideoMode = $derived(features.mode('export.video'))
+  const exportBundleMode = $derived(features.mode('export.bundle'))
 
   // The app's projects page, when the editor runs inside the app; a
   // mounted editor has no pages to go back to.
@@ -270,6 +275,7 @@
     {#if projectMenu && editorUi}
       <Contribution content={projectMenu} context={{ editor: editorUi.editor }} class="flex items-center" />
     {:else}
+      <Feature id="toolbar.project">
       {#if router}
         <Button
           variant="ghost"
@@ -310,6 +316,7 @@
           })}
         </span>
       </div>
+      </Feature>
     {/if}
     {#each leftItems as item (item.id)}
       {@render contributedItem(item)}
@@ -317,7 +324,7 @@
   </div>
 
   <div class="flex flex-1 items-center justify-center gap-1.5">
-    <WorkspaceSwitcher />
+    <Feature id="toolbar.workspaces"><WorkspaceSwitcher /></Feature>
     {#each centerItems as item (item.id)}
       {@render contributedItem(item)}
     {/each}
@@ -337,6 +344,7 @@
     {/if}
 
     <!-- Socials -->
+    <Feature id="toolbar.community">
     <Button variant="outline" size="icon" class="h-7 w-7">
       {#snippet child({ props })}
         <a
@@ -369,8 +377,10 @@
     </Button>
 
     <Separator orientation="vertical" class="h-5" />
+    </Feature>
 
     <!-- Utility -->
+    <Feature id="toolbar.docs">
     <Button variant="outline" size="icon" class="h-7 w-7">
       {#snippet child({ props })}
         <a
@@ -386,6 +396,8 @@
         </a>
       {/snippet}
     </Button>
+    </Feature>
+    <Feature id="toolbar.whats-new">
     <Button
       variant="outline"
       size="icon"
@@ -400,6 +412,8 @@
         <span class="absolute top-1 right-1 h-1.5 w-1.5 rounded-full bg-primary" aria-hidden="true"></span>
       {/if}
     </Button>
+    </Feature>
+    <Feature id="toolbar.settings">
     <Button
       variant="outline"
       size="icon"
@@ -411,6 +425,8 @@
     >
       <Settings class="h-4 w-4" />
     </Button>
+    </Feature>
+    <Feature id="toolbar.shortcuts">
     <Button
       variant="outline"
       size="icon"
@@ -422,11 +438,13 @@
     >
       <Keyboard class="h-4 w-4" />
     </Button>
-    <LanguageSwitcher size="sm" align="end" side="bottom" />
+    </Feature>
+    <Feature id="toolbar.language"><LanguageSwitcher size="sm" align="end" side="bottom" /></Feature>
 
     <Separator orientation="vertical" class="h-5" />
 
     <!-- Actions -->
+    <Feature id="toolbar.save">
     <Button variant="outline" size="sm" class="gap-1.5" onclick={handleSave} aria-label={t('toolbar.saveAria')}>
       <div class="relative">
         {#if isSaveAnimating}
@@ -442,8 +460,10 @@
       </div>
       {t('toolbar.save')}
     </Button>
+    </Feature>
 
     {#if onOpenRenderQueue}
+      <Feature id="toolbar.render-queue">
       <Button
         variant="outline"
         size="icon"
@@ -462,8 +482,11 @@
           </span>
         {/if}
       </Button>
+      </Feature>
     {/if}
 
+    {#if exportVideoMode !== 'hidden' || exportBundleMode !== 'hidden'}
+    <Feature id="export">
     <DropdownMenu>
       <DropdownMenuTrigger>
         {#snippet child({ props })}
@@ -475,16 +498,22 @@
         {/snippet}
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        <DropdownMenuItem onSelect={onExport} class="gap-2">
-          <Video class="h-4 w-4" />
-          {t('toolbar.exportVideo')}
-        </DropdownMenuItem>
-        <DropdownMenuItem onSelect={onExportBundle} class="gap-2">
-          <FolderArchive class="h-4 w-4" />
-          {t('toolbar.downloadProjectZip')}
-        </DropdownMenuItem>
+        {#if exportVideoMode !== 'hidden'}
+          <DropdownMenuItem onSelect={onExport} disabled={exportVideoMode === 'locked'} class="gap-2">
+            <Video class="h-4 w-4" />
+            {t('toolbar.exportVideo')}
+          </DropdownMenuItem>
+        {/if}
+        {#if exportBundleMode !== 'hidden'}
+          <DropdownMenuItem onSelect={onExportBundle} disabled={exportBundleMode === 'locked'} class="gap-2">
+            <FolderArchive class="h-4 w-4" />
+            {t('toolbar.downloadProjectZip')}
+          </DropdownMenuItem>
+        {/if}
       </DropdownMenuContent>
     </DropdownMenu>
+    </Feature>
+    {/if}
 
     {#each rightItems as item (item.id)}
       {@render contributedItem(item)}

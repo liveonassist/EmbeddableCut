@@ -26,6 +26,7 @@
   import Volume2 from 'lucide-svelte/icons/volume-2'
   import Diamond from 'lucide-svelte/icons/diamond'
   import { Separator } from '@/components/ui/separator'
+  import Feature from '@/components/feature.svelte'
   import { formatHotkeyBinding } from '@/config/hotkeys'
   import { useMarkersStore } from '@/features/timeline/stores/markers-store'
   import { useTimelineSettingsStore } from '@/features/timeline/stores/timeline-settings-store'
@@ -148,6 +149,7 @@
           <MousePointer2 class="w-3.5 h-3.5" />
         </Button>
 
+        <Feature id="timeline.trim-tool">
         <Button
           variant="ghost"
           size="icon"
@@ -159,7 +161,9 @@
         >
           {@render trimEditIcon('w-3.5 h-3.5')}
         </Button>
+        </Feature>
 
+        <Feature id="timeline.razor">
         <Button
           variant="ghost"
           size="icon"
@@ -171,7 +175,9 @@
         >
           <Scissors class="w-3.5 h-3.5 -rotate-90" />
         </Button>
+        </Feature>
 
+        <Feature id="timeline.rate-stretch">
         <Button
           variant="ghost"
           size="icon"
@@ -184,7 +190,9 @@
         >
           <Gauge class="w-3.5 h-3.5" />
         </Button>
+        </Feature>
 
+        <Feature id="timeline.slip-slide">
         {#if SLIP_SLIDE_TOOLS_ENABLED}
           <DropdownMenu>
             <DropdownMenuTrigger>
@@ -230,11 +238,13 @@
             </DropdownMenuContent>
           </DropdownMenu>
         {/if}
+        </Feature>
       </div>
 
       <Separator orientation="vertical" class="h-5 mx-1.5" />
 
       <!-- Undo/Redo -->
+      <Feature id="timeline.history">
       <div class="flex items-center gap-1">
         <Button
           variant="ghost"
@@ -270,8 +280,10 @@
       </div>
 
       <Separator orientation="vertical" class="h-5 mx-1.5" />
+      </Feature>
 
       <!-- In/Out Points -->
+      <Feature id="timeline.in-out">
       <div class="flex items-center gap-1">
         <Button
           variant="ghost"
@@ -309,8 +321,10 @@
       </div>
 
       <Separator orientation="vertical" class="h-5 mx-1.5" />
+      </Feature>
 
       <!-- Markers -->
+      <Feature id="timeline.markers">
       <div class="flex items-center gap-1">
         <Button
           variant="ghost"
@@ -355,13 +369,17 @@
       </div>
 
       <Separator orientation="vertical" class="h-5 mx-1.5" />
+      </Feature>
 
       <!-- Microphone voiceover -->
+      <Feature id="timeline.record">
       <MicRecordControl />
 
       <Separator orientation="vertical" class="h-5 mx-1.5" />
+      </Feature>
 
       <!-- Snap Toggle -->
+      <Feature id="timeline.snap">
       <Button
         variant="ghost"
         size="icon"
@@ -377,7 +395,9 @@
       >
         <Magnet class="w-3.5 h-3.5" />
       </Button>
+      </Feature>
 
+      <Feature id="timeline.audio-skimming">
       <Button
         variant="ghost"
         size="icon"
@@ -394,10 +414,12 @@
       >
         <Volume2 class="w-3.5 h-3.5" />
       </Button>
+      </Feature>
 
       <Separator orientation="vertical" class="h-5 mx-1.5" />
 
       <!-- Inline keyframes toggle -->
+      <Feature id="timeline.keyframes">
       <Button
         variant="ghost"
         size="icon"
@@ -410,7 +432,9 @@
       >
         <Diamond class="h-3.5 w-3.5" />
       </Button>
+      </Feature>
 
+      <Feature id="timeline.linked-selection">
       <Button
         variant="ghost"
         size="icon"
@@ -431,6 +455,7 @@
       >
         <Link2 class="w-3.5 h-3.5" />
       </Button>
+      </Feature>
     </div>
   </div>
 

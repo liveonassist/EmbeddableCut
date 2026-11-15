@@ -91,10 +91,13 @@
   import { select } from '$lib/store.svelte'
   import { t } from '$lib/i18n.svelte'
   import { maybeEditorUi } from '../editor-ui'
+  import { useFeatures } from '../../../extensions/feature-gate.svelte'
+  import type { FeatureId, FeatureMode } from '../../../extensions/features'
 
   const logger = createLogger('MediaSidebar')
 
   const editorUi = maybeEditorUi()
+  const features = useFeatures()
 
   const editorDensity = select(useSettingsStore, (s) => s.editorDensity)
   const editorLayout = $derived(getEditorLayout(editorDensity.current))
@@ -127,8 +130,6 @@
   const activePanel = $derived(
     activePanelId ? (contributedPanels.find((panel) => panel.id === activePanelId) ?? null) : null,
   )
-  // The built-in tab shown, or null while a contributed one is.
-  const activeBuiltInTab = $derived(activePanel ? null : activeTab.current)
 
   // svelte-ignore state_referenced_locally
   let aiTabActivated = $state(activeTab.current === 'ai')
@@ -368,6 +369,32 @@
   ])
 
   type BuiltInTab = (typeof categories)[number]['id']
+
+  const TAB_FEATURES: Record<BuiltInTab, FeatureId[]> = {
+    media: ['sidebar.media'],
+    text: ['sidebar.text'],
+    shapes: ['sidebar.shapes'],
+    effects: ['sidebar.effects'],
+    transitions: ['sidebar.transitions'],
+    lottie: ['sidebar.stickers'],
+    transcript: ['sidebar.transcript', 'ai.transcript'],
+    ai: ['sidebar.ai', 'ai.generate'],
+  }
+  const tabModes = $derived(
+    Object.fromEntries(
+      categories.map((category) => [category.id, features.mode(TAB_FEATURES[category.id])]),
+    ) as Record<BuiltInTab, FeatureMode>,
+  )
+
+  // The built-in tab shown, or null while a contributed one is. A tab the host
+  // hid or locked isn't shown even when it's the one persisted as active.
+  const activeBuiltInTab = $derived(
+    activePanel
+      ? null
+      : tabModes[activeTab.current] === 'on'
+        ? activeTab.current
+        : (categories.find((category) => tabModes[category.id] === 'on')?.id ?? null),
+  )
 
   function selectBuiltInTab(id: BuiltInTab) {
     if (activeBuiltInTab === id && leftSidebarOpen.current) {
@@ -631,10 +658,11 @@
 
     <!-- Category Icons -->
     <div class="flex flex-col gap-1 py-1.5">
-      {#each categories as { id, icon: Icon, label } (id)}
+      {#each categories.filter((category) => tabModes[category.id] !== 'hidden') as { id, icon: Icon, label } (id)}
         <button
           onclick={() => selectBuiltInTab(id)}
-          class="w-9 h-9 rounded-lg flex items-center justify-center transition-[transform,background-color,color] duration-150 active:scale-95 {activeBuiltInTab ===
+          disabled={tabModes[id] === 'locked'}
+          class="w-9 h-9 rounded-lg flex items-center justify-center transition-[transform,background-color,color] duration-150 active:scale-95 disabled:pointer-events-none disabled:opacity-50 {activeBuiltInTab ===
             id && leftSidebarOpen.current
             ? 'bg-primary text-primary-foreground hover:bg-primary/90'
             : 'text-muted-foreground hover:text-foreground hover:bg-secondary/50'}"

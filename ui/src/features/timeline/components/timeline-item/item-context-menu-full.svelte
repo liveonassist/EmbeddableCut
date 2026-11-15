@@ -22,6 +22,8 @@
   import { formatHotkeyBinding } from '@/config/hotkeys'
   import { useResolvedHotkeys } from '@/features/timeline/deps/settings-ui'
   import GradeActions from './item-context-menu-grade-actions.svelte'
+  import { useFeatures } from '../../../../extensions/feature-gate.svelte'
+  import type { FeatureId } from '../../../../extensions/features'
   import type {
     CaptionActionsConfig,
     CompositionActionsConfig,
@@ -64,6 +66,10 @@
     return keyframeActions.keyframedProperties.filter((p) => p.keyframes.length > 0)
   })
   const sceneVerificationModelOptions = getSceneVerificationModelOptions()
+  // What the host hid or locked, for the clips the menu acts on (the selection).
+  const features = useFeatures()
+  const shown = (id: FeatureId) => features.mode(id) !== 'hidden'
+  const locked = (id: FeatureId) => features.mode(id) === 'locked'
 
   $effect(() => {
     void [pendingActivation, trigger]
@@ -89,21 +95,21 @@
 }: JoinActionsConfig)}
   {@const showJoinLeft = hasJoinableLeft && (closerEdge === 'left' || !hasJoinableRight)}
   {@const showJoinRight = hasJoinableRight && (closerEdge === 'right' || !hasJoinableLeft)}
-  {#if showJoinLeft || showJoinRight || canJoinSelected}
+  {#if (showJoinLeft || showJoinRight || canJoinSelected) && shown('clip.join')}
     {#if showJoinLeft}
-      <ContextMenuItem onclick={onJoinLeft}
+      <ContextMenuItem onclick={onJoinLeft} disabled={locked('clip.join')}
         >{t('timeline.contextMenu.joinWithPrevious')}<ContextMenuShortcut>J</ContextMenuShortcut
         ></ContextMenuItem
       >
     {/if}
     {#if showJoinRight}
-      <ContextMenuItem onclick={onJoinRight}
+      <ContextMenuItem onclick={onJoinRight} disabled={locked('clip.join')}
         >{t('timeline.contextMenu.joinWithNext')}<ContextMenuShortcut>J</ContextMenuShortcut
         ></ContextMenuItem
       >
     {/if}
     {#if canJoinSelected}
-      <ContextMenuItem onclick={onJoinSelected}
+      <ContextMenuItem onclick={onJoinSelected} disabled={locked('clip.join')}
         >{t('timeline.contextMenu.joinSelected')}<ContextMenuShortcut>J</ContextMenuShortcut
         ></ContextMenuItem
       >
@@ -118,16 +124,16 @@
   onLinkSelected,
   onUnlinkSelected,
 }: LinkActionsConfig)}
-  {#if canLinkSelected || canUnlinkSelected}
+  {#if (canLinkSelected || canUnlinkSelected) && shown('clip.link')}
     {#if canLinkSelected && onLinkSelected}
-      <ContextMenuItem onclick={onLinkSelected}
+      <ContextMenuItem onclick={onLinkSelected} disabled={locked('clip.link')}
         >{t('timeline.contextMenu.linkClips')}<ContextMenuShortcut
           >{formatHotkeyBinding(hotkeys.current.LINK_AUDIO_VIDEO)}</ContextMenuShortcut
         ></ContextMenuItem
       >
     {/if}
     {#if canUnlinkSelected && onUnlinkSelected}
-      <ContextMenuItem onclick={onUnlinkSelected}
+      <ContextMenuItem onclick={onUnlinkSelected} disabled={locked('clip.link')}
         >{t('timeline.contextMenu.unlinkClips')}<ContextMenuShortcut
           >{formatHotkeyBinding(hotkeys.current.UNLINK_AUDIO_VIDEO)}</ContextMenuShortcut
         ></ContextMenuItem
@@ -183,8 +189,8 @@
   onRemoveFillers,
   onGenerateAudioFromText,
 }: MediaActionsConfig)}
-  {#if canReverse && onReverse}
-    <ContextMenuItem onclick={onReverse}
+  {#if canReverse && onReverse && shown('clip.reverse')}
+    <ContextMenuItem onclick={onReverse} disabled={locked('clip.reverse')}
       >{isReversed
         ? t('timeline.contextMenu.unreverse')
         : t('timeline.contextMenu.reverse')}</ContextMenuItem
@@ -192,8 +198,8 @@
     <ContextMenuSeparator />
   {/if}
 
-  {#if isVideoItem && playheadInBounds && onFreezeFrame}
-    <ContextMenuItem onclick={onFreezeFrame}
+  {#if isVideoItem && playheadInBounds && onFreezeFrame && shown('clip.freeze-frame')}
+    <ContextMenuItem onclick={onFreezeFrame} disabled={locked('clip.freeze-frame')}
       >{t('timeline.contextMenu.insertFreezeFrame')}<ContextMenuShortcut
         >Shift+F</ContextMenuShortcut
       ></ContextMenuItem
@@ -201,15 +207,15 @@
     <ContextMenuSeparator />
   {/if}
 
-  {#if canRemoveSilence && onRemoveSilence}
-    <ContextMenuItem onclick={onRemoveSilence}
+  {#if canRemoveSilence && onRemoveSilence && shown('ai.cleanup')}
+    <ContextMenuItem onclick={onRemoveSilence} disabled={locked('ai.cleanup')}
       >{t('timeline.contextMenu.removeSilence')}</ContextMenuItem
     >
     <ContextMenuSeparator />
   {/if}
 
-  {#if canRemoveFillers && onRemoveFillers}
-    <ContextMenuItem onclick={onRemoveFillers} disabled={isRemovingFillers}
+  {#if canRemoveFillers && onRemoveFillers && shown('ai.cleanup')}
+    <ContextMenuItem onclick={onRemoveFillers} disabled={isRemovingFillers || locked('ai.cleanup')}
       >{isRemovingFillers
         ? t('timeline.contextMenu.detectingFillers')
         : t('timeline.contextMenu.removeFillerWords')}</ContextMenuItem
@@ -217,8 +223,8 @@
     <ContextMenuSeparator />
   {/if}
 
-  {#if isTextItem && onGenerateAudioFromText}
-    <ContextMenuItem onclick={onGenerateAudioFromText}
+  {#if isTextItem && onGenerateAudioFromText && shown('ai.speech')}
+    <ContextMenuItem onclick={onGenerateAudioFromText} disabled={locked('ai.speech')}
       >{t('timeline.contextMenu.generateAudioFromText')}</ContextMenuItem
     >
     <ContextMenuSeparator />
@@ -230,12 +236,13 @@
   isDetectingScenes,
   onDetectScenes,
 }: SceneDetectionActionsConfig)}
-  {#if canDetectScenes && onDetectScenes}
+  {#if canDetectScenes && onDetectScenes && shown('ai.scenes')}
     {#if isDetectingScenes}
       <ContextMenuItem disabled>{t('timeline.contextMenu.detectingScenes')}</ContextMenuItem>
     {:else}
       <ContextMenuSub>
-        <ContextMenuSubTrigger>{t('timeline.contextMenu.detectScenesAndSplit')}</ContextMenuSubTrigger
+        <ContextMenuSubTrigger disabled={locked('ai.scenes')}
+          >{t('timeline.contextMenu.detectScenesAndSplit')}</ContextMenuSubTrigger
         >
         <ContextMenuSubContent class="w-48">
           <ContextMenuItem onclick={() => onDetectScenes('histogram')}
@@ -263,11 +270,11 @@
   onExtractEmbeddedSubtitles,
   onConsolidateCaptionsToSegment,
 }: CaptionActionsConfig)}
-  {#if canManageCaptions && onOpenCaptionDialog}
+  {#if canManageCaptions && onOpenCaptionDialog && shown('ai.captions')}
     {#if isGeneratingCaptions}
       <ContextMenuItem disabled>{t('timeline.contextMenu.updatingCaptions')}</ContextMenuItem>
     {:else}
-      <ContextMenuItem onclick={onOpenCaptionDialog}
+      <ContextMenuItem onclick={onOpenCaptionDialog} disabled={locked('ai.captions')}
         >{hasCaptions
           ? t('timeline.contextMenu.regenerateCaptions')
           : t('timeline.contextMenu.generateCaptions')}</ContextMenuItem
@@ -298,19 +305,19 @@
   onDissolveComposition,
   onCreatePreComp,
 }: CompositionActionsConfig)}
-  {#if (isCompositionItem && (onEnterComposition || onDissolveComposition)) || (canCreatePreComp && onCreatePreComp)}
+  {#if ((isCompositionItem && (onEnterComposition || onDissolveComposition)) || (canCreatePreComp && onCreatePreComp)) && shown('clip.compound')}
     {#if isCompositionItem && onEnterComposition}
-      <ContextMenuItem onclick={onEnterComposition}
+      <ContextMenuItem onclick={onEnterComposition} disabled={locked('clip.compound')}
         >{t('timeline.contextMenu.openCompoundClip')}</ContextMenuItem
       >
     {/if}
     {#if isCompositionItem && onDissolveComposition}
-      <ContextMenuItem onclick={onDissolveComposition}
+      <ContextMenuItem onclick={onDissolveComposition} disabled={locked('clip.compound')}
         >{t('timeline.contextMenu.dissolveCompoundClip')}</ContextMenuItem
       >
     {/if}
     {#if canCreatePreComp && onCreatePreComp}
-      <ContextMenuItem onclick={onCreatePreComp}
+      <ContextMenuItem onclick={onCreatePreComp} disabled={locked('clip.compound')}
         >{t('timeline.contextMenu.createCompoundClip')}</ContextMenuItem
       >
     {/if}
@@ -319,19 +326,23 @@
 {/snippet}
 
 {#snippet destructiveSection({ isSelected, onRippleDelete, onDelete }: DestructiveActionsConfig)}
-  <ContextMenuItem
-    onclick={onRippleDelete}
-    disabled={!isSelected}
-    class="text-destructive focus:text-destructive"
-    >{t('timeline.contextMenu.rippleDelete')}<ContextMenuShortcut>Ctrl+Del</ContextMenuShortcut
-    ></ContextMenuItem
-  >
-  <ContextMenuItem
-    onclick={onDelete}
-    disabled={!isSelected}
-    class="text-destructive focus:text-destructive"
-    >{t('common.delete')}<ContextMenuShortcut>Del</ContextMenuShortcut></ContextMenuItem
-  >
+  {#if shown('clip.ripple-delete')}
+    <ContextMenuItem
+      onclick={onRippleDelete}
+      disabled={!isSelected || locked('clip.ripple-delete')}
+      class="text-destructive focus:text-destructive"
+      >{t('timeline.contextMenu.rippleDelete')}<ContextMenuShortcut>Ctrl+Del</ContextMenuShortcut
+      ></ContextMenuItem
+    >
+  {/if}
+  {#if shown('clip.delete')}
+    <ContextMenuItem
+      onclick={onDelete}
+      disabled={!isSelected || locked('clip.delete')}
+      class="text-destructive focus:text-destructive"
+      >{t('common.delete')}<ContextMenuShortcut>Del</ContextMenuShortcut></ContextMenuItem
+    >
+  {/if}
 {/snippet}
 
 <ContextMenu>

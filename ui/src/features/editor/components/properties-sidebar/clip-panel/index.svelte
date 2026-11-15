@@ -320,6 +320,8 @@
   import { t } from '$lib/i18n.svelte'
   import { select } from '$lib/store.svelte'
   import { cn } from '@/shared/ui/cn'
+  import { useFeatures } from '../../../../../extensions/feature-gate.svelte'
+  import type { FeatureMode } from '../../../../../extensions/features'
   import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
   import { Separator } from '@/components/ui/separator'
   import { useEditorStore } from '@/shared/state/editor'
@@ -458,6 +460,17 @@
   const showEffectsTab = $derived(visualItems.length > 0)
   const visualItemIds = $derived(visualItems.map((item) => item.id))
 
+  // The host can hide or lock a tab for the selected clips.
+  const features = useFeatures()
+  const tabModes = $derived({
+    video: features.mode('inspector.video', { items: selectedItems }),
+    audio: features.mode('inspector.audio', { items: selectedItems }),
+    effects: features.mode('inspector.effects', { items: selectedItems }),
+    motion: features.mode('inspector.animation', { items: selectedItems }),
+  } satisfies Record<ClipInspectorTab, FeatureMode>)
+  const lockedTabClass = (tab: ClipInspectorTab) =>
+    tabModes[tab] === 'locked' ? '*:opacity-50' : undefined
+
   const availableTabs = $derived.by(() => {
     const tabs: ClipInspectorTab[] = []
     if (showVideoTab) tabs.push('video')
@@ -469,7 +482,7 @@
       if (showEffectsTab) tabs.push('effects')
       if (showMotionTab) tabs.push('motion')
     }
-    return tabs
+    return tabs.filter((tab) => tabModes[tab] !== 'hidden')
   })
 
   const fallbackTab = $derived(availableTabs[0] ?? 'video')
@@ -563,7 +576,11 @@
 
         <!-- Video Tab - visual layout, content, and clip-specific controls. Each
              panel renders its body only while active, as Radix's tabs did. -->
-        <TabsContent value="video" class="mt-3">
+        <TabsContent
+          value="video"
+          class={cn('mt-3', lockedTabClass('video'))}
+          inert={tabModes.video === 'locked'}
+        >
           {#if activeTab === 'video' && showVideoTab}
             <div
               class="divide-y divide-border [&>*]:py-4 [&>*:first-child]:pt-0 [&>*:last-child]:pb-0"
@@ -624,7 +641,11 @@
 
         <!-- Motion Tab — the composition's single preset, procedural, text
              motion, bake, and saved-animation surface. -->
-        <TabsContent value="motion" class="mt-3 min-h-0 flex-1 data-[state=inactive]:hidden">
+        <TabsContent
+          value="motion"
+          class={cn('mt-3 min-h-0 flex-1 data-[state=inactive]:hidden', lockedTabClass('motion'))}
+          inert={tabModes.motion === 'locked'}
+        >
           {#if showMotionTab && activeTab === 'motion'}
             <div class="flex h-full min-h-0 flex-col">
               <div class="min-h-0 flex-1">
@@ -652,7 +673,11 @@
         </TabsContent>
 
         <!-- Audio stays media-specific; text animation lives in Animation. -->
-        <TabsContent value="audio" class="space-y-4 mt-3">
+        <TabsContent
+          value="audio"
+          class={cn('space-y-4 mt-3', lockedTabClass('audio'))}
+          inert={tabModes.audio === 'locked'}
+        >
           {#if itemTypeInfo.hasAudioItems && activeTab === 'audio'}
             {#await loadAudioSection() then { default: AudioSection }}
               <AudioSection items={audioPanelItems} />
@@ -661,7 +686,11 @@
         </TabsContent>
 
         <!-- Effects Tab - clip effects plus text styling and animation -->
-        <TabsContent value="effects" class="space-y-4 mt-3">
+        <TabsContent
+          value="effects"
+          class={cn('space-y-4 mt-3', lockedTabClass('effects'))}
+          inert={tabModes.effects === 'locked'}
+        >
           {#if activeTab === 'effects' && itemTypeInfo.hasVisualItems}
             <!-- Explanatory text for adjustment layers -->
             {#if itemTypeInfo.hasAdjustmentItems}

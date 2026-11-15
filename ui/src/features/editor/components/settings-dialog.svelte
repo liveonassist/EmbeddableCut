@@ -358,6 +358,7 @@
   import { useUiSoundStore } from '@/shared/state/ui-sound-store'
   import { emitUiSound, previewUiSound } from '@/shared/ui/ui-sound'
   import { VOICE_OPTIONS, type VoiceName } from '@/infrastructure/audio/ui-sound'
+  import { SettingGate } from '@/features/editor/deps/settings'
   import { cn } from '@/shared/ui/cn'
   import { useNaturalHeight } from '@/shared/ui/use-natural-height.svelte'
 
@@ -640,6 +641,7 @@
               <div in:fade={{ duration: reduceMotion ? 0 : 120 }}>
                 {#if activeSection === 'general'}
                   <div class="space-y-3">
+                    <SettingGate keys={['autoSaveInterval']}>
                     <div class="flex items-center justify-between">
                       <Label class="text-sm">{t('settings.general.autoSave')}</Label>
                       <Switch
@@ -666,6 +668,8 @@
                         </div>
                       </div>
                     {/if}
+                    </SettingGate>
+                    <SettingGate keys={['maxUndoHistory']}>
                     <div class="flex items-center justify-between">
                       <Label class="text-sm">
                         {t('settings.general.undoHistoryDepth')}
@@ -683,6 +687,7 @@
                         </span>
                       </div>
                     </div>
+                    </SettingGate>
                     <div class="flex items-center justify-between">
                       <Label class="text-sm">{t('settings.general.uiSounds')}</Label>
                       <Switch
@@ -768,6 +773,7 @@
 
                 {#if activeSection === 'ai'}
                   <div class="space-y-3">
+                    <SettingGate keys={['captioningIntervalUnit', 'captioningIntervalValue']}>
                     <div class="space-y-2">
                       <div class="flex items-center justify-between">
                         <div class="space-y-0.5">
@@ -837,7 +843,9 @@
                         })}
                       </p>
                     </div>
+                    </SettingGate>
 
+                    <SettingGate keys={['defaultCaptionStylePresetId']}>
                     <div class="space-y-2">
                       <div class="space-y-0.5">
                         <Label class="text-sm">
@@ -865,11 +873,13 @@
                         {/each}
                       </div>
                     </div>
+                    </SettingGate>
                   </div>
                 {/if}
 
                 {#if activeSection === 'timeline'}
                   <div class="space-y-3">
+                    <SettingGate keys={['snapEnabled']}>
                     <div class="flex items-center justify-between">
                       <div>
                         <Label class="text-sm">
@@ -884,6 +894,8 @@
                         onCheckedChange={(v) => setSetting('snapEnabled', v)}
                       />
                     </div>
+                    </SettingGate>
+                    <SettingGate keys={['showWaveforms']}>
                     <div class="flex items-center justify-between">
                       <Label class="text-sm">{t('settings.timeline.showWaveforms')}</Label>
                       <Switch
@@ -891,6 +903,8 @@
                         onCheckedChange={(v) => setSetting('showWaveforms', v)}
                       />
                     </div>
+                    </SettingGate>
+                    <SettingGate keys={['showFilmstrips']}>
                     <div class="flex items-center justify-between">
                       <Label class="text-sm">{t('settings.timeline.showFilmstrips')}</Label>
                       <Switch
@@ -898,6 +912,8 @@
                         onCheckedChange={(v) => setSetting('showFilmstrips', v)}
                       />
                     </div>
+                    </SettingGate>
+                    <SettingGate keys={['enableFilmstripExtraction']}>
                     <div class="flex items-center justify-between">
                       <div>
                         <Label class="text-sm">
@@ -912,6 +928,7 @@
                         onCheckedChange={(v) => setSetting('enableFilmstripExtraction', v)}
                       />
                     </div>
+                    </SettingGate>
                   </div>
                 {/if}
 

@@ -53,6 +53,7 @@
   import Toolbar from '../toolbar.svelte'
   import MediaSidebar from '../media-sidebar.svelte'
   import PropertiesSidebar from '../properties-sidebar/index.svelte'
+  import Feature from '@/components/feature.svelte'
   import PreviewArea from '../preview-area.svelte'
   import { MotionPreviewArea, MotionTimelineDock } from '../compose-workspace/compose-layout'
   import InteractionLockRegion from '../interaction-lock-region.svelte'
@@ -340,7 +341,7 @@
 {/snippet}
 
 {#snippet mediaSidebarDefault()}
-  <MediaSidebar />
+  <Feature id="sidebar"><MediaSidebar /></Feature>
 {/snippet}
 
 {#snippet propertiesSidebar()}
@@ -384,7 +385,7 @@
 {/snippet}
 
 {#snippet propertiesSidebarDefault()}
-  <PropertiesSidebar />
+  <Feature id="inspector"><PropertiesSidebar /></Feature>
 {/snippet}
 
 {#snippet toolbarDefault()}

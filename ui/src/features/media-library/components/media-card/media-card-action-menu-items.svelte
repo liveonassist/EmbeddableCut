@@ -21,6 +21,9 @@
   import { UPSCALE_VARIANTS } from '@/infrastructure/upscale'
   import { t } from '$lib/i18n.svelte'
   import { resolveMenuVisibility, type MediaCardActionMenuProps } from './media-card-helpers'
+  import Feature from '@/components/feature.svelte'
+  import { useFeatures } from '../../../../extensions/feature-gate.svelte'
+  import type { FeatureId } from '../../../../extensions/features'
 
   type MenuGroup =
     | 'broken'
@@ -36,6 +39,19 @@
 
   const visibility = $derived(resolveMenuVisibility(props))
 
+  // The features each group belongs to, which the host can hide or lock.
+  const GROUP_FEATURES: Record<MenuGroup, FeatureId[]> = {
+    broken: ['media.relink'],
+    proxy: ['media.proxy'],
+    interpolation: ['ai.media'],
+    upscale: ['ai.media'],
+    transcript: ['ai.transcript'],
+    'embedded-subtitles': [],
+    ai: ['ai.media'],
+    destructive: ['media.delete'],
+  }
+  const features = useFeatures()
+
   const groups = $derived.by(() => {
     const next: MenuGroup[] = []
     if (visibility.showBrokenGroup && props.onRelink) next.push('broken')
@@ -46,7 +62,7 @@
     if (visibility.showEmbeddedSubtitleGroup) next.push('embedded-subtitles')
     if (visibility.showAiGroup) next.push('ai')
     next.push('destructive')
-    return next
+    return next.filter((group) => features.mode(GROUP_FEATURES[group]) !== 'hidden')
   })
 </script>
 
@@ -54,6 +70,7 @@
   {#if index > 0}
     <ContextMenuSeparator />
   {/if}
+  <Feature id={GROUP_FEATURES[group]}>
   {#if group === 'broken'}
     <ContextMenuLabel>{t('media.card.menuFile')}</ContextMenuLabel>
     <ContextMenuItem
@@ -201,4 +218,5 @@
       {t('common.delete')}
     </ContextMenuItem>
   {/if}
+  </Feature>
 {/each}

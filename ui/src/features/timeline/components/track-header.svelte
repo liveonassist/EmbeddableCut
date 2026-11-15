@@ -24,6 +24,7 @@
   import { useItemsStore } from '@/features/timeline/stores/items-store'
   import { isTrackDisabled } from '@/features/timeline/utils/classic-tracks'
   import { isTrackSyncLockActive } from '@/features/timeline/utils/track-sync-lock'
+  import { useFeatures } from '../../../extensions/feature-gate.svelte'
 
   interface TrackHeaderProps {
     track: TimelineTrack
@@ -72,6 +73,10 @@
   const itemCount = $derived(
     select(useItemsStore, (s) => s.itemsByTrackId[track.id]?.length ?? 0),
   )
+  const features = useFeatures()
+  const closeGapsMode = $derived(features.mode('track.close-gaps', { track }))
+  const addMode = $derived(features.mode('track.add', { track }))
+  const deleteMode = $derived(features.mode('track.delete', { track }))
   const syncLockEnabled = $derived(isTrackSyncLockActive(track))
   const trackDisabled = $derived(isTrackDisabled(track))
 
@@ -239,23 +244,32 @@
   </ContextMenuTrigger>
 
   <ContextMenuContent class="w-52">
-    <ContextMenuItem onclick={onCloseGaps}>
-      {t('timeline.trackHeader.closeAllGaps')}
-    </ContextMenuItem>
+    {#if closeGapsMode !== 'hidden'}
+      <ContextMenuItem disabled={closeGapsMode === 'locked'} onclick={onCloseGaps}>
+        {t('timeline.trackHeader.closeAllGaps')}
+      </ContextMenuItem>
+    {/if}
 
-    <ContextMenuSeparator />
-    <ContextMenuItem onclick={onAddVideoTrack}>
-      {t('timeline.trackHeader.addVideoTrack')}
-    </ContextMenuItem>
-    <ContextMenuItem onclick={onAddAudioTrack}>
-      {t('timeline.trackHeader.addAudioTrack')}
-    </ContextMenuItem>
-    <ContextMenuSeparator />
-    <ContextMenuItem disabled={!canDeleteTrack} onclick={onDeleteTrack}>
-      {t('timeline.trackHeader.deleteTrack')}
-    </ContextMenuItem>
-    <ContextMenuItem disabled={!canDeleteEmptyTracks} onclick={onDeleteEmptyTracks}>
-      {t('timeline.trackHeader.deleteEmptyTracks')}
-    </ContextMenuItem>
+    {#if addMode !== 'hidden'}
+      <ContextMenuSeparator />
+      <ContextMenuItem disabled={addMode === 'locked'} onclick={onAddVideoTrack}>
+        {t('timeline.trackHeader.addVideoTrack')}
+      </ContextMenuItem>
+      <ContextMenuItem disabled={addMode === 'locked'} onclick={onAddAudioTrack}>
+        {t('timeline.trackHeader.addAudioTrack')}
+      </ContextMenuItem>
+    {/if}
+    {#if deleteMode !== 'hidden'}
+      <ContextMenuSeparator />
+      <ContextMenuItem disabled={!canDeleteTrack || deleteMode === 'locked'} onclick={onDeleteTrack}>
+        {t('timeline.trackHeader.deleteTrack')}
+      </ContextMenuItem>
+      <ContextMenuItem
+        disabled={!canDeleteEmptyTracks || deleteMode === 'locked'}
+        onclick={onDeleteEmptyTracks}
+      >
+        {t('timeline.trackHeader.deleteEmptyTracks')}
+      </ContextMenuItem>
+    {/if}
   </ContextMenuContent>
 </ContextMenu>

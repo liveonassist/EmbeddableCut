@@ -162,6 +162,7 @@
   import { useEditorStore } from '@/shared/state/editor'
   import { useSelectionStore } from '@/shared/state/selection'
   import CanvasPanel from './canvas-panel/index.svelte'
+  import Feature from '@/components/feature.svelte'
   import { useSettingsStore } from '@/features/editor/deps/settings'
   import {
     EDITOR_LAYOUT_CSS_VALUES,
@@ -398,9 +399,11 @@
             {/await}
           </div>
           {#if !hasClipSelection}
+            <Feature id="inspector.canvas">
             <div>
               <CanvasPanel />
             </div>
+            </Feature>
           {/if}
         {/if}
       </div>

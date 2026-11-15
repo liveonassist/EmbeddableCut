@@ -27,6 +27,7 @@
   import { commitProjectMetadataChange } from '@/features/editor/utils/project-metadata-history'
   import CompositionControlsAuthoringSection from './composition-controls-authoring-section.svelte'
   import ColorPicker from './color-picker.svelte'
+  import Feature from '@/components/feature.svelte'
 
   /**
    * No-selection canvas inspector. In a layer composition it authors that
@@ -213,6 +214,7 @@
       icon={LayoutDashboard}
       defaultOpen={true}
     >
+      <Feature id="project.size">
       <LinkedDimensions
         {width}
         {height}
@@ -242,8 +244,10 @@
             : t('common.reset')}
         </Button>
       </div>
+      </Feature>
 
       <!-- Background Color -->
+      <Feature id="project.background">
       <PropertyRow label={t('editor.canvasPanel.background')}>
         <div class="flex items-center gap-1 w-full">
           <ColorPicker
@@ -265,6 +269,7 @@
           </Button>
         </div>
       </PropertyRow>
+      </Feature>
     </PropertySection>
 
     <CompositionControlsAuthoringSection defaultOpen={false} />
