@@ -25,7 +25,7 @@ The project document is the portable format: a FreeCut project, the asset record
 ```json
 {
   "format": "embeddablecut.project",
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "project": { "id": "…", "schemaVersion": 15, "metadata": { "width": 1920, "height": 1080, "fps": 30 }, "timeline": { "…": "…" } },
   "assets": [{ "id": "…", "fileName": "clip.mp4", "mimeType": "video/mp4", "source": { "type": "url", "url": "https://…" }, "…": "…" }],
   "requires": [{ "kind": "effect", "id": "acme.glow" }]
@@ -72,5 +72,6 @@ FreeCut owns the project schema, so its migrations come in with upstream merges,
 ## Extensions and other clients
 
 - **A document names the custom effects, transitions and media providers it uses** in `requires`. A renderer or editor that hasn't registered one refuses the document instead of rendering it wrong; built-ins are never listed.
+- **A `memory` asset has no bytes anywhere but the editor that added it,** which had no workspace. A document with one is a draft: upload the asset and swap it to a URL before saving it somewhere another session reads ([`MEDIA.md`](MEDIA.md#deferred-uploads)).
 - **Credentials are never persisted.** An asset's `source` says where its bytes are; a URL that expires carries `expiresAt` and a stable `key` the host's resolver renews it from at open time.
 - **Other clients read the JSON Schema** in `schemas/` and follow the same rules: migrate what's older, refuse what's newer, report what's repaired. A client that only displays a project may read a newer document read-only, but must never write it back.

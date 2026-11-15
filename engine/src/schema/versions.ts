@@ -14,11 +14,14 @@ import { WORKSPACE_SCHEMA_VERSION } from '@/infrastructure/storage/workspace-fs/
 import { BUNDLE_VERSION } from '@/features/project-bundle/types/bundle'
 import { SNAPSHOT_VERSION } from '@/features/project-bundle/types/snapshot'
 
-/** The portable project document's envelope: project, assets, required extensions. */
-export const PROJECT_DOCUMENT_SCHEMA_VERSION = 1
+/**
+ * The portable project document's envelope: project, assets, required extensions.
+ * v2: assets may be held in memory (`source.type: 'memory'`).
+ */
+export const PROJECT_DOCUMENT_SCHEMA_VERSION = 2
 
-/** The portable media asset record inside a project document. */
-export const ASSET_SCHEMA_VERSION = 1
+/** The portable media asset record inside a project document. v2: the `memory` source. */
+export const ASSET_SCHEMA_VERSION = 2
 
 export const SCHEMA_VERSIONS = {
   /** `Project`, owned by FreeCut: `shared/projects/migrations/`. */

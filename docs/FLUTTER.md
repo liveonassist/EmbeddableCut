@@ -6,8 +6,8 @@ EmbeddableCut has no Flutter editor and no native renderer yet, and a Flutter ap
 
 | Contract | Where | What a client does with it |
 | --- | --- | --- |
-| Project document | [`schemas/project-document.v1.schema.json`](../schemas/project-document.v1.schema.json) | store, send and receive projects; generate Dart models from it |
-| Asset record | [`schemas/asset.v1.schema.json`](../schemas/asset.v1.schema.json) | point projects at media, local or at URLs |
+| Project document | [`schemas/project-document.v2.schema.json`](../schemas/project-document.v2.schema.json) | store, send and receive projects; generate Dart models from it |
+| Asset record | [`schemas/asset.v2.schema.json`](../schemas/asset.v2.schema.json) | point projects at media, local or at URLs |
 | Edit operations | [`schemas/edit-operation.v1.schema.json`](../schemas/edit-operation.v1.schema.json) | build edits as data: an op log to replay, undo or sync |
 | The bridge | [`BRIDGE.md`](BRIDGE.md) | drive the editor in a WebView |
 | The render API | [`RENDERING.md`](RENDERING.md) | render documents on a server |

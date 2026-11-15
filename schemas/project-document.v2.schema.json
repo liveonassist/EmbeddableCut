@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "urn:embeddablecut:schema:project-document:v1",
+  "$id": "urn:embeddablecut:schema:project-document:v2",
   "title": "EmbeddableCut project document",
   "type": "object",
   "properties": {
@@ -10,7 +10,7 @@
     },
     "schemaVersion": {
       "type": "number",
-      "const": 1
+      "const": 2
     },
     "project": {
       "type": "object",
@@ -5590,6 +5590,19 @@
                 "required": [
                   "type",
                   "fileName"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "const": "memory"
+                  }
+                },
+                "required": [
+                  "type"
                 ],
                 "additionalProperties": false
               }

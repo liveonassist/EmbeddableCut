@@ -14,8 +14,10 @@
  *                regenerable caches (proxies, waveforms, decoded audio).
  * - 'url':       remote bytes at `remote.url`, never copied; read with range
  *                requests, renewed through the host's resolver (EmbeddableCut).
+ * - 'memory':    bytes held in this page's memory only, for an editor without
+ *                a workspace; gone when the page is (EmbeddableCut).
  */
-export type MediaStorageType = 'handle' | 'workspace' | 'opfs' | 'url'
+export type MediaStorageType = 'handle' | 'workspace' | 'opfs' | 'url' | 'memory'
 
 /**
  * Where a 'url' media's bytes are. Credentials never live here: the host's

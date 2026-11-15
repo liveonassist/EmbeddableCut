@@ -40,6 +40,15 @@ export const assetSourceSchema = z.discriminatedUnion('type', [
       lastModified: z.number().int().nonnegative().optional(),
     })
     .strict(),
+  z
+    .object({
+      /**
+       * Held in the memory of the editor that added it, which had no workspace:
+       * not yet uploaded anywhere, and gone with that editor's page.
+       */
+      type: z.literal('memory'),
+    })
+    .strict(),
 ])
 
 export const assetRecordSchema = z
@@ -74,6 +83,7 @@ function sourceOf(media: MediaMetadata): AssetSource {
       ...(media.remote.key === undefined ? {} : { key: media.remote.key }),
     }
   }
+  if (media.storageType === 'memory') return { type: 'memory' }
   if (media.storageType === 'handle') {
     return {
       type: 'file',
@@ -111,7 +121,14 @@ export function mediaFromAssetRecord(asset: AssetRecord, now = Date.now()): Medi
   const { source } = asset
   return {
     id: asset.id,
-    storageType: source.type === 'url' ? 'url' : source.type === 'file' ? 'handle' : 'workspace',
+    storageType:
+      source.type === 'url'
+        ? 'url'
+        : source.type === 'file'
+          ? 'handle'
+          : source.type === 'memory'
+            ? 'memory'
+            : 'workspace',
     ...(source.type === 'url'
       ? {
           remote: {

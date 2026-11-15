@@ -95,10 +95,19 @@ describe('project documents', () => {
     expect(document.project.schemaVersion).toBe(CURRENT_SCHEMA_VERSION)
   })
 
+  it('reads a v1 envelope as v2, which only added a kind of asset source', () => {
+    const written = writeProjectDocument(makeProject(), [asset])
+
+    const { document, migrated } = readProjectDocument({ ...written, schemaVersion: 1 })
+
+    expect(migrated).toBe(true)
+    expect(document).toEqual(readProjectDocument(written).document)
+  })
+
   it('refuses newer envelopes and newer projects rather than reading what it can', () => {
     const written = writeProjectDocument(makeProject(), [asset])
 
-    expect(codeOf(() => readProjectDocument({ ...written, schemaVersion: 2 }))).toBe(
+    expect(codeOf(() => readProjectDocument({ ...written, schemaVersion: 3 }))).toBe(
       'SCHEMA_TOO_NEW',
     )
     expect(
@@ -145,7 +154,7 @@ describe('project documents', () => {
     const written = writeProjectDocument(makeProject({ schemaVersion: undefined }), [asset])
 
     expect(written.format).toBe(PROJECT_DOCUMENT_FORMAT)
-    expect(written.schemaVersion).toBe(1)
+    expect(written.schemaVersion).toBe(2)
     expect(written.project.schemaVersion).toBe(CURRENT_SCHEMA_VERSION)
     expect(codeOf(() => writeProjectDocument(makeProject({ schemaVersion: 7 }), [asset]))).toBe(
       'SCHEMA_INVALID',
