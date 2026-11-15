@@ -7,6 +7,8 @@ export interface ObjectUrlSourceMetadata {
   fileHandle?: FileSystemFileHandle
   opfsPath?: string
   fileSize?: number
+  /** The media's length in seconds, where known. */
+  duration?: number
   /** For a remote URL: how to request and cache it, in whichever context reads it. */
   remote?: RemoteRequestMetadata
 }

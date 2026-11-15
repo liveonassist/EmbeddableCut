@@ -23,6 +23,7 @@ import {
   type MultiResolutionWaveform,
 } from './waveform-opfs-storage'
 import { SizedAccessedMemoryCache } from './sized-accessed-memory-cache'
+import { exceedsRemoteWaveformSpan } from './remote-waveform-span'
 import type { WaveformWorkerResponse } from './waveform-worker'
 import type { WaveformBin } from '@/types/storage'
 import {
@@ -1238,6 +1239,11 @@ class WaveformCacheService {
       return pendingAfterStorage.promise
     }
 
+    // A long URL asset gets waveforms only for the ranges the timeline shows.
+    if (exceedsRemoteWaveformSpan(blobUrl)) {
+      return memoryCached ?? this.makeCachedWaveform(new Float32Array(0), 0, 1, false)
+    }
+
     return this.enqueueGeneration(mediaId, blobUrl, onProgress)
   }
 
@@ -1276,6 +1282,7 @@ class WaveformCacheService {
     if (pending) {
       return pending.promise
     }
+    if (exceedsRemoteWaveformSpan(blobUrl)) return null
 
     const requestId = `waveform-overview-${++this.workerRequestId}`
     return this.generateWaveformWithWorker(mediaId, blobUrl, requestId, onProgress, {
@@ -1305,6 +1312,7 @@ class WaveformCacheService {
 
     const safeStart = Math.max(0, Math.floor(startTimeSec * 10) / 10)
     const safeEnd = Math.max(safeStart + 0.25, Math.ceil(endTimeSec * 10) / 10)
+    if (exceedsRemoteWaveformSpan(blobUrl, safeEnd - safeStart)) return null
     const levelIndex = chooseLevelForZoom(pixelsPerSecond)
     const samplesPerSecond = Math.min(
       WAVEFORM_VISIBLE_RANGE_MAX_SAMPLES_PER_SECOND,

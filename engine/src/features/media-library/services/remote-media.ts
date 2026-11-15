@@ -93,6 +93,7 @@ async function resolve(
     mediaId: media.id,
     storageType: 'url',
     fileSize: media.fileSize,
+    duration: media.duration,
     remote: request,
   })
   if (media.keyframeTimestamps?.length) registerKeyframeIndex(url, media.keyframeTimestamps)
