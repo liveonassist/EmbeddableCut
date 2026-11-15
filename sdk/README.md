@@ -27,6 +27,13 @@ editor.dispose()
 - `loadDocument(json)` opens a project document. Older documents are migrated; newer or invalid ones are refused with a `SchemaError`, never read partially.
 - `toDocument()` returns the project with every media asset it references, and the custom extensions it needs.
 
+## Media
+
+- `media.addUrl({ url, key })` adds a remote file, read in place with range requests; `media.resolve` in the options signs and renews URLs ([`docs/MEDIA.md`](../docs/MEDIA.md)).
+- `media.addFiles(files)` adds `File`s: into the workspace, or held in memory when the editor has none. `media.accept` in the options refuses files by type, length or size (`MEDIA_REFUSED`).
+- `media.pending()`, `media.read(id)` and `media.replaceWithUrl(id, { url, key })` upload what the timeline uses when the user saves, swapping each asset to its URL in place ([deferred uploads](../docs/MEDIA.md#deferred-uploads)).
+- `media.list()`, `media.get(id)` and `media.remove(ids)` read and remove the project's media, as asset records.
+
 ## Editing
 
 `apply(op | ops)` runs edit operations as one undo step: `addTrack`, `addText`, `addItem`, `addClip`, `updateItem`, `moveItem`, `removeItems`, `split`, `trimStart`, `trimEnd`, the transition, keyframe, effect and transform ops, and any an extension adds (`editor.operations` lists them). An op can refer to an earlier op's result with `{ "$ref": "<callerId>#/detail/<field>" }`. `undo()`, `redo()`, `canUndo` and `canRedo` work as in the editor.

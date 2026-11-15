@@ -6,6 +6,45 @@ EmbeddableCut edits two kinds of media side by side: files from the user's disk,
 
 FreeCut's workflows are unchanged. Dropped or imported files are copied into the workspace folder (`copy`) or referenced on the user's disk (`link`), with proxies, filmstrips, waveforms and caches beside them. A linked file asks for permission again in a later session, and relinking finds a moved one.
 
+An editor with no workspace holds what users import in the page's memory instead (`storageType: 'memory'`, `source.type: 'memory'` in a document), probed and thumbnailed as usual. Those files are gone with the page unless the host uploads them; see [deferred uploads](#deferred-uploads).
+
+## Deferred uploads
+
+A host that keeps its media at URLs can let users add files freely and upload only what a project uses, when the user saves. Nothing is uploaded on import, and nothing is probed twice.
+
+```ts
+const editor = await createEditor({
+  // No workspace: added files stay in memory. `workspace: 'opfs'` keeps them across reloads instead.
+  media: {
+    accept: ({ mimeType, duration, width, height }) => {
+      if (!['video/mp4', 'audio/mpeg', 'image/png', 'image/jpeg', 'image/webp'].includes(mimeType))
+        return 'Use an MP4, MP3, PNG, JPEG or WebP file.'
+      if (mimeType.startsWith('video/') && duration > 15.5) return 'Clips can be at most 15 seconds.'
+      if (width > 8192 || height > 8192) return 'Frames can be at most 8192 pixels on a side.'
+      return true
+    },
+    resolve: (asset) => myBackend.sign(asset), // renews uploads' URLs from their `key`
+  },
+})
+
+// Users drop files on the media library, or the host adds them:
+await editor.media.addFiles(pickedFiles)
+
+async function save() {
+  for (const asset of editor.media.pending()) {
+    const bytes = await editor.media.read(asset.id)
+    const { url, uploadId } = await uploadToStorage(bytes, asset) // e.g. S3 multipart
+    await editor.media.replaceWithUrl(asset.id, { url, key: `assist:${uploadId}` })
+  }
+  await backend.saveProject(editor.toDocument()) // every asset is a URL now
+}
+```
+
+- **`pending()`** lists the assets the timeline uses that aren't at a URL: held in memory, or in a workspace. Media the user added but didn't use is left out.
+- **`replaceWithUrl(id, media)`** keeps the asset's id, so no clip changes, and everything extracted from it: metadata, thumbnail, keyframe index. Readers move to the URL through the host's resolver, as they do when a signed URL renews. The rest of the session reads the URL, so give it one that stays valid or a `key` the resolver renews it from.
+- **`accept`** sees each file's probed metadata before anything is stored, for files the host adds and files users drop or pick alike. A string refuses the file: `addFiles` throws `MEDIA_REFUSED` (with `details.fileName` and `details.reason`), and the media library shows the reason as a notification.
+- **A document can be a draft.** `toDocument()` writes held files as `source.type: 'memory'`. Store it as a draft if you like, but only this page has those bytes: a later session that loads it shows them missing. Refuse to save a document with `memory` assets anywhere else, or upload them first.
+
 ## URL media
 
 URL media is a first-class kind of asset (`storageType: 'url'` in the media library, `source.type: 'url'` in a project document). Nothing downloads it whole:
