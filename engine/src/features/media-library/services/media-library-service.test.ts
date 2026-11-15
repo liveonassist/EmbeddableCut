@@ -91,7 +91,16 @@ const backgroundMediaWorkMocks = vi.hoisted(() => ({
   }),
 }))
 
+const workspaceRootMocks = vi.hoisted(() => ({
+  getWorkspaceRoot: vi.fn((): unknown => ({ name: 'workspace' })),
+}))
+
 vi.mock('@/infrastructure/storage', () => indexedDbMocks)
+
+vi.mock('@/infrastructure/storage/workspace-fs/root', async (importOriginal) => ({
+  ...(await importOriginal<object>()),
+  getWorkspaceRoot: workspaceRootMocks.getWorkspaceRoot,
+}))
 
 vi.mock('./opfs-service', () => ({
   opfsService: opfsMocks,
@@ -157,6 +166,7 @@ vi.mock('../utils/proxy-key', () => ({
 }))
 
 import { mediaLibraryService, FileAccessError } from './media-library-service'
+import { MediaRefusedError, setMediaAcceptPolicy } from './media-accept-policy'
 import type { MediaMetadata } from '@/types/storage'
 import { useMediaPreparationStore } from '../stores/media-preparation-store'
 
@@ -198,6 +208,7 @@ describe('MediaLibraryService', () => {
     vi.stubGlobal('fetch', fetchMock)
     useMediaPreparationStore.getState().clearAll()
     compositionRuntimeMocks.needsCustomAudioDecoder.mockReturnValue(false)
+    workspaceRootMocks.getWorkspaceRoot.mockReturnValue({ name: 'workspace' })
     compositionRuntimeMocks.startPreviewAudioStartupWarm.mockResolvedValue(undefined)
     filmstripCacheMocks.prewarmPriorityWindow.mockResolvedValue(undefined)
     filmstripCacheMocks.getFilmstrip.mockResolvedValue(undefined)
@@ -544,6 +555,73 @@ describe('MediaLibraryService', () => {
       await expect(
         mediaLibraryService.importMediaWithHandle(mockHandle, 'project-1'),
       ).rejects.toThrow(FileAccessError)
+    })
+  })
+
+  describe('importMediaFile', () => {
+    const file = new File(['data'], 'clip.mp4', { type: 'video/mp4' })
+
+    beforeEach(() => {
+      mediaProcessorMocks.processMedia.mockResolvedValue({
+        metadata: {
+          type: 'video',
+          duration: 20,
+          width: 1920,
+          height: 1080,
+          fps: 30,
+          codec: 'avc1',
+          bitrate: 5000,
+        },
+        thumbnail: new Blob(['thumb'], { type: 'image/webp' }),
+      })
+      mediaProcessorMocks.hasUnsupportedAudioCodec.mockReturnValue({ unsupported: false })
+      indexedDbMocks.getMediaForProject.mockResolvedValue([])
+    })
+
+    it('holds a file in memory when there is no workspace, until it is deleted', async () => {
+      workspaceRootMocks.getWorkspaceRoot.mockReturnValue(null)
+
+      const media = await mediaLibraryService.importMediaFile(file, 'project-1')
+
+      expect(media.storageType).toBe('memory')
+      expect(indexedDbMocks.writeMediaSource).not.toHaveBeenCalled()
+      expect(indexedDbMocks.createMedia).not.toHaveBeenCalled()
+      expect(await mediaLibraryService.getMedia(media.id)).toMatchObject({
+        id: media.id,
+        storageType: 'memory',
+      })
+      expect(await mediaLibraryService.getMediaFile(media.id)).toBe(file)
+      expect(await mediaLibraryService.getThumbnailBlobUrl(media.id, media.thumbnailId)).toMatch(
+        /^blob:/,
+      )
+      expect(await mediaLibraryService.importMediaFile(file, 'project-1')).toMatchObject({
+        id: media.id,
+        isDuplicate: true,
+      })
+
+      await mediaLibraryService.deleteMediaBatchFromProject('project-1', [media.id])
+      expect(await mediaLibraryService.getMediaFile(media.id)).toBeNull()
+      expect(indexedDbMocks.removeMediaBatchFromProject).not.toHaveBeenCalled()
+    })
+
+    it("refuses what the host's policy refuses before storing anything", async () => {
+      const policy = vi.fn((candidate: { duration: number }) =>
+        candidate.duration <= 15 ? (true as const) : 'Clips can be at most 15 seconds.',
+      )
+      setMediaAcceptPolicy(policy)
+      try {
+        await expect(mediaLibraryService.importMediaFile(file, 'project-1')).rejects.toEqual(
+          new MediaRefusedError('clip.mp4', 'Clips can be at most 15 seconds.'),
+        )
+      } finally {
+        setMediaAcceptPolicy(null)
+      }
+
+      expect(policy).toHaveBeenCalledWith(
+        expect.objectContaining({ fileName: 'clip.mp4', mimeType: 'video/mp4', duration: 20 }),
+      )
+      expect(indexedDbMocks.writeMediaSource).not.toHaveBeenCalled()
+      expect(indexedDbMocks.createMedia).not.toHaveBeenCalled()
     })
   })
 

@@ -89,6 +89,14 @@ import { mediaProcessorService } from './media-processor-service'
 import { generateThumbnail } from '../utils/thumbnail-generator'
 import { getWorkspaceRoot } from '@/infrastructure/storage/workspace-fs/root'
 import { findLibraryMedia } from './library-media-lookup'
+import { assertMediaAccepted } from './media-accept-policy'
+import {
+  findSessionMedia,
+  getSessionMedia,
+  getSessionMediaBlob,
+  holdSessionMedia,
+  releaseSessionMedia,
+} from './session-media'
 import {
   cacheKeyForUrl,
   createRemoteFetch,
@@ -600,10 +608,11 @@ class MediaLibraryService {
       throw new Error(validationResult.error)
     }
 
-    const projectMedia = await getMediaForProjectDB(projectId)
-    const existingMedia = projectMedia.find(
-      (media) => media.fileName === file.name && media.fileSize === file.size,
-    )
+    const existingMedia = getWorkspaceRoot()
+      ? (await getMediaForProjectDB(projectId)).find(
+          (media) => media.fileName === file.name && media.fileSize === file.size,
+        )
+      : findSessionMedia(file.name, file.size)
     if (existingMedia) {
       this.schedulePostImportWork(file, existingMedia, {
         isVideo: existingMedia.mimeType.startsWith('video/'),
@@ -641,6 +650,8 @@ class MediaLibraryService {
         updatedAt: createdAt,
       }
 
+      await assertMediaAccepted(mediaMetadata)
+      if (!getWorkspaceRoot()) return this.holdInMemory(file, mediaMetadata, thumb?.blob)
       return persistGeneratedMediaAsset({
         file,
         projectId,
@@ -714,14 +725,17 @@ class MediaLibraryService {
       updatedAt: createdAt,
     }
 
-    const persistedMedia = await persistGeneratedMediaAsset({
-      file,
-      projectId,
-      mediaMetadata,
-      thumbnailBlob,
-      thumbnailWidth: thumbnailDimensions?.width,
-      thumbnailHeight: thumbnailDimensions?.height,
-    })
+    await assertMediaAccepted(mediaMetadata)
+    const persistedMedia = getWorkspaceRoot()
+      ? await persistGeneratedMediaAsset({
+          file,
+          projectId,
+          mediaMetadata,
+          thumbnailBlob,
+          thumbnailWidth: thumbnailDimensions?.width,
+          thumbnailHeight: thumbnailDimensions?.height,
+        })
+      : this.holdInMemory(file, mediaMetadata, thumbnailBlob)
 
     this.schedulePostImportWork(file, persistedMedia, {
       isVideo: metadata.type === 'video',
@@ -732,6 +746,32 @@ class MediaLibraryService {
       ...persistedMedia,
       hasUnsupportedCodec: codecCheck.unsupported,
     }
+  }
+
+  /**
+   * Keeps an import in this page's memory, for an editor with no workspace.
+   * Its thumbnail lives only in the thumbnail URL cache.
+   */
+  private holdInMemory(file: File, media: MediaMetadata, thumbnail?: Blob | null): MediaMetadata {
+    const held: MediaMetadata = {
+      ...media,
+      storageType: 'memory',
+      ...(thumbnail ? { thumbnailId: crypto.randomUUID() } : {}),
+    }
+    holdSessionMedia(held, file)
+    if (thumbnail) this.cacheThumbnailUrl(held.id, thumbnail, held.thumbnailId)
+    return held
+  }
+
+  /**
+   * Imports a file's bytes: copied into the workspace, or held in memory
+   * when there is none. The host's accept policy is checked first.
+   */
+  async importMediaFile(
+    file: File,
+    projectId: string,
+  ): Promise<MediaMetadata & { isDuplicate?: boolean; hasUnsupportedCodec?: boolean }> {
+    return this.importMediaFileToOpfs(file, projectId)
   }
 
   /**
@@ -891,6 +931,8 @@ class MediaLibraryService {
    * Get a single media item by ID
    */
   async getMedia(id: string): Promise<MediaMetadata | null> {
+    const held = getSessionMedia(id)
+    if (held) return held
     // URL media and what a project document brought live only in the library
     // store, as does everything without a workspace.
     let stored: MediaMetadata | undefined
@@ -928,7 +970,8 @@ class MediaLibraryService {
 
     const file = await handle.getFile()
 
-    if (options?.storageMode === 'copy') {
+    // Without a workspace there's nowhere to keep a link, so the file is held.
+    if (options?.storageMode === 'copy' || !getWorkspaceRoot()) {
       return this.importMediaFileToOpfs(file, projectId)
     }
 
@@ -1077,6 +1120,7 @@ class MediaLibraryService {
         updatedAt: createdAt,
       }
 
+      await assertMediaAccepted(mediaMetadata)
       await createMediaDB(mediaMetadata)
       mirrorSourceToWorkspaceInBackground(id, file, file.name)
       await associateMediaWithProject(projectId, id)
@@ -1157,6 +1201,7 @@ class MediaLibraryService {
       updatedAt: Date.now(),
     }
 
+    await assertMediaAccepted(mediaMetadata)
     await createMediaDB(mediaMetadata)
 
     // Mirror source bytes into the workspace folder so every origin (dev,
@@ -1304,7 +1349,14 @@ class MediaLibraryService {
     if (thumbnail && persisted) {
       try {
         thumbnailId = crypto.randomUUID()
-        await saveThumbnailDB({ id: thumbnailId, mediaId: id, blob: thumbnail, timestamp: 1, width: 320, height: 180 })
+        await saveThumbnailDB({
+          id: thumbnailId,
+          mediaId: id,
+          blob: thumbnail,
+          timestamp: 1,
+          width: 320,
+          height: 180,
+        })
       } catch (error) {
         logger.warn('Failed to save thumbnail:', error)
         thumbnailId = undefined
@@ -1612,6 +1664,13 @@ class MediaLibraryService {
    * @param mediaId - The media to remove
    */
   async deleteMediaFromProject(projectId: string, mediaId: string): Promise<void> {
+    // Without a workspace nothing was stored but what memory holds.
+    if (!getWorkspaceRoot()) {
+      releaseSessionMedia(mediaId)
+      this.clearThumbnailCache(mediaId)
+      return
+    }
+
     // Get media metadata
     const media = await getMediaDB(mediaId)
     if (!media) {
@@ -1632,6 +1691,13 @@ class MediaLibraryService {
   async deleteMediaBatchFromProject(projectId: string, mediaIds: string[]): Promise<void> {
     const uniqueMediaIds = Array.from(new Set(mediaIds.filter(Boolean)))
     if (uniqueMediaIds.length === 0) {
+      return
+    }
+    if (!getWorkspaceRoot()) {
+      for (const mediaId of uniqueMediaIds) {
+        releaseSessionMedia(mediaId)
+        this.clearThumbnailCache(mediaId)
+      }
       return
     }
 
@@ -1813,6 +1879,8 @@ class MediaLibraryService {
    * @throws FileAccessError if permission denied or file missing
    */
   async getMediaFile(idOrMedia: string | MediaMetadata): Promise<Blob | null> {
+    const held = getSessionMediaBlob(typeof idOrMedia === 'string' ? idOrMedia : idOrMedia.id)
+    if (held) return held
     const media = typeof idOrMedia === 'string' ? await getMediaDB(idOrMedia) : idOrMedia
 
     if (!media) {
@@ -2138,6 +2206,7 @@ class MediaLibraryService {
    * Get thumbnail for a media item
    */
   async getThumbnail(mediaId: string): Promise<ThumbnailData | null> {
+    if (!getWorkspaceRoot()) return null
     const thumbnail = await getThumbnailByMediaId(mediaId)
     return thumbnail || null
   }

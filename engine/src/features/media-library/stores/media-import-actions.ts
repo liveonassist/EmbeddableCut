@@ -7,6 +7,8 @@ import { getSharedProxyKey } from '../utils/proxy-key'
 import { hasMediaFilePickerSupport, showMediaFilePicker } from '../utils/media-file-picker'
 import { createLogger, createOperationId } from '@/shared/logging/logger'
 import { useMediaPreparationStore } from './media-preparation-store'
+import { MediaRefusedError } from '../services/media-accept-policy'
+import { toast } from '@/shared/notifications'
 
 const logger = createLogger('MediaImport')
 
@@ -188,6 +190,10 @@ function processImportResults(
           })
         }
       }
+    } else if (result.reason instanceof MediaRefusedError) {
+      // The host's policy said why; that reason is the whole message.
+      removeImportPlaceholder(set, importTask.tempId)
+      toast.warning(result.reason.message)
     } else {
       failedCount++
       removeImportPlaceholder(set, importTask.tempId)
