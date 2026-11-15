@@ -11,11 +11,10 @@ export interface ObjectUrlSourceMetadata {
   remote?: RemoteRequestMetadata
 }
 
-export interface DirectObjectUrlSourceMetadata {
-  storageType: 'opfs'
-  opfsPath: string
-  fileSize?: number
-}
+/** What a worker needs to read a URL itself: an OPFS file, or a remote asset's request metadata. */
+export type DirectObjectUrlSourceMetadata =
+  | { storageType: 'opfs'; opfsPath: string; fileSize?: number }
+  | { storageType: 'url'; remote: RemoteRequestMetadata; fileSize?: number }
 
 interface ObjectUrlEntry {
   blob: Blob
@@ -61,6 +60,12 @@ export function isLiveObjectUrl(url: string): boolean {
 }
 
 export function getObjectUrlDirectFileMetadata(url: string): DirectObjectUrlSourceMetadata | null {
+  // Without its cache key and headers, a worker would read a remote asset
+  // unauthenticated and miss every block another context cached.
+  const remote = remoteByUrl.get(url)
+  if (remote?.remote) {
+    return { storageType: 'url', remote: remote.remote, fileSize: remote.fileSize }
+  }
   const metadata = entriesByUrl.get(url)?.metadata
   if (!metadata?.opfsPath) {
     return null
