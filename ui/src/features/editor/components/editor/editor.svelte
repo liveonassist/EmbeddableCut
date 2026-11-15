@@ -25,10 +25,14 @@
       backgroundColor: current.metadata.backgroundColor,
     }
   })
+  // The editor's components still read their props while they tear down
+  // after a close, so they're given the last project open rather than null.
+  let lastOpen: EditorProject | null = null
+  const shown = $derived.by(() => (lastOpen = project ?? lastOpen))
 </script>
 
-{#if project}
-  {#key project.id}
-    <LoadedEditor projectId={project.id} {project} />
+{#if project && shown}
+  {#key shown.id}
+    <LoadedEditor projectId={shown.id} project={shown} />
   {/key}
 {/if}
