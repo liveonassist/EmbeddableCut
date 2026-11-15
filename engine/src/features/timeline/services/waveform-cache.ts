@@ -857,6 +857,7 @@ class WaveformCacheService {
               }
               if (persistBins) {
                 const metaBinSamples = WAVEFORM_BIN_SAMPLES * (stereo ? 2 : 1)
+                // A cache that can't be written must not cost the waveform itself.
                 await saveWaveformMetaToIndexedDB({
                   id: mediaId,
                   mediaId,
@@ -869,6 +870,8 @@ class WaveformCacheService {
                   channels,
                   stereo: stereo || undefined,
                   createdAt: Date.now(),
+                }).catch((saveError) => {
+                  logger.warn(`Failed to persist waveform meta ${mediaId}`, saveError)
                 })
               }
 
