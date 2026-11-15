@@ -3,6 +3,7 @@
 import { createLogger } from '@/shared/logging/logger'
 import {
   deleteCompoundClips,
+  editRefusedDuring,
   getCompoundClipDeletionImpact,
   getMediaDeletionImpact,
   removeProjectItems,
@@ -163,7 +164,15 @@ export function useMediaLibraryDeletion(params: () => UseMediaLibraryDeletionPar
     try {
       // First remove timeline items that reference selected library assets
       if (impact.itemIds.length > 0) {
-        const removedTimelineReferences = removeProjectItems(impact.itemIds)
+        let removedTimelineReferences = false
+        // Media whose clips the host keeps on the timeline stays in the library.
+        const refused = editRefusedDuring(() => {
+          removedTimelineReferences = removeProjectItems(impact.itemIds)
+        })
+        if (refused) {
+          pendingDeletion = { mediaIds: [], compositionIds: [] }
+          return
+        }
         if (removedTimelineReferences && currentProjectId) {
           await saveTimeline(currentProjectId)
         }

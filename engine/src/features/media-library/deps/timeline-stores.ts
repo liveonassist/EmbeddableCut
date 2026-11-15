@@ -7,6 +7,7 @@ export {
   useCompositionsStore,
   type SubComposition,
   wouldCreateCompositionCycle,
+  editRefusedDuring,
 } from './timeline-stores-contract'
 export {
   addItems,

@@ -45,6 +45,20 @@ export function onEditRefused(listener: (refusal: RefusedEdit) => void): () => v
   return () => refusalListeners.delete(listener)
 }
 
+/** Runs `run` and says whether a guard refused any edit it made. */
+export function editRefusedDuring(run: () => void): boolean {
+  let refused = false
+  const stop = onEditRefused(() => {
+    refused = true
+  })
+  try {
+    run()
+  } finally {
+    stop()
+  }
+  return refused
+}
+
 function itemsById(snapshot: TimelineSnapshot): Map<string, TimelineItem> {
   const byId = new Map<string, TimelineItem>()
   for (const item of snapshot.items) byId.set(item.id, item)

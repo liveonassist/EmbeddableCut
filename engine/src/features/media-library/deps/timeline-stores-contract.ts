@@ -7,3 +7,4 @@ export {
   type SubComposition,
 } from '@/features/timeline/stores/compositions-store'
 export { wouldCreateCompositionCycle } from '@/features/timeline/utils/composition-graph'
+export { editRefusedDuring } from '@/features/timeline/stores/edit-guards'

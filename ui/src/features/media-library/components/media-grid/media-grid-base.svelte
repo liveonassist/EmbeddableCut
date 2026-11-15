@@ -11,6 +11,7 @@
   import {
     getMediaDeletionImpact,
     removeProjectItems,
+    editRefusedDuring,
     saveTimeline,
   } from '@/features/media-library/deps/timeline-stores'
   import { useEditorStore } from '@/shared/state/editor'
@@ -121,7 +122,12 @@
     try {
       // First remove timeline items that reference this media
       if (impact.itemIds.length > 0) {
-        const removedTimelineReferences = removeProjectItems(impact.itemIds)
+        let removedTimelineReferences = false
+        // Media whose clips the host keeps on the timeline stays in the library.
+        const refused = editRefusedDuring(() => {
+          removedTimelineReferences = removeProjectItems(impact.itemIds)
+        })
+        if (refused) return
         const currentProjectId = useMediaLibraryStore.getState().currentProjectId
         if (removedTimelineReferences && currentProjectId) {
           await saveTimeline(currentProjectId)
