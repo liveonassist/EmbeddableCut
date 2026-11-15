@@ -146,7 +146,7 @@
           echo ""
           echo "  - 🟩 Node.js:  $(node --version 2>/dev/null || echo 'not found')"
           echo "  - 🎞️ ffmpeg:   $(ffmpeg -version 2>/dev/null | head -1 | awk '{print $3}' || echo 'not found')"
-          echo "  - 🌐 Chrome:   ''${FREECUT_CHROME_PATH:-Playwright's chrome channel}"
+          echo "  - 🌐 Chrome:   ''${FREECUT_CHROME_PATH:-the Playwright chrome channel}"
           echo ""
           echo "Quickstart:"
           echo "  - 📋 commands: just"
