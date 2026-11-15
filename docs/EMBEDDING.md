@@ -103,3 +103,41 @@ await mountEditor(target, {
 | `components` | Replaces a built-in region: `toolbar`, `media-sidebar`, `properties-sidebar`, `preview`, `timeline`, `project-menu` |
 
 Icons are Lucide names (`'upload'`) or components. `order` places a contribution among the built-ins, which sit at multiples of 100.
+
+## Hiding and locking features
+
+A host can switch off the editor's own features: hidden ones don't render, locked ones render disabled and take no input, and either way their keyboard shortcuts don't fire. Settings and edits are policed by the engine itself, so they hold for shortcuts and the SDK too.
+
+```ts
+const mounted = await mountEditor(target, {
+  features: {
+    'toolbar.community': false,
+    'toolbar.workspaces': false,
+    ai: false,                                  // every ai.* feature, wherever it appears
+    'project.size': 'locked',                   // a fixed 1080×1920 canvas
+    'clip.delete': ({ items }) => !items.some((item) => item.mediaId === streamMediaId),
+  },
+  settings: { values: { autoSaveInterval: 0 }, locked: ['autoSaveInterval'] },
+  guards: { remove: (items) => !items.some((item) => item.mediaId === streamMediaId) },
+})
+mounted.setFeatures({ export: 'locked' })       // replaces every switch given before
+```
+
+- **Ids are hierarchical.** `toolbar` covers every `toolbar.*`; a value on a parent and one on a child combine, the more restrictive winning. `FEATURE_IDS` lists them all.
+- **A value** is `true` (the default), `false` (hidden), `'locked'`, or a predicate returning one. A predicate gets `{ editor, id, items, track? }`: `items` are the clips the feature acts on (the selection, unless the UI names them), `track` the track a track action is for. It's asked again as the selection changes.
+- **Features hide UI; guards forbid edits.** `clip.delete: false` removes the menu item and the Delete shortcut, but the clip can still go by ripple delete, cutting, deleting its track or its media. To keep it on the timeline whatever the user does, add a guard (`EditorOptions.guards`, [`sdk/README.md`](../sdk/README.md#settings-and-guards)); a refused edit is rolled back and the user is told why.
+- **Settings** (`EditorOptions.settings`) force values, lock keys (enforced in the settings store, so no toggle or shortcut changes them) and hide keys from the settings dialog. The user's own values stay saved for other editors on the origin.
+- In an iframe, `mountEditorFrame(target, { src, features })` and `framed.setFeatures(...)` take values only (predicates can't cross to the frame), and the bridge's `settings.setPolicy` sets the settings policy.
+
+| Ids | What they switch |
+| --- | --- |
+| `toolbar.project`, `.workspaces`, `.community`, `.docs`, `.whats-new`, `.settings`, `.shortcuts`, `.language`, `.save`, `.render-queue` | The top bar's built-in pieces: the back button and project name, the Edit/Color/Animate switcher, the GitHub and Discord links, the user guide, What's New, the settings and shortcuts dialogs, the language picker, Save, the render queue |
+| `export`, `export.video`, `export.bundle` | The Export menu, and its video and project-zip entries |
+| `project.size`, `project.frame-rate`, `project.background` | Changing the canvas: the canvas panel's size and background, and the offer to match the project to the first clip added |
+| `sidebar.media`, `.text`, `.shapes`, `.effects`, `.transitions`, `.stickers`, `.transcript`, `.ai` | The left sidebar's tabs; `sidebar` is the whole sidebar |
+| `media.relink`, `media.proxy`, `media.delete` | A media item's menu entries, and deleting from the library |
+| `inspector.canvas`, `inspector.video`, `.audio`, `.effects`, `.animation` | The properties sidebar's canvas panel and clip tabs; `inspector` is the whole sidebar |
+| `timeline.trim-tool`, `.razor`, `.rate-stretch`, `.slip-slide`, `.history`, `.in-out`, `.markers`, `.record`, `.snap`, `.audio-skimming`, `.keyframes`, `.linked-selection` | The timeline header's tools and toggles, with their shortcuts |
+| `clip.delete`, `.ripple-delete`, `.clipboard`, `.join`, `.link`, `.reverse`, `.freeze-frame`, `.compound` | A clip's menu entries and shortcuts |
+| `track.add`, `track.delete`, `track.close-gaps` | A track header's menu entries |
+| `ai.generate`, `.transcript`, `.captions`, `.speech`, `.scenes`, `.cleanup`, `.media` | AI wherever it appears: the AI and transcript tabs, caption generation, text to speech, scene detection, silence and filler removal, media analysis, interpolation and upscaling |

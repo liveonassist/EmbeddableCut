@@ -27,5 +27,6 @@ npx vp test run   # jsdom; uses the engine's test setup
 - Extensions register into realm-wide engine registries (`registerGpuEffect`, `registerGpuTransition`, `transitionRegistry`, `registerEditOperation`); `ExtensionHost.install` rolls back everything on a conflict.
 - `renderFrame` and `export` call the headless harness's own `renderFrame` and `renderProject` (`engine/src/headless/main.ts`) with a `deliver` callback, so an SDK export and a server render run the same code.
 - `apply` folds the undo entries its ops record into one (`SDK_APPLY`), captured before the first op.
+- `EditorOptions.settings` and `guards` install engine-wide state (`installSettingsPolicy`, `setEditGuards`), removed on `dispose()`. A guard refusal inside `apply` throws from the refusal listener to stop the batch, and surfaces as `EDIT_REFUSED`; outside it, it's a `notification`.
 - A new public class member goes on `scripts/checks/fallow-unused-class-members.allowlist.json` with its siblings: nothing in the repository calls the SDK's API the way hosts do.
 - Errors a host can act on are `EditorError` or `SchemaError` with a code; never a bare `Error` from a public method's documented failure paths.
