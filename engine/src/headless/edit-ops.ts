@@ -56,6 +56,7 @@ import {
   sourceFieldsFor,
   tracks,
 } from './edit-op-support'
+import { isVideoMimeType } from '@/shared/utils/media-mime'
 
 function applyAddText(op: EditOp): unknown {
   const item = buildTextItem(op)
@@ -330,7 +331,7 @@ function applyAddClip(op: EditOp): unknown {
   }
   if (media.mimeType.startsWith('image/')) return { created: placeImageClip(op, placement) }
   if (media.mimeType.startsWith('audio/')) return { created: placeAudioClip(op, placement) }
-  if (media.mimeType.startsWith('video/')) return { created: placeVideoClip(op, placement) }
+  if (isVideoMimeType(media.mimeType)) return { created: placeVideoClip(op, placement) }
   throw new Error(`addClip: unsupported media mimeType ${media.mimeType}`)
 }
 

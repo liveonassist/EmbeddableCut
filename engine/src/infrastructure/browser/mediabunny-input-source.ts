@@ -118,3 +118,10 @@ export function createMediabunnyInputSource(
 
   return new mb.UrlSource(src)
 }
+
+/**
+ * Format options for every `Input` that may read a URL. An HLS stream's
+ * timestamps count from its first segment, as the timeline's source frames
+ * do, rather than from the Unix time its program date tags give.
+ */
+export const MEDIA_INPUT_FORMAT_OPTIONS = { hls: { offsetTimestampsByDateTime: false } }

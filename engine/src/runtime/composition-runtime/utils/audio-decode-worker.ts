@@ -10,7 +10,10 @@
  * on plain TypedArrays via the shared audio-decode-dsp module.
  */
 
-import { createMediabunnyInputSource } from '@/infrastructure/browser/mediabunny-input-source'
+import {
+  createMediabunnyInputSource,
+  MEDIA_INPUT_FORMAT_OPTIONS,
+} from '@/infrastructure/browser/mediabunny-input-source'
 import { writeDecodedPreviewAudioToRoot } from '@/infrastructure/storage/workspace-fs/decoded-preview-audio'
 import { createLogger } from '@/shared/logging/logger'
 import { ensureAc3DecoderRegistered, isAc3AudioCodec } from '@/shared/utils/ac3-decoder'
@@ -98,6 +101,7 @@ async function decode(
   const mb = await import('mediabunny')
   const input = new mb.Input({
     formats: mb.ALL_FORMATS,
+    formatOptions: MEDIA_INPUT_FORMAT_OPTIONS,
     source: createMediabunnyInputSource(mb, src, {
       metadata: sourceMetadata ?? null,
       fallbackBlob: fallbackBlob ?? null,
@@ -229,6 +233,7 @@ async function decodeWindow(
   const mb = await import('mediabunny')
   const input = new mb.Input({
     formats: mb.ALL_FORMATS,
+    formatOptions: MEDIA_INPUT_FORMAT_OPTIONS,
     source: createMediabunnyInputSource(mb, src, {
       metadata: sourceMetadata ?? null,
       fallbackBlob: fallbackBlob ?? null,

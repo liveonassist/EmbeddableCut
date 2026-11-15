@@ -8,7 +8,10 @@
  * - No 500ms timeout fallbacks needed
  */
 
-import { createMediabunnyInputSource } from '@/infrastructure/browser/mediabunny-input-source'
+import {
+  createMediabunnyInputSource,
+  MEDIA_INPUT_FORMAT_OPTIONS,
+} from '@/infrastructure/browser/mediabunny-input-source'
 import { ensureProResDecoderRegistered } from '@/infrastructure/browser/register-prores-decoder'
 import { createLogger } from '@/shared/logging/logger'
 import { getAdaptiveStreamStart } from '@/shared/utils/keyframe-index-registry'
@@ -132,6 +135,7 @@ export class VideoFrameExtractor {
       // fallback for in-memory blob URLs we manage locally.
       this.input = new mb.Input({
         formats: mb.ALL_FORMATS,
+        formatOptions: MEDIA_INPUT_FORMAT_OPTIONS,
         source,
       }) as unknown as MediabunnyInput
 

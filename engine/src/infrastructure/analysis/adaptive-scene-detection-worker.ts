@@ -1,4 +1,7 @@
-import { createMediabunnyInputSource } from '@/infrastructure/browser/mediabunny-input-source'
+import {
+  createMediabunnyInputSource,
+  MEDIA_INPUT_FORMAT_OPTIONS,
+} from '@/infrastructure/browser/mediabunny-input-source'
 import { ensureProResDecoderRegistered } from '@/infrastructure/browser/register-prores-decoder'
 import {
   classifyAdaptiveSceneCuts,
@@ -138,6 +141,7 @@ async function analyze(
       fallbackBlob: request.fallbackBlob,
     }),
     formats: mb.ALL_FORMATS,
+    formatOptions: MEDIA_INPUT_FORMAT_OPTIONS,
   })
 
   let sink: SceneCanvasSink | null = null

@@ -21,7 +21,10 @@
  */
 
 import { createLogger } from '@/shared/logging/logger'
-import { createMediabunnyInputSource } from './mediabunny-input-source'
+import {
+  createMediabunnyInputSource,
+  MEDIA_INPUT_FORMAT_OPTIONS,
+} from './mediabunny-input-source'
 import { createProResPreviewSession, type ProResPreviewSession } from './prores-preview-session'
 import { ensureProResDecoderRegistered } from './register-prores-decoder'
 
@@ -51,6 +54,7 @@ async function openSession(src: string): Promise<OpenedSession | null> {
   const [mb] = await Promise.all([import('mediabunny'), ensureProResDecoderRegistered()])
   const input = new mb.Input({
     formats: mb.ALL_FORMATS,
+    formatOptions: MEDIA_INPUT_FORMAT_OPTIONS,
     source: createMediabunnyInputSource(mb, src),
   })
   try {

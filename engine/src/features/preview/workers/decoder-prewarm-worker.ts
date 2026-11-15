@@ -6,7 +6,10 @@
  * Returns decoded ImageBitmaps that the render loop can draw directly.
  */
 
-import { createMediabunnyInputSource } from '@/infrastructure/browser/mediabunny-input-source'
+import {
+  createMediabunnyInputSource,
+  MEDIA_INPUT_FORMAT_OPTIONS,
+} from '@/infrastructure/browser/mediabunny-input-source'
 import type { ObjectUrlSourceMetadata } from '@/infrastructure/browser/object-url-registry'
 
 const TIMESTAMP_EPSILON = 1e-4
@@ -82,6 +85,7 @@ async function getExtractor(
     })
     const input = new mediabunny.Input({
       formats: mediabunny.ALL_FORMATS,
+      formatOptions: MEDIA_INPUT_FORMAT_OPTIONS,
       source,
     })
 

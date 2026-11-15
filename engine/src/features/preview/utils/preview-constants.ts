@@ -171,6 +171,7 @@ declare global {
 
 import type { PreviewInteractionMode } from './preview-interaction-mode'
 import type { CompositionInputProps } from '@/types/export'
+import { isVideoMimeType } from '@/shared/utils/media-mime'
 
 /**
  * Fingerprint only the stable renderer topology: track visibility/order and
@@ -238,7 +239,7 @@ export function getMediaResolveCost(
   if (!media) return 1
 
   let cost = 1
-  if (media.mimeType.startsWith('video/')) {
+  if (isVideoMimeType(media.mimeType)) {
     const pixels = Math.max(0, media.width) * Math.max(0, media.height)
     if (pixels >= 3840 * 2160) {
       cost += 6

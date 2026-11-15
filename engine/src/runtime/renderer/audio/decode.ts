@@ -4,7 +4,10 @@
  */
 
 import { createLogger } from '@/shared/logging/logger'
-import { createMediabunnyInputSource } from '@/infrastructure/browser/mediabunny-input-source'
+import {
+  createMediabunnyInputSource,
+  MEDIA_INPUT_FORMAT_OPTIONS,
+} from '@/infrastructure/browser/mediabunny-input-source'
 import { ensureAc3DecoderRegistered, isAc3AudioCodec } from '@/shared/utils/ac3-decoder'
 import type { DecodedAudio } from './types'
 
@@ -138,6 +141,7 @@ async function decodeAudioWithMediabunny(params: {
   const mb = await import('mediabunny')
   const input = new mb.Input({
     formats: mb.ALL_FORMATS,
+    formatOptions: MEDIA_INPUT_FORMAT_OPTIONS,
     source: createMediabunnyInputSource(mb, params.src),
   })
   try {

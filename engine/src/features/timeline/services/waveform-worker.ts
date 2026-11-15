@@ -6,7 +6,10 @@
  * Sends progressive updates as samples are processed.
  */
 
-import { createMediabunnyInputSource } from '@/infrastructure/browser/mediabunny-input-source'
+import {
+  createMediabunnyInputSource,
+  MEDIA_INPUT_FORMAT_OPTIONS,
+} from '@/infrastructure/browser/mediabunny-input-source'
 import type { ObjectUrlSourceMetadata } from '@/infrastructure/browser/object-url-registry'
 import { ensureAc3DecoderRegistered, isAc3AudioCodec } from '@/shared/utils/ac3-decoder'
 
@@ -117,6 +120,7 @@ self.onmessage = async (event: MessageEvent<WaveformWorkerMessage>) => {
         fallbackBlob: blob,
       }),
       formats: ALL_FORMATS,
+      formatOptions: MEDIA_INPUT_FORMAT_OPTIONS,
     })
     disposeInput = input as { dispose?: () => void }
 

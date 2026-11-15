@@ -14,7 +14,10 @@
 import type { CompositionInputProps } from '@/types/export'
 import type { ClientExportSettings, RenderProgress, ClientRenderResult } from './client-renderer'
 import { createOutputFormat, getMimeType } from './client-renderer'
-import { createMediabunnyInputSource } from '@/infrastructure/browser/mediabunny-input-source'
+import {
+  createMediabunnyInputSource,
+  MEDIA_INPUT_FORMAT_OPTIONS,
+} from '@/infrastructure/browser/mediabunny-input-source'
 import { createLogger } from '@/shared/logging/logger'
 import { ensureAudioEncoderSupport } from '@/shared/media/audio-encoder-support'
 import { DEFAULT_PROJECT_HEIGHT, DEFAULT_PROJECT_WIDTH } from '@/shared/projects/defaults'
@@ -162,6 +165,7 @@ async function prepareAudioPacketCopy(params: {
   const { mediabunny } = params
   const input = new mediabunny.Input({
     formats: mediabunny.ALL_FORMATS,
+    formatOptions: MEDIA_INPUT_FORMAT_OPTIONS,
     source: createMediabunnyInputSource(mediabunny, plan.src),
   })
   let ownershipTransferred = false
@@ -392,6 +396,7 @@ async function tryPacketRemuxComposition(
 
   const input = new Input({
     formats: ALL_FORMATS,
+    formatOptions: MEDIA_INPUT_FORMAT_OPTIONS,
     source: createMediabunnyInputSource(mediabunny, plan.src),
   })
 

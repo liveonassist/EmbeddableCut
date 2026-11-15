@@ -21,6 +21,8 @@ import {
   createRemoteFetch,
   type RemoteRequestMetadata,
 } from '@/infrastructure/remote-media/remote-fetch'
+import { isVideoMimeType } from '@/shared/utils/media-mime'
+import { MEDIA_INPUT_FORMAT_OPTIONS } from '@/infrastructure/browser/mediabunny-input-source'
 
 const logger = createLogger('MediaProcessorWorker')
 const KEYFRAME_EXTRACTION_TIMEOUT_MS = 8_000
@@ -93,7 +95,11 @@ interface MediabunnyEncodedPacketSink {
 }
 
 interface MediabunnyModule {
-  Input: new (config: { formats: unknown; source: unknown }) => MediabunnyInput
+  Input: new (config: {
+    formats: unknown
+    source: unknown
+    formatOptions?: unknown
+  }) => MediabunnyInput
   ALL_FORMATS: unknown
   BlobSource: new (blob: Blob) => unknown
   UrlSource: new (url: string, options?: { fetchFn?: typeof fetch; requestInit?: RequestInit }) => unknown
@@ -352,6 +358,7 @@ async function extractVideoMetadata(
 
   const input = new mb.Input({
     formats: mb.ALL_FORMATS,
+    formatOptions: MEDIA_INPUT_FORMAT_OPTIONS,
     source: probeSource(mb, file),
   })
 
@@ -431,6 +438,7 @@ async function extractAudioMetadata(file: ProbeFile): Promise<AudioMetadata> {
 
   const input = new mb.Input({
     formats: mb.ALL_FORMATS,
+    formatOptions: MEDIA_INPUT_FORMAT_OPTIONS,
     source: probeSource(mb, file),
   })
 
@@ -519,6 +527,7 @@ async function generateVideoThumbnail(
   const input = new mb.Input({
     source: probeSource(mb, file),
     formats: mb.ALL_FORMATS,
+    formatOptions: MEDIA_INPUT_FORMAT_OPTIONS,
   })
   let sink: MediabunnyCanvasSink | null = null
 
@@ -665,7 +674,7 @@ async function processMedia(
   let metadata: VideoMetadata | AudioMetadata | ImageMetadata
   let thumbnail: Blob | undefined
 
-  if (mimeType.startsWith('video/')) {
+  if (isVideoMimeType(mimeType)) {
     // Video: extract metadata and generate thumbnail in parallel after metadata
     metadata = await extractVideoMetadata(file, { fastMetadata })
     if (generateThumbnail) {

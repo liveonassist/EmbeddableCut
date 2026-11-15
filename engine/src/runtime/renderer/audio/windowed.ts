@@ -11,7 +11,10 @@ import {
   type AudioClipFadeSpan,
 } from '@/shared/utils/audio-fade-curve'
 import { ensureAc3DecoderRegistered, isAc3AudioCodec } from '@/shared/utils/ac3-decoder'
-import { createMediabunnyInputSource } from '@/infrastructure/browser/mediabunny-input-source'
+import {
+  createMediabunnyInputSource,
+  MEDIA_INPUT_FORMAT_OPTIONS,
+} from '@/infrastructure/browser/mediabunny-input-source'
 import type { AudioSegment, DecodedAudio } from './types'
 import { decodeAudioFromSource, decodeAudioRangeFromSink } from './decode'
 import { applyAnimatedVolume, applyVolume, dbToGain, resample } from './dsp'
@@ -172,6 +175,7 @@ async function createWindowedAudioDecoderPool(): Promise<WindowedAudioDecoderPoo
     const created = (async () => {
       const input = new mb.Input({
         formats: mb.ALL_FORMATS,
+        formatOptions: MEDIA_INPUT_FORMAT_OPTIONS,
         source: createMediabunnyInputSource(mb, segment.src),
       })
       try {

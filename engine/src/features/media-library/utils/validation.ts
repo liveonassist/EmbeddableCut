@@ -3,6 +3,7 @@
  */
 
 import { parseLottieFileBytes } from '@/infrastructure/lottie/lottie-metadata'
+import { HLS_MIME_TYPE, isHlsMimeType, isVideoMimeType } from '@/shared/utils/media-mime'
 
 // Supported file types based on requirements
 const SUPPORTED_VIDEO_TYPES = [
@@ -47,6 +48,7 @@ const EXTENSION_PREFERRED_MIME_TYPES = new Set(['.mkv', '.m4a', '.json'])
 const EXTENSION_TO_MIME: Record<string, string> = {
   // Video
   '.mp4': 'video/mp4',
+  '.m3u8': HLS_MIME_TYPE,
   '.webm': 'video/webm',
   '.mov': 'video/quicktime',
   '.mkv': 'video/x-matroska',
@@ -170,6 +172,7 @@ export function getMediaType(mimeType: string): 'video' | 'audio' | 'image' | 'l
   // Strip codec parameters (e.g. `audio/webm;codecs=opus` from MediaRecorder)
   // so the base container type matches the supported-type lists.
   const baseType = mimeType.split(';')[0]?.trim() ?? mimeType
+  if (isHlsMimeType(baseType)) return isVideoMimeType(baseType) ? 'video' : 'audio'
   if (SUPPORTED_VIDEO_TYPES.includes(baseType)) {
     return 'video'
   }
