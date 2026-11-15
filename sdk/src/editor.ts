@@ -67,11 +67,13 @@ import { SDK_VERSION } from './version'
 export interface EditorOptions {
   /**
    * Where projects' media and caches live. A directory the user picked keeps
-   * FreeCut's workspace layout in it; `'opfs'` uses the origin's private
-   * storage, so nothing is asked of the user. Omit it to work from URL media
-   * and documents only.
+   * FreeCut's workspace layout in it; `'opfs'` (the default where the browser
+   * has it) uses the origin's private storage, so nothing is asked of the
+   * user and filmstrips, waveforms and thumbnails survive a reload. `'none'`
+   * keeps nothing: every cache is rebuilt each session, and only URL media
+   * and documents can be opened.
    */
-  workspace?: FileSystemDirectoryHandle | 'opfs'
+  workspace?: FileSystemDirectoryHandle | 'opfs' | 'none'
   /**
    * Which media sources the editor accepts, and how URL assets are resolved:
    * signed, renewed before they expire, or given the host's credentials.
@@ -215,13 +217,9 @@ export class Editor {
 
   /** @internal */
   async attachWorkspace(workspace: EditorOptions['workspace']): Promise<void> {
-    if (!workspace) return
-    const root =
-      workspace === 'opfs'
-        ? await (
-            await navigator.storage.getDirectory()
-          ).getDirectoryHandle('embeddablecut', { create: true })
-        : workspace
+    if (workspace === 'none') return
+    const root = workspace && workspace !== 'opfs' ? workspace : await openOpfsWorkspace(workspace)
+    if (!root) return
     setWorkspaceRoot(root)
     this.teardown.push(() => setWorkspaceRoot(null))
     await bootstrapWorkspace(root)
@@ -602,6 +600,22 @@ export class Editor {
     const project = useProjectStore.getState().currentProject
     if (!project) throw new EditorError('NO_PROJECT', 'No project is loaded')
     return project
+  }
+}
+
+/**
+ * The origin-private workspace. Where the browser refuses it (private modes,
+ * some WebViews), an editor that didn't ask for it runs without one.
+ */
+async function openOpfsWorkspace(
+  requested: 'opfs' | undefined,
+): Promise<FileSystemDirectoryHandle | null> {
+  try {
+    const storage = await navigator.storage.getDirectory()
+    return await storage.getDirectoryHandle('embeddablecut', { create: true })
+  } catch (error) {
+    if (requested) throw error
+    return null
   }
 }
 
