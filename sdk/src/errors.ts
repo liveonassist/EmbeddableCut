@@ -18,8 +18,12 @@ export type EditorErrorCode =
   | 'EXTENSION_CONFLICT'
   /** The host turned this kind of media source off. */
   | 'MEDIA_SOURCE_DISABLED'
-  /** Importing local files needs a workspace folder. */
+  /** The call needs a workspace folder. */
   | 'WORKSPACE_REQUIRED'
+  /** The host's accept policy refused a file; `details` has its `fileName` and `reason`. */
+  | 'MEDIA_REFUSED'
+  /** The project has no such media, or none of the kind the call needs. */
+  | 'MEDIA_NOT_FOUND'
   /** An edit operation was refused; nothing after it ran. */
   | 'OPERATION_FAILED'
 

@@ -57,7 +57,18 @@ import {
 import { EditorError } from './errors'
 import { Emitter } from './events'
 import { ExtensionHost, requirementsOf, type Extension } from './extensions'
-import { MediaApi, createRemoteResolver, type MediaResolver, type MediaSourcePolicy } from './media'
+import {
+  MediaApi,
+  createRemoteResolver,
+  type MediaAcceptOptions,
+  type MediaResolver,
+  type MediaSourcePolicy,
+} from './media'
+import { setMediaAcceptPolicy } from '@embeddablecut/engine/features/media-library/services/media-accept-policy'
+import {
+  clearSessionMedia,
+  getSessionMediaBlob,
+} from '@embeddablecut/engine/features/media-library/services/session-media'
 import {
   resetRemoteMedia,
   setRemoteMediaResolver,
@@ -79,7 +90,7 @@ export interface EditorOptions {
    * signed, renewed before they expire, or given the host's credentials.
    * Media providers from extensions are asked after `resolve`.
    */
-  media?: Partial<MediaSourcePolicy> & { resolve?: MediaResolver }
+  media?: Partial<MediaSourcePolicy> & MediaAcceptOptions & { resolve?: MediaResolver }
   /** Installed before anything loads; a document may depend on them. */
   extensions?: Extension[]
 }
@@ -192,7 +203,17 @@ export class Editor {
       setRemoteMediaResolver(null)
       resetRemoteMedia()
     })
-    this.media = new MediaApi(this.policy, () => this.requireProject(), resolver)
+    this.media = new MediaApi(
+      this.policy,
+      () => this.requireProject(),
+      resolver,
+      () => referencedMediaIds(buildTimelineFromStores()),
+    )
+    setMediaAcceptPolicy(options.media?.accept ?? null)
+    this.teardown.push(() => {
+      setMediaAcceptPolicy(null)
+      clearSessionMedia()
+    })
     for (const extension of options.extensions ?? []) this.extensions.install(extension)
 
     this.teardown.push(onNotification((notice) => this.events.emit('notification', notice)))
@@ -296,6 +317,14 @@ export class Editor {
     for (const item of media) {
       if (item.storageType === 'url' && item.remote)
         blobUrlManager.registerUrl(item.id, item.remote.url)
+      // Memory assets from another editor's page have no bytes here.
+      if (item.storageType === 'memory' && !getSessionMediaBlob(item.id)) {
+        useMediaLibraryStore.getState().markMediaBroken(item.id, {
+          mediaId: item.id,
+          fileName: item.fileName,
+          errorType: 'file_missing',
+        })
+      }
     }
     setEditCanvas({
       width: project.metadata.width,
@@ -385,6 +414,7 @@ export class Editor {
     useProjectStore.getState().setCurrentProject(null)
     clearPreviewAudioCache()
     resetRemoteMedia()
+    clearSessionMedia()
     this.workspaceProjectId = null
   }
 

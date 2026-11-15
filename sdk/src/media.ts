@@ -6,8 +6,17 @@ import { assetRecordFromMedia } from '@embeddablecut/engine/schema/index'
 import { useMediaLibraryStore } from '@embeddablecut/engine/features/media-library/stores/media-library-store'
 import { mediaLibraryService } from '@embeddablecut/engine/features/media-library/services/media-library-service'
 import type { RemoteMediaResolver } from '@embeddablecut/engine/features/media-library/services/remote-media'
-import { getWorkspaceRoot } from '@embeddablecut/engine/infrastructure/storage/workspace-fs/root'
+import {
+  MediaRefusedError,
+  type MediaAcceptPolicy,
+} from '@embeddablecut/engine/features/media-library/services/media-accept-policy'
+import { relocateMediaToUrl } from '@embeddablecut/engine/features/media-library/services/media-relocation'
 import { EditorError } from './errors'
+
+export type {
+  MediaAcceptPolicy,
+  MediaCandidate,
+} from '@embeddablecut/engine/features/media-library/services/media-accept-policy'
 
 export {
   /** Empties the shared cache of URL media blocks, for every asset and tab. */
@@ -68,10 +77,23 @@ export interface UrlMedia {
 
 /** Which kinds of media the host lets the editor use. Both are on by default. */
 export interface MediaSourcePolicy {
-  /** Files from the user's disk, copied into or linked from the workspace. */
+  /**
+   * Files from the user's disk: copied into or linked from the workspace, or,
+   * without one, held in memory until the host uploads them.
+   */
   local: boolean
   /** Remote URLs, streamed in place. */
   url: boolean
+}
+
+/** How the host decides which files from disk become media. */
+export interface MediaAcceptOptions {
+  /**
+   * Checked for every file added from disk, by the host or the user, once
+   * it's probed and before anything is stored: `true` accepts it, a string
+   * refuses it and is shown to the user as the reason.
+   */
+  accept?: MediaAcceptPolicy
 }
 
 /**
@@ -97,6 +119,7 @@ export class MediaApi {
     private readonly policy: MediaSourcePolicy,
     private readonly requireProject: () => { id: string },
     private readonly resolver: RemoteMediaResolver,
+    private readonly referencedIds: () => Set<string>,
   ) {}
 
   /** The current project's media, as portable asset records. */
@@ -112,26 +135,104 @@ export class MediaApi {
   /**
    * Imports files from the user's disk, as dropping them on the media library
    * does. `copy` puts the bytes in the workspace; `link` references the
-   * original file and asks for permission again in later sessions.
+   * original file and asks for permission again in later sessions. Without a
+   * workspace, both hold the file in memory. Files the accept policy refuses
+   * are left out, with a notification saying why.
    *
-   * @throws {EditorError} `MEDIA_SOURCE_DISABLED`, `WORKSPACE_REQUIRED` or `NO_PROJECT`.
+   * @throws {EditorError} `MEDIA_SOURCE_DISABLED` or `NO_PROJECT`.
    */
   async importFiles(
     handles: FileSystemFileHandle[],
     options: { storageMode?: 'copy' | 'link' } = {},
   ): Promise<AssetRecord[]> {
-    if (!this.policy.local) {
-      throw new EditorError('MEDIA_SOURCE_DISABLED', 'This editor does not accept local files')
-    }
-    if (!getWorkspaceRoot()) {
-      throw new EditorError(
-        'WORKSPACE_REQUIRED',
-        'Importing local files needs a workspace (EditorOptions.workspace)',
-      )
-    }
+    this.requireLocal()
     this.requireProject()
     const imported = await useMediaLibraryStore.getState().importHandles(handles, options)
     return imported.map(assetRecordFromMedia)
+  }
+
+  /**
+   * Adds files' bytes as media, probed and prepared as dropped files are:
+   * copied into the workspace, or held in memory when the editor has none
+   * (`source.type: 'memory'`). Either way they're pending until the host
+   * uploads them and calls {@link replaceWithUrl}. A file already in the
+   * library by name and size comes back as the existing asset.
+   *
+   * @throws {EditorError} `MEDIA_REFUSED` at the first file the accept policy
+   *   refuses (the files before it stay added), `MEDIA_SOURCE_DISABLED` or `NO_PROJECT`.
+   */
+  async addFiles(files: File[]): Promise<AssetRecord[]> {
+    this.requireLocal()
+    const project = this.requireProject()
+    const added: AssetRecord[] = []
+    for (const file of files) {
+      let media
+      try {
+        media = await mediaLibraryService.importMediaFile(file, project.id)
+      } catch (error) {
+        if (!(error instanceof MediaRefusedError)) throw error
+        throw new EditorError('MEDIA_REFUSED', error.message, {
+          fileName: error.fileName,
+          reason: error.reason,
+        })
+      }
+      const { isDuplicate: _duplicate, hasUnsupportedCodec: _unsupported, ...metadata } = media
+      if (!useMediaLibraryStore.getState().mediaById[metadata.id]) {
+        useMediaLibraryStore.getState().prependMediaItem(metadata)
+      }
+      added.push(assetRecordFromMedia(metadata))
+    }
+    return added
+  }
+
+  /**
+   * The assets the timeline uses that aren't at a URL yet: what a host
+   * uploads before it saves the project somewhere another session reads it.
+   */
+  pending(): AssetRecord[] {
+    const referenced = this.referencedIds()
+    return this.list().filter((asset) => asset.source.type !== 'url' && referenced.has(asset.id))
+  }
+
+  /**
+   * An asset's bytes: a local one's file, for uploading it. A URL asset is
+   * fetched whole.
+   *
+   * @throws {EditorError} `MEDIA_NOT_FOUND` when there's no such asset or its
+   *   bytes can't be read.
+   */
+  async read(id: string): Promise<Blob> {
+    this.requireProject()
+    const media = useMediaLibraryStore.getState().mediaById[id]
+    const blob = media ? await mediaLibraryService.getMediaFile(media) : null
+    if (!blob) throw new EditorError('MEDIA_NOT_FOUND', `No readable media ${id} in the project`)
+    return blob
+  }
+
+  /**
+   * Points a local asset at the URL the host uploaded it to. It keeps its id,
+   * so the clips using it are untouched, and everything already extracted
+   * from it: nothing is probed again. Readers move to the URL, through the
+   * host's resolver, as they do when a signed URL renews.
+   *
+   * @throws {EditorError} `MEDIA_NOT_FOUND` when there's no such local asset,
+   *   `MEDIA_SOURCE_DISABLED` when URL media is off, or `NO_PROJECT`.
+   */
+  async replaceWithUrl(id: string, media: UrlMedia): Promise<AssetRecord> {
+    if (!this.policy.url) {
+      throw new EditorError('MEDIA_SOURCE_DISABLED', 'This editor does not accept URL media')
+    }
+    this.requireProject()
+    const current = useMediaLibraryStore.getState().mediaById[id]
+    if (!current || current.storageType === 'url') {
+      throw new EditorError('MEDIA_NOT_FOUND', `No local media ${id} in the project`)
+    }
+    const moved = await relocateMediaToUrl(id, {
+      url: media.url,
+      ...(media.expiresAt === undefined ? {} : { expiresAt: media.expiresAt }),
+      ...(media.key === undefined ? {} : { key: media.key }),
+    })
+    return assetRecordFromMedia(moved)
   }
 
   /**
@@ -169,6 +270,12 @@ export class MediaApi {
     )
     useMediaLibraryStore.getState().prependMediaItem(imported)
     return assetRecordFromMedia(imported)
+  }
+
+  private requireLocal(): void {
+    if (!this.policy.local) {
+      throw new EditorError('MEDIA_SOURCE_DISABLED', 'This editor does not accept local files')
+    }
   }
 
   /** Removes media from the project, with every clip that uses it. */
