@@ -106,7 +106,12 @@ async function getExtractor(
       // Lazy-extract a keyframe index for sources that arrive without one.
       // The main thread persists it for other preview/proxy consumers; the
       // VideoSampleSink range path performs its own verified keyframe lookup.
-      if (!keyframeIndexBySrc.has(src)) {
+      // Only an MP4's index is free: walking a remote HLS stream's (or MPEG-TS
+      // file's) key packets would download all of it.
+      const indexed =
+        !/^https?:/.test(src) ||
+        (await input.getFormat()) instanceof mediabunny.IsobmffInputFormat
+      if (indexed && !keyframeIndexBySrc.has(src)) {
         try {
           const eps = new mediabunny.EncodedPacketSink(videoTrack)
           const kfTimestamps: number[] = []
