@@ -12,6 +12,9 @@
       "add": "추가",
       "addFailed": "URL에서 미디어를 추가할 수 없습니다",
       "streamsFromUrl": "URL에서 스트리밍"
+    },
+    "memoryMedia": {
+      "notUploaded": "아직 업로드되지 않음"
     }
   }
 }

@@ -98,6 +98,7 @@
   import { useMediaLibraryDragDrop } from './use-media-library-drag-drop.svelte'
   import { useMediaTaskProgress } from './use-media-task-progress.svelte'
   import { useMediaLibraryDeletion } from './use-media-library-deletion.svelte'
+  import { getWorkspaceRoot } from '@/infrastructure/storage/workspace-fs/root'
 
   interface MediaLibraryProps {
     onMediaSelect?: (mediaId: string) => void
@@ -129,6 +130,8 @@
   const mediaSources = editor.mediaSources
   const canStreamUrl = mediaSources.url
   const canDownloadUrl = mediaSources.local
+  // An editor without a workspace holds imported files in memory until its host uploads them.
+  const hasWorkspace = getWorkspaceRoot() !== null
 
   let container = $state<HTMLDivElement | null>(null)
   let headerToolbar = $state<HTMLDivElement | null>(null)
@@ -589,7 +592,7 @@
               <button
                 {...mergeProps(props, { onclick: handleImport })}
                 disabled={!currentProjectId.current}
-                class="flex items-center gap-1.5 h-7 px-2.5 rounded-l-md
+                class="flex items-center gap-1.5 h-7 px-2.5 {hasWorkspace ? 'rounded-l-md' : 'rounded-md'}
                   bg-primary text-primary-foreground
                   hover:bg-primary/90
                   disabled:opacity-40 disabled:cursor-not-allowed
@@ -602,34 +605,37 @@
               </button>
             {/snippet}
             {@render headerActionTooltip(t('media.library.importMediaFiles'), importTrigger)}
-            <DropdownMenu>
-              <DropdownMenuTrigger disabled={!currentProjectId.current}>
-                {#snippet child({ props })}
-                  <button
-                    {...props}
-                    class="flex h-7 w-7 items-center justify-center rounded-r-md border-l border-primary-foreground/20
-                      bg-primary text-primary-foreground
-                      hover:bg-primary/90
-                      disabled:opacity-40 disabled:cursor-not-allowed
-                      transition-colors duration-150"
-                    aria-label={t('media.library.importMoreOptions')}
-                    title={t('media.library.importMoreOptions')}
-                  >
-                    <ChevronDown class="w-3.5 h-3.5" />
-                  </button>
-                {/snippet}
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="start" class="w-56">
-                <DropdownMenuItem onSelect={handleImport}>
-                  <FolderOpen class="w-4 h-4 mr-2" />
-                  {t('media.library.importCopyToWorkspace')}
-                </DropdownMenuItem>
-                <DropdownMenuItem onSelect={handleLinkImport}>
-                  <Link class="w-4 h-4 mr-2" />
-                  {t('media.library.importLinkOriginal')}
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <!-- Without a workspace a file is only ever held, so there's nothing to choose. -->
+            {#if hasWorkspace}
+              <DropdownMenu>
+                <DropdownMenuTrigger disabled={!currentProjectId.current}>
+                  {#snippet child({ props })}
+                    <button
+                      {...props}
+                      class="flex h-7 w-7 items-center justify-center rounded-r-md border-l border-primary-foreground/20
+                        bg-primary text-primary-foreground
+                        hover:bg-primary/90
+                        disabled:opacity-40 disabled:cursor-not-allowed
+                        transition-colors duration-150"
+                      aria-label={t('media.library.importMoreOptions')}
+                      title={t('media.library.importMoreOptions')}
+                    >
+                      <ChevronDown class="w-3.5 h-3.5" />
+                    </button>
+                  {/snippet}
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" class="w-56">
+                  <DropdownMenuItem onSelect={handleImport}>
+                    <FolderOpen class="w-4 h-4 mr-2" />
+                    {t('media.library.importCopyToWorkspace')}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onSelect={handleLinkImport}>
+                    <Link class="w-4 h-4 mr-2" />
+                    {t('media.library.importLinkOriginal')}
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            {/if}
           </div>
         {/if}
 

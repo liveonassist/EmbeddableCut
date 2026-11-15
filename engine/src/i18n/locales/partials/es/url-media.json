@@ -12,6 +12,9 @@
       "add": "Añadir",
       "addFailed": "No se pudo añadir el medio desde la URL",
       "streamsFromUrl": "Se transmite desde una URL"
+    },
+    "memoryMedia": {
+      "notUploaded": "Aún no se ha subido"
     }
   }
 }

@@ -12,6 +12,9 @@
       "add": "Ekle",
       "addFailed": "Medya URL'den eklenemedi",
       "streamsFromUrl": "URL'den akışla oynatılır"
+    },
+    "memoryMedia": {
+      "notUploaded": "Henüz yüklenmedi"
     }
   }
 }

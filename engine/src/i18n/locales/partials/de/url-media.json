@@ -12,6 +12,9 @@
       "add": "Hinzufügen",
       "addFailed": "Medien konnten nicht von der URL hinzugefügt werden",
       "streamsFromUrl": "Wird von URL gestreamt"
+    },
+    "memoryMedia": {
+      "notUploaded": "Noch nicht hochgeladen"
     }
   }
 }

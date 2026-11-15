@@ -12,6 +12,9 @@
       "add": "Add",
       "addFailed": "Couldn't add media from URL",
       "streamsFromUrl": "Streams from URL"
+    },
+    "memoryMedia": {
+      "notUploaded": "Not uploaded yet"
     }
   }
 }

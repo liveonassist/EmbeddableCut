@@ -12,6 +12,9 @@
       "add": "Ajouter",
       "addFailed": "Impossible d'ajouter le média depuis l'URL",
       "streamsFromUrl": "Diffusé depuis une URL"
+    },
+    "memoryMedia": {
+      "notUploaded": "Pas encore téléversé"
     }
   }
 }

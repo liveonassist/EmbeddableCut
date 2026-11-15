@@ -10,6 +10,7 @@
   import Zap from 'lucide-svelte/icons/zap'
   import Sparkles from 'lucide-svelte/icons/sparkles'
   import Globe from 'lucide-svelte/icons/globe'
+  import CloudUpload from 'lucide-svelte/icons/cloud-upload'
   import {
     ContextMenu,
     ContextMenuContent,
@@ -160,6 +161,7 @@
   const hasCaptions = $derived((media.aiCaptions?.length ?? 0) > 0)
   // URL media streams from where it lives (docs/MEDIA.md); the card says so.
   const isUrlMedia = $derived(media.storageType === 'url')
+  const isMemoryMedia = $derived(media.storageType === 'memory')
   let thumbnailEl = $state<HTMLImageElement | null>(null)
   let thumbnailContainerEl = $state<HTMLDivElement | null>(null)
   let dragImage: HTMLDivElement | null = null
@@ -1075,6 +1077,16 @@
                 <Globe class="w-2.5 h-2.5" />
               </div>
             {/if}
+            {#if !isBroken && !isPreparingMedia && isMemoryMedia}
+              <div
+                class="absolute top-0.5 left-0.5 p-0.5 rounded bg-black/60 text-white pointer-events-none"
+                role="img"
+                title={t('media.memoryMedia.notUploaded')}
+                aria-label={t('media.memoryMedia.notUploaded')}
+              >
+                <CloudUpload class="w-2.5 h-2.5" />
+              </div>
+            {/if}
             <!-- Proxy badge for list view -->
             {#if !isBroken && !isPreparingMedia && proxyStatus === 'generating'}
               <div class="absolute bottom-0.5 right-0.5 p-0.5 rounded bg-green-500/90 text-black">
@@ -1245,6 +1257,16 @@
                     aria-label={t('media.urlMedia.streamsFromUrl')}
                   >
                     <Globe class="w-2.5 h-2.5" />
+                  </div>
+                {/if}
+                {#if !isBroken && isMemoryMedia}
+                  <div
+                    class="p-0.5 rounded bg-black/60 text-white pointer-events-none"
+                    role="img"
+                    title={t('media.memoryMedia.notUploaded')}
+                    aria-label={t('media.memoryMedia.notUploaded')}
+                  >
+                    <CloudUpload class="w-2.5 h-2.5" />
                   </div>
                 {/if}
                 <div class="opacity-0 group-hover:opacity-100 transition-opacity">
