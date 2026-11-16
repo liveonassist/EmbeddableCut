@@ -61,21 +61,10 @@ export type DocumentWarning =
 
 export interface ReadProjectDocumentResult {
   document: ProjectDocument
-  /** True when the document or the project inside was migrated or normalized on the way in. */
+  /** True when the project inside was migrated or normalized on the way in. */
   migrated: boolean
   warnings: DocumentWarning[]
 }
-
-/**
- * The envelope's migrations: entry `n - 1` takes a document from v`n` to
- * v`n + 1`. Each is pure, needing nothing but the document.
- */
-const DOCUMENT_MIGRATIONS: ReadonlyArray<
-  (document: Record<string, unknown>) => Record<string, unknown>
-> = [
-  // v2 added the `memory` asset source, which no v1 document uses.
-  (document) => ({ ...document, schemaVersion: 2 }),
-]
 
 function issuesOf(error: z.ZodError, prefix = ''): SchemaIssue[] {
   return error.issues.map((issue) => ({
@@ -136,8 +125,6 @@ export function readProjectDocument(data: unknown): ReadProjectDocumentResult {
       { path: 'project', message: 'Expected an object' },
     ])
   }
-  let envelope: Record<string, unknown> = data
-  for (const migrate of DOCUMENT_MIGRATIONS.slice(version - 1)) envelope = migrate(envelope)
 
   let migration: ReturnType<typeof migrateProject>
   try {
@@ -152,7 +139,7 @@ export function readProjectDocument(data: unknown): ReadProjectDocumentResult {
     )
   }
 
-  const parsed = projectDocumentSchema.safeParse({ ...envelope, project: migration.project })
+  const parsed = projectDocumentSchema.safeParse({ ...data, project: migration.project })
   if (!parsed.success) {
     throw new SchemaError(
       'SCHEMA_INVALID',
@@ -173,11 +160,7 @@ export function readProjectDocument(data: unknown): ReadProjectDocumentResult {
     })
   }
 
-  return {
-    document: parsed.data,
-    migrated: migration.migrated || version < PROJECT_DOCUMENT_SCHEMA_VERSION,
-    warnings,
-  }
+  return { document: parsed.data, migrated: migration.migrated, warnings }
 }
 
 export interface WriteProjectDocumentOptions {

@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "urn:embeddablecut:schema:asset:v2",
+  "$id": "urn:embeddablecut:schema:asset:v1",
   "title": "EmbeddableCut media asset record",
   "type": "object",
   "properties": {

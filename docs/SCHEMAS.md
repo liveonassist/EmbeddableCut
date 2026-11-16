@@ -25,7 +25,7 @@ The project document is the portable format: a FreeCut project, the asset record
 ```json
 {
   "format": "embeddablecut.project",
-  "schemaVersion": 2,
+  "schemaVersion": 1,
   "project": { "id": "…", "schemaVersion": 15, "metadata": { "width": 1920, "height": 1080, "fps": 30 }, "timeline": { "…": "…" } },
   "assets": [{ "id": "…", "fileName": "clip.mp4", "mimeType": "video/mp4", "source": { "type": "url", "url": "https://…" }, "…": "…" }],
   "requires": [{ "kind": "effect", "id": "acme.glow" }]
@@ -42,6 +42,7 @@ JSON Schema for each portable format is generated from the zod schema the engine
 
 - **Data versions are not package versions.** A format's version counts changes to that data, nothing else. The SDK's semver, the render API's `apiVersion` and a format's `schemaVersion` move independently: an SDK release that writes the same data keeps every schema version.
 - **Every change to a format bumps its version,** additive ones included, so a reader knows exactly what it's reading. One change, one bump, one migration.
+- **Until EmbeddableCut's first release, its own formats change in place.** Nothing outside the repo reads them yet, so the project document, the asset record and the bridge stay at v1 and change without a bump or a migration. Versioning starts with the first release.
 - **A version has one owner,** the module in the table above. Only that module defines the version, the schema and the migrations.
 - **No implicit versions.** Everything new is written with its version. FreeCut's projects from before `schemaVersion` existed are read as version 1, the one exception, and are written back versioned.
 
@@ -58,7 +59,7 @@ JSON Schema for each portable format is generated from the zod schema the engine
 ## Changing a format
 
 1. Change the type and the zod schema in the owning module.
-2. Bump its version and add the migration from the previous one. A migration never needs anything but the document: no network, no stores, no clock.
+2. Bump its version and add the migration from the previous one (once released; see [Versions](#versions)). A migration never needs anything but the document: no network, no stores, no clock.
 3. Regenerate the JSON Schema (`npx vp test run src/schema -u` in `engine/`) and commit it with the change.
 4. Add a test that reads a document of the previous version and checks what the migration did.
 5. Say what changed and why in the commit message.

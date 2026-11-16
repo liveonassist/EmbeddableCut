@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "urn:embeddablecut:schema:project-document:v2",
+  "$id": "urn:embeddablecut:schema:project-document:v1",
   "title": "EmbeddableCut project document",
   "type": "object",
   "properties": {
@@ -10,7 +10,7 @@
     },
     "schemaVersion": {
       "type": "number",
-      "const": 2
+      "const": 1
     },
     "project": {
       "type": "object",
