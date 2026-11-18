@@ -92,7 +92,8 @@ export async function conformFinalRenderArtifact(file, profile) {
         '-map',
         '0:a:0',
         '-vf',
-        `scale=${profile.width}:${profile.height}:flags=lanczos,fps=${profile.frameRate.numerator}/${profile.frameRate.denominator}`,
+        // Chrome's encoder can tag full range, which ffprobe reports as yuvj420p.
+        `scale=${profile.width}:${profile.height}:flags=lanczos:out_range=tv,fps=${profile.frameRate.numerator}/${profile.frameRate.denominator}`,
         '-c:v',
         'libx264',
         '-pix_fmt',
