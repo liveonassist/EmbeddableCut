@@ -45,7 +45,7 @@ const page = {
         {
           kind: 'list',
           items: [
-            'When proxies exist, FreeCut uses them for smoother playback of heavy media; exports still use the originals.',
+            'When proxies exist, EmbeddableCut uses them for smoother playback of heavy media; exports still use the originals.',
             'The monitor volume control affects local playback only.',
           ],
         },

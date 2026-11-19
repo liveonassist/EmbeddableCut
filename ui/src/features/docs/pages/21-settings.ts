@@ -45,7 +45,7 @@ const page = {
       blocks: [
         {
           kind: 'paragraph',
-          text: 'FreeCut can play subtle synthesized interface sounds — short cues that confirm actions like selecting, confirming, toggling, and deleting. They are **off by default**, opt-in, and never affect exported audio.',
+          text: 'EmbeddableCut can play subtle synthesized interface sounds — short cues that confirm actions like selecting, confirming, toggling, and deleting. They are **off by default**, opt-in, and never affect exported audio.',
         },
         {
           kind: 'steps',
@@ -83,13 +83,13 @@ const page = {
         {
           kind: 'list',
           items: [
-            'Interface **language** is a separate control in the toolbar, not part of this dialog; FreeCut ships in 9 languages.',
+            'Interface **language** is a separate control in the toolbar, not part of this dialog; EmbeddableCut ships in 9 languages.',
           ],
         },
         {
           kind: 'note',
           tone: 'info',
-          text: 'FreeCut currently uses a single dark theme; there is no theme selector.',
+          text: 'EmbeddableCut currently uses a single dark theme; there is no theme selector.',
         },
       ],
     },
