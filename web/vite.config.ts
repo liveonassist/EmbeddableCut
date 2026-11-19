@@ -1,4 +1,4 @@
-import { defineConfig, lazyPlugins } from 'vite-plus'
+import { defaultClientConditions, defineConfig, lazyPlugins } from 'vite-plus'
 import type { Plugin } from 'vite-plus'
 import { svelte } from '@sveltejs/vite-plugin-svelte'
 import tailwindcss from '@tailwindcss/vite'
@@ -107,6 +107,8 @@ export default defineConfig({
       $components: fileURLToPath(new URL('../ui/src/components', import.meta.url)),
     },
     dedupe: ['svelte'],
+    // onnxruntime-web without the wasm inlined, as in ui/vite.config.ts.
+    conditions: ['onnxruntime-web-use-extern-wasm', ...defaultClientConditions],
   },
   server: {
     port: 5173,
@@ -308,6 +310,5 @@ export default defineConfig({
       '@mediabunny/aac-encoder',
       '@huggingface/transformers',
     ],
-
   },
 })
