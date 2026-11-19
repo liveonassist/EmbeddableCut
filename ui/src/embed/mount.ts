@@ -21,6 +21,7 @@ import { FeatureGate } from '../extensions/feature-gate.svelte'
 import type { EditorFeatures, FeatureId, FeatureSetting } from '../extensions/features'
 import type { Theme, ThemeMode } from '../theme/theme'
 import { createEditorShell } from './shell'
+import { setProductName } from '@/i18n/product-name'
 import EditorApp from '../app/editor-app.svelte'
 
 export interface MountEditorOptions extends EditorOptions {
@@ -42,6 +43,8 @@ export interface MountEditorOptions extends EditorOptions {
   projectId?: string
   /** Lets `projectId` migrate a project from an older schema. */
   allowUpgrade?: boolean
+  /** What the editor's copy calls itself (`EmbeddableCut`), for a host shipping it under its own name. */
+  productName?: string
 }
 
 export interface MountedEditor {
@@ -68,9 +71,11 @@ export async function mountEditor(
     document: doc,
     projectId,
     allowUpgrade,
+    productName,
     ...editorOptions
   } = options
   const editor = await createEditor(editorOptions)
+  setProductName(productName)
   const shell = createEditorShell(target, { isolation, theme })
   const { root, portalTarget, themes } = shell
 
@@ -95,6 +100,7 @@ export async function mountEditor(
     gate.dispose()
     shell.dispose()
     editor.dispose()
+    setProductName()
   }
 
   return {
@@ -112,6 +118,8 @@ export interface MountEditorFrameOptions {
   theme?: ThemeMode | Theme
   /** Built-in features to hide or lock, as in `mountEditor`; values only, as they cross to the frame. */
   features?: Partial<Record<FeatureId, FeatureSetting>>
+  /** What the editor's copy calls itself, as in `mountEditor`. */
+  productName?: string
   /** Attributes for the iframe element, such as `title` or `class`. */
   attributes?: Record<string, string>
 }
@@ -135,6 +143,7 @@ export async function mountEditorFrame(
 ): Promise<MountedEditorFrame> {
   const url = new URL(options.src, location.href)
   url.searchParams.set('parent', location.origin)
+  if (options.productName) url.searchParams.set('productName', options.productName)
   const frame = document.createElement('iframe')
   frame.src = url.href
   frame.allow = 'cross-origin-isolated; clipboard-read; clipboard-write; fullscreen; local-fonts'

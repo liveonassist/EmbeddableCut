@@ -11,7 +11,8 @@
  *   JavaScript channel named `EmbeddableCutHost`; messages to the page go to
  *   `window.embeddableCutBridge.receive(json)`. docs/BRIDGE.md has the protocol.
  *
- * `?workspace=opfs` keeps local media in the page origin's private storage.
+ * `?workspace=opfs` keeps local media in the page origin's private storage;
+ * `?productName=` is what the editor's copy calls itself.
  */
 
 import { acceptFrameConnection, serveBridge, stringTransport } from '@embeddablecut/sdk'
@@ -40,6 +41,7 @@ const setFeatures = (features: Record<string, boolean | 'locked'>) =>
 const ready = mountEditor(document.body, {
   isolation: 'none',
   workspace: params.get('workspace') === 'opfs' ? 'opfs' : undefined,
+  productName: params.get('productName') ?? undefined,
 }).then((editor) => {
   mounted = editor
   return editor.editor

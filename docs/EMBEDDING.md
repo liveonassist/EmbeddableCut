@@ -60,6 +60,7 @@ framed.unmount()
 - `theme: 'dark' | 'light' | 'system'` picks a theme; `mounted.setTheme(...)` switches it at runtime. Dark is FreeCut's.
 - Any token can be overridden: `setTheme({ mode: 'dark', tokens: { primary: 'oklch(0.7 0.15 250)', 'preview-surround': '#101418' } })`, or a plain `{ token: value }` record, which keeps the current mode and replaces the overrides. `THEME_TOKENS` lists them: the semantic colors (`background`, `primary`, `border`, …), panel and timeline surfaces, the surfaces around footage (`preview-surround`, `preview-letterbox`, `meter-well`, `strip`, `waveform-well`, …) and `radius`. [`DESIGN.md`](DESIGN.md) gives FreeCut's values.
 - With `isolation: 'none'`, `data-theme` on the editor's `.ec-root` picks the theme, and the tokens can be set in the page's CSS.
+- `productName: 'Acme Studio'` (`mountEditor` or `mountEditorFrame`) is what the editor's copy calls itself, in notices like "Acme Studio cannot access 2 media files" and its accessible label. It's `EmbeddableCut` otherwise.
 
 ## Extending the UI
 
