@@ -112,7 +112,6 @@ A host can switch off the editor's own features: hidden ones don't render, locke
 ```ts
 const mounted = await mountEditor(target, {
   features: {
-    'toolbar.community': false,
     'toolbar.workspaces': false,
     ai: false,                                  // every ai.* feature, wherever it appears
     'project.size': 'locked',                   // a fixed 1080×1920 canvas
@@ -132,7 +131,7 @@ mounted.setFeatures({ export: 'locked' })       // replaces every switch given b
 
 | Ids | What they switch |
 | --- | --- |
-| `toolbar.project`, `.workspaces`, `.community`, `.docs`, `.whats-new`, `.settings`, `.shortcuts`, `.language`, `.save`, `.render-queue` | The top bar's built-in pieces: the back button and project name, the Edit/Color/Animate switcher, the GitHub and Discord links, the user guide, What's New, the settings and shortcuts dialogs, the language picker, Save, the render queue |
+| `toolbar.project`, `.workspaces`, `.docs`, `.whats-new`, `.settings`, `.shortcuts`, `.language`, `.save`, `.render-queue` | The top bar's built-in pieces: the back button and project name, the Edit/Color/Animate switcher, the user guide, What's New, the settings and shortcuts dialogs, the language picker, Save, the render queue |
 | `export`, `export.video`, `export.bundle` | The Export menu, and its video and project-zip entries |
 | `project.size`, `project.frame-rate`, `project.background` | Changing the canvas: the canvas panel's size and background, and the offer to match the project to the first clip added |
 | `sidebar.media`, `.text`, `.shapes`, `.effects`, `.transitions`, `.stickers`, `.transcript`, `.ai` | The left sidebar's tabs; `sidebar` is the whole sidebar |

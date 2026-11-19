@@ -150,7 +150,7 @@ export default defineConfig({
             normalizedId.endsWith('/src/features/workspace-gate/workspace-gate-splash.svelte') ||
             normalizedId.endsWith('/src/features/workspace-gate/use-pathname.svelte.ts')
           const isAppShellComponent =
-            normalizedId.endsWith('/src/components/brand/freecut-logo.svelte') ||
+            normalizedId.endsWith('/src/components/brand/embeddablecut-logo.svelte') ||
             normalizedId.includes('/src/components/ui/accordion/') ||
             normalizedId.includes('/src/components/ui/button/') ||
             normalizedId.endsWith('/src/components/ui/button-variants.ts') ||

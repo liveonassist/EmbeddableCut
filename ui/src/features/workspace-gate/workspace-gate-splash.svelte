@@ -7,7 +7,7 @@
   import AlertTriangle from 'lucide-svelte/icons/alert-triangle'
   import BookOpen from 'lucide-svelte/icons/book-open'
   import { Button } from '@/components/ui/button'
-  import FreeCutLogo from '@/components/brand/freecut-logo.svelte'
+  import EmbeddableCutLogo from '@/components/brand/embeddablecut-logo.svelte'
   import Trans from '@/components/trans.svelte'
   import { t } from '$lib/i18n.svelte'
   import type { SplashStatus } from './types'
@@ -24,7 +24,7 @@
 
 <div class="min-h-screen bg-background flex items-center justify-center px-6">
   <div class="max-w-lg w-full text-center">
-    <FreeCutLogo variant="full" size="lg" class="justify-center mb-8" />
+    <EmbeddableCutLogo variant="full" size="lg" class="justify-center mb-8" />
 
     {#if error}
       <div

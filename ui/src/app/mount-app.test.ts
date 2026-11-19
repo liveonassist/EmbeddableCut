@@ -2,14 +2,8 @@
 // @vitest-environment jsdom
 
 import { fireEvent, screen } from '@testing-library/svelte'
-import { afterEach, beforeAll, describe, expect, it, vi } from 'vite-plus/test'
+import { afterEach, beforeAll, describe, expect, it } from 'vite-plus/test'
 import { mountApp, type MountedApp } from './mount-app'
-
-vi.mock('@/shared/utils/github-stars', () => ({
-  readGitHubStarsCache: () => null,
-  isGitHubStarsCacheFresh: () => true,
-  refreshGitHubStarCount: async () => null,
-}))
 
 let mounted: MountedApp | null = null
 // Routes load their pages lazily; under a full parallel run, transforming them takes seconds.
@@ -47,7 +41,7 @@ describe('mountApp', () => {
     await fireEvent.click(docsLink!)
 
     expect(
-      await screen.findByRole('heading', { name: 'FreeCut User Guide' }, ROUTE_LOAD),
+      await screen.findByRole('heading', { name: 'User Guide' }, ROUTE_LOAD),
     ).toBeInTheDocument()
     expect(window.location.pathname).toBe('/docs')
   })

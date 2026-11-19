@@ -38,15 +38,12 @@
   import Upload from 'lucide-svelte/icons/upload'
   import FolderOpen from 'lucide-svelte/icons/folder-open'
   import FileIcon from 'lucide-svelte/icons/file'
-  import Github from 'lucide-svelte/icons/github'
   import BookOpen from 'lucide-svelte/icons/book-open'
   import { Link, useNavigate } from '$lib/router'
   import { Button } from '@/components/ui/button'
   import { Separator } from '@/components/ui/separator'
-  import FreeCutLogo from '@/components/brand/freecut-logo.svelte'
-  import DiscordIcon from '@/components/brand/discord-icon.svelte'
+  import EmbeddableCutLogo from '@/components/brand/embeddablecut-logo.svelte'
   import Trans from '@/components/trans.svelte'
-  import { DISCORD_INVITE_URL } from '@/config/community'
   import ProjectList from '@/features/projects/components/project-list.svelte'
   import { EditProjectForm } from '@/features/projects/components/project-form'
   import {
@@ -261,7 +258,7 @@
   <div class="panel-header border-b border-border" data-no-marquee>
     <div class="max-w-[1920px] mx-auto px-6 py-5 flex items-center justify-between">
       <Link to="/">
-        <FreeCutLogo variant="full" size="md" class="hover:opacity-80 transition-opacity" />
+        <EmbeddableCutLogo variant="full" size="md" class="hover:opacity-80 transition-opacity" />
       </Link>
       <div class="flex items-center gap-3">
         <LanguageSwitcher size="md" align="end" side="bottom" />
@@ -274,28 +271,6 @@
               <BookOpen class="w-4 h-4" />
               Docs
             </Link>
-          {/snippet}
-        </Button>
-        <Button variant="outline" size="lg" class="gap-2 px-4">
-          {#snippet child({ props })}
-            <a {...props} href={DISCORD_INVITE_URL} target="_blank" rel="noopener noreferrer">
-              <DiscordIcon class="w-4 h-4" />
-              Discord
-            </a>
-          {/snippet}
-        </Button>
-        <Button variant="outline" size="lg" class="gap-2 px-4">
-          {#snippet child({ props })}
-            <a
-              {...props}
-              href="https://github.com/walterlow/freecut"
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label={t('projects.viewOnGitHub')}
-            >
-              <Github class="w-4 h-4" />
-              GitHub
-            </a>
           {/snippet}
         </Button>
 

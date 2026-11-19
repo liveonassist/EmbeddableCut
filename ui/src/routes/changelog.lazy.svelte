@@ -65,7 +65,7 @@
   import ArrowLeft from 'lucide-svelte/icons/arrow-left'
   import ArrowRight from 'lucide-svelte/icons/arrow-right'
   import CalendarDays from 'lucide-svelte/icons/calendar-days'
-  import FreeCutLogo from '@/components/brand/freecut-logo.svelte'
+  import EmbeddableCutLogo from '@/components/brand/embeddablecut-logo.svelte'
   import { Button } from '@/components/ui/button'
   import { Link } from '$lib/router'
   import { locale, t } from '$lib/i18n.svelte'
@@ -152,7 +152,7 @@
   <header class="relative border-b border-border/70 px-6 py-5">
     <div class="mx-auto flex max-w-5xl items-center justify-between gap-4">
       <Link to="/" aria-label={t('changelog.homeAria')}>
-        <FreeCutLogo size="md" />
+        <EmbeddableCutLogo size="md" />
       </Link>
       <Button variant="ghost" size="sm" class="gap-2">
         {#snippet child({ props })}

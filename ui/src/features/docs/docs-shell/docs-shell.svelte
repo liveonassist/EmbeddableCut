@@ -1,7 +1,7 @@
 <!-- SPDX-License-Identifier: MIT -->
 <script lang="ts">
   import type { Snippet } from 'svelte'
-  import FreeCutLogo from '@/components/brand/freecut-logo.svelte'
+  import EmbeddableCutLogo from '@/components/brand/embeddablecut-logo.svelte'
   import { Button } from '@/components/ui/button'
   import { Link } from '$lib/router'
   import DocsNavigation from './docs-navigation.svelte'
@@ -18,12 +18,12 @@
   <header class="sticky top-0 z-20 border-b border-border bg-background/95 backdrop-blur">
     <div class="mx-auto flex h-14 max-w-7xl items-center justify-between px-4 sm:px-6">
       <Link to="/" class="flex items-center gap-3">
-        <FreeCutLogo size="md" />
+        <EmbeddableCutLogo size="md" />
         <span class="hidden text-sm text-muted-foreground sm:inline">Docs</span>
       </Link>
       <nav class="flex items-center gap-2">
         <Button variant="ghost" size="sm">
-          {#snippet child({ props })}<Link {...props} to="/projects">Open FreeCut</Link>{/snippet}
+          {#snippet child({ props })}<Link {...props} to="/projects">Open editor</Link>{/snippet}
         </Button>
         <Button variant="outline" size="sm">
           {#snippet child({ props })}<Link {...props} to="/">Home</Link>{/snippet}

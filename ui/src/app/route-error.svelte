@@ -29,7 +29,7 @@
   import FileQuestion from 'lucide-svelte/icons/file-question'
   import FolderOpen from 'lucide-svelte/icons/folder-open'
   import RefreshCw from 'lucide-svelte/icons/refresh-cw'
-  import FreeCutLogo from '@/components/brand/freecut-logo.svelte'
+  import EmbeddableCutLogo from '@/components/brand/embeddablecut-logo.svelte'
   import { Button } from '@/components/ui/button'
   import {
     ensureKnownWorkspaceForCurrent,
@@ -117,7 +117,7 @@
   ></div>
 
   <div class="w-full max-w-md">
-    <FreeCutLogo variant="full" size="md" class="mb-6 justify-center" />
+    <EmbeddableCutLogo variant="full" size="md" class="mb-6 justify-center" />
 
     <main
       class="rounded-2xl border border-border/80 bg-card/70 px-6 py-8 text-center shadow-2xl shadow-black/20 backdrop-blur-sm sm:px-8"

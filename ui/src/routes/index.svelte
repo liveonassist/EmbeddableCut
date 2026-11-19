@@ -71,13 +71,11 @@
 
 <script lang="ts">
   import ArrowRight from 'lucide-svelte/icons/arrow-right'
-  import Star from 'lucide-svelte/icons/star'
   import ExternalLink from 'lucide-svelte/icons/external-link'
   import BookOpen from 'lucide-svelte/icons/book-open'
   import History from 'lucide-svelte/icons/history'
   import type { Snippet } from 'svelte'
-  import FreeCutLogo from '@/components/brand/freecut-logo.svelte'
-  import DiscordIcon from '@/components/brand/discord-icon.svelte'
+  import EmbeddableCutLogo from '@/components/brand/embeddablecut-logo.svelte'
   import Trans from '@/components/trans.svelte'
   import { Button } from '@/components/ui/button'
   import {
@@ -87,28 +85,7 @@
     AccordionTrigger,
   } from '@/components/ui/accordion'
   import { Link } from '$lib/router'
-  import { DISCORD_INVITE_URL } from '@/config/community'
-  import {
-    isGitHubStarsCacheFresh,
-    readGitHubStarsCache,
-    refreshGitHubStarCount,
-  } from '@/shared/utils/github-stars'
   import { t } from '$lib/i18n.svelte'
-
-  const initialCache = readGitHubStarsCache()
-  let githubStarCount = $state<number | null>(initialCache?.stars ?? null)
-
-  $effect(() => {
-    if (initialCache && isGitHubStarsCacheFresh(initialCache)) return
-
-    let active = true
-    void refreshGitHubStarCount().then((count) => {
-      if (active && count !== null) githubStarCount = count
-    })
-    return () => {
-      active = false
-    }
-  })
 
   const faqItems: Array<{ id?: string; question: string; answer: string | Snippet }> = $derived([
     {
@@ -169,40 +146,11 @@
     {t('projects.landing.faq.shoutout.builtWith')}
   </p>
   <ul class="list-disc pl-5 space-y-1">
-    <li>React</li>
+    <li>Svelte</li>
     <li>TypeScript</li>
     <li>Vite</li>
-    <li>Shadcn</li>
+    <li>bits-ui</li>
   </ul>
-{/snippet}
-
-{#snippet gitHubStarCount(count: number | null)}
-  {#if count !== null}
-    <span class="rounded-md bg-primary/10 px-1.5 py-0.5 text-xs tabular-nums text-primary">
-      {new Intl.NumberFormat().format(count)}
-    </span>
-  {/if}
-{/snippet}
-
-{#snippet communityButtons()}
-  <Button variant="outline" size="lg" class="gap-2">
-    {#snippet child({ props })}
-      <a {...props} href={DISCORD_INVITE_URL} target="_blank" rel="noopener noreferrer">
-        <DiscordIcon class="h-4 w-4" />
-        Join Discord
-      </a>
-    {/snippet}
-  </Button>
-
-  <Button variant="outline" size="lg" class="gap-2">
-    {#snippet child({ props })}
-      <a {...props} href="https://github.com/walterlow/freecut" target="_blank" rel="noopener noreferrer">
-        <Star class="h-4 w-4" />
-        {t('projects.landing.starOnGitHub')}
-        {@render gitHubStarCount(githubStarCount)}
-      </a>
-    {/snippet}
-  </Button>
 {/snippet}
 
 <div class="min-h-screen bg-background text-foreground select-text">
@@ -217,7 +165,7 @@
 
     <div class="relative z-10 flex flex-col items-center text-center animate-fade-in">
       <div class="mb-6 flex items-center gap-3">
-        <FreeCutLogo size="lg" />
+        <EmbeddableCutLogo size="lg" />
         <span class="rounded-full bg-primary/15 px-3 py-1 text-xs font-medium text-primary">
           {t('projects.landing.beta')}
         </span>
@@ -264,8 +212,6 @@
             </Link>
           {/snippet}
         </Button>
-
-        {@render communityButtons()}
       </div>
     </div>
   </section>
@@ -414,8 +360,6 @@
             </Link>
           {/snippet}
         </Button>
-
-        {@render communityButtons()}
       </div>
     </div>
   </section>

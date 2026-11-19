@@ -17,7 +17,6 @@
   import ChevronDown from 'lucide-svelte/icons/chevron-down'
   import Download from 'lucide-svelte/icons/download'
   import FolderArchive from 'lucide-svelte/icons/folder-archive'
-  import Github from 'lucide-svelte/icons/github'
   import Keyboard from 'lucide-svelte/icons/keyboard'
   import ListVideo from 'lucide-svelte/icons/list-video'
   import Save from 'lucide-svelte/icons/save'
@@ -27,11 +26,9 @@
   import { select, shallow } from '$lib/store.svelte'
   import { t } from '$lib/i18n.svelte'
   import { Button } from '@/components/ui/button'
-  import DiscordIcon from '@/components/brand/discord-icon.svelte'
   import Contribution from '@/components/contribution.svelte'
   import Feature from '@/components/feature.svelte'
   import ContributionIcon from '@/components/contribution-icon.svelte'
-  import { DISCORD_INVITE_URL } from '@/config/community'
   import {
     DropdownMenu,
     DropdownMenuContent,
@@ -342,42 +339,6 @@
     {#if showDebugPanel}
       {@render debugPopover()}
     {/if}
-
-    <!-- Socials -->
-    <Feature id="toolbar.community">
-    <Button variant="outline" size="icon" class="h-7 w-7">
-      {#snippet child({ props })}
-        <a
-          {...props}
-          href="https://github.com/walterlow/freecut"
-          target="_blank"
-          rel="noopener noreferrer"
-          data-tooltip={t('toolbar.viewOnGitHub')}
-          data-tooltip-side="bottom"
-          aria-label={t('toolbar.viewOnGitHub')}
-        >
-          <Github class="h-4 w-4" />
-        </a>
-      {/snippet}
-    </Button>
-    <Button variant="outline" size="icon" class="h-7 w-7">
-      {#snippet child({ props })}
-        <a
-          {...props}
-          href={DISCORD_INVITE_URL}
-          target="_blank"
-          rel="noopener noreferrer"
-          data-tooltip={t('toolbar.joinDiscord')}
-          data-tooltip-side="bottom"
-          aria-label={t('toolbar.joinDiscord')}
-        >
-          <DiscordIcon class="h-4 w-4" />
-        </a>
-      {/snippet}
-    </Button>
-
-    <Separator orientation="vertical" class="h-5" />
-    </Feature>
 
     <!-- Utility -->
     <Feature id="toolbar.docs">

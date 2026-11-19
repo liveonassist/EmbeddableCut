@@ -18,8 +18,6 @@ export const FEATURE_IDS = [
   'toolbar.project',
   /** The Edit, Color and Animate workspace switcher. */
   'toolbar.workspaces',
-  /** The GitHub and Discord links. */
-  'toolbar.community',
   'toolbar.docs',
   'toolbar.whats-new',
   'toolbar.settings',

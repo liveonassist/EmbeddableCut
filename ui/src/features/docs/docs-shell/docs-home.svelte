@@ -22,9 +22,9 @@
   <section class="rounded-lg border border-border bg-card p-6 sm:p-8">
     <div class="mb-4 flex items-center gap-2 text-primary">
       <BookOpen class="h-5 w-5" />
-      <span class="text-sm font-medium">FreeCut documentation</span>
+      <span class="text-sm font-medium">Documentation</span>
     </div>
-    <h1 class="max-w-3xl text-3xl font-semibold tracking-tight sm:text-4xl">FreeCut User Guide</h1>
+    <h1 class="max-w-3xl text-3xl font-semibold tracking-tight sm:text-4xl">User Guide</h1>
     <p class="mt-4 max-w-3xl text-muted-foreground">
       Start with setup, workspaces, media import, timeline editing, and export. Use the reference
       pages when you need a precise control, shortcut, or troubleshooting path.
