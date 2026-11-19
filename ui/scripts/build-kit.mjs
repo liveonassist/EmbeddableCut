@@ -77,7 +77,11 @@ function resolveAlias(specifier) {
   return undefined
 }
 
-const specifierPattern = /(\bfrom\s*|\bimport\s*\(\s*)(['"])([^'"]+)\2/g
+// `from '…'`, `import('…')`, side-effect `import '…'` (tsc keeps them for
+// modules that register things), and `declare module '…'`, whose
+// augmentations would otherwise declare a module of their own in a host.
+const specifierPattern =
+  /(\bfrom\s*|\bimport\s*\(\s*|\bimport\s+|\bdeclare\s+module\s+)(['"])([^'"]+)\2/g
 const unresolved = []
 
 function rewrite(file) {
