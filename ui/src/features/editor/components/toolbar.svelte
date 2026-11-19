@@ -38,6 +38,7 @@
   import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
   import { Separator } from '@/components/ui/separator'
   import type { ToolbarContribution } from '../../../extensions/contributions'
+  import { runAction, type SaveTrigger } from '../../../extensions/actions.svelte'
   import LocalInferenceStatusPill from './local-inference-status-pill.svelte'
   import ProjectDebugPanel from './project-debug-panel.svelte'
   import SettingsDialog from './settings-dialog.svelte'
@@ -60,7 +61,7 @@
   interface ToolbarProps {
     projectId: string
     project: EditorProject
-    onSave?: () => Promise<void>
+    onSave?: (trigger: SaveTrigger) => Promise<void>
     onExport?: () => void
     onExportBundle?: () => void
     onOpenRenderQueue?: () => void
@@ -86,6 +87,7 @@
   const features = useFeatures()
   const exportVideoMode = $derived(features.mode('export.video'))
   const exportBundleMode = $derived(features.mode('export.bundle'))
+  const helpAction = $derived(editorUi?.actions?.current.help)
 
   // The app's projects page, when the editor runs inside the app; a
   // mounted editor has no pages to go back to.
@@ -139,7 +141,21 @@
     }
   }
 
-  async function handleSave() {
+  function openUserGuide() {
+    window.open('/docs', '_blank', 'noopener,noreferrer')
+  }
+
+  function handleHelp() {
+    if (!helpAction || !editorUi) return
+    void runAction(helpAction, {
+      editor: editorUi.editor,
+      runDefault: async () => {
+        if (router) openUserGuide()
+      },
+    })
+  }
+
+  async function handleSave(trigger: SaveTrigger = 'user') {
     const startedAt = performance.now()
     const finishSaveAnimation = () => {
       const remainingMs = Math.max(0, SAVE_ANIMATION_MIN_MS - (performance.now() - startedAt))
@@ -159,7 +175,7 @@
 
     if (onSave) {
       try {
-        await onSave()
+        await onSave(trigger)
       } finally {
         finishSaveAnimation()
       }
@@ -289,7 +305,7 @@
         <UnsavedChangesDialog
           open={showUnsavedDialog}
           onOpenChange={(open) => (showUnsavedDialog = open)}
-          onSave={handleSave}
+          onSave={() => handleSave('leave')}
           onLeave={() => void router.navigate({ to: '/projects' })}
           projectName={project?.name}
         />
@@ -341,7 +357,22 @@
     {/if}
 
     <!-- Utility -->
+    <!-- Only the app has a user guide; a mounted editor offers help when the host does. -->
+    {#if helpAction || router}
     <Feature id="toolbar.docs">
+    {#if helpAction}
+      <Button
+        variant="outline"
+        size="icon"
+        class="h-7 w-7"
+        onclick={handleHelp}
+        data-tooltip="User Guide"
+        data-tooltip-side="bottom"
+        aria-label="User Guide"
+      >
+        <BookOpen class="h-4 w-4" />
+      </Button>
+    {:else}
     <Button variant="outline" size="icon" class="h-7 w-7">
       {#snippet child({ props })}
         <a
@@ -357,7 +388,9 @@
         </a>
       {/snippet}
     </Button>
+    {/if}
     </Feature>
+    {/if}
     <Feature id="toolbar.whats-new">
     <Button
       variant="outline"
@@ -406,7 +439,7 @@
 
     <!-- Actions -->
     <Feature id="toolbar.save">
-    <Button variant="outline" size="sm" class="gap-1.5" onclick={handleSave} aria-label={t('toolbar.saveAria')}>
+    <Button variant="outline" size="sm" class="gap-1.5" onclick={() => handleSave()} aria-label={t('toolbar.saveAria')}>
       <div class="relative">
         {#if isSaveAnimating}
           {#key saveAnimationKey}

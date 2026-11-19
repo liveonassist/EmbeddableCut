@@ -5,6 +5,7 @@
  * props and the parts lay them out, so the shapes are shared between them.
  */
 
+import type { IconRef } from '../../../extensions/contributions'
 import type {
   ExportMode,
   ExportSettings,
@@ -155,6 +156,10 @@ export interface ExportCompleteViewProps {
   elapsedSeconds: number
   onClose: () => void
   onDownload: () => void
+  /** The host's own action in place of Download (`EditorActions.deliver`). */
+  deliverAction?: { label: string; icon?: IconRef }
+  /** While the host takes the file. */
+  delivering?: boolean
 }
 
 export interface ExportNoticeViewProps {

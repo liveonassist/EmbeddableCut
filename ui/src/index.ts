@@ -3,8 +3,8 @@
 /**
  * EmbeddableCut's editor UI: `mountEditor` for the full editor in any page,
  * `mountEditorFrame` for isolated editors in iframes, `mountPreview` for just
- * the playable composition, `mountApp` for the whole FreeCut app, and the
- * theme and contribution types hosts customize it with.
+ * the playable composition, `mountApp` for the whole app, and the
+ * theme, contribution and action types hosts customize it with.
  */
 
 export { mountApp, type MountedApp } from './app/mount-app'
@@ -46,3 +46,14 @@ export {
   type FeatureTarget,
   type FeatureValue,
 } from './extensions/features'
+export type {
+  ActionContext,
+  ActionHandler,
+  ActionName,
+  DeliverContext,
+  EditorActions,
+  ExportedFile,
+  SaveContext,
+  SaveTrigger,
+} from './extensions/actions.svelte'
+export type { FrameActionContext, FrameActionHandler, FrameActions } from './embed/frame-actions'

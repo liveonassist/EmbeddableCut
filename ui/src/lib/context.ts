@@ -4,6 +4,7 @@ import { getContext, setContext } from 'svelte'
 import type { Editor } from '@embeddablecut/sdk'
 import type { ContributionRegistry } from '../extensions/registry.svelte'
 import type { FeatureGate } from '../extensions/feature-gate.svelte'
+import type { HostActions } from '../extensions/actions.svelte'
 import type { ThemeController } from '../theme/theme'
 
 /** What every part of the editor UI can reach: the SDK editor, contributions, theme, portal target. */
@@ -12,6 +13,8 @@ export interface EditorUi {
   contributions: ContributionRegistry
   /** The host's feature switches; absent, every feature is on. */
   features?: FeatureGate
+  /** What the host does in place of saving, exporting and help; absent, the editor's own. */
+  actions?: HostActions
   theme: ThemeController
   /** Where popovers, menus and dialogs render: inside the editor's own root, never the host's body. */
   portalTarget: HTMLElement

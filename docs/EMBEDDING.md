@@ -60,7 +60,7 @@ framed.unmount()
 - `theme: 'dark' | 'light' | 'system'` picks a theme; `mounted.setTheme(...)` switches it at runtime. Dark is FreeCut's.
 - Any token can be overridden: `setTheme({ mode: 'dark', tokens: { primary: 'oklch(0.7 0.15 250)', 'preview-surround': '#101418' } })`, or a plain `{ token: value }` record, which keeps the current mode and replaces the overrides. `THEME_TOKENS` lists them: the semantic colors (`background`, `primary`, `border`, …), panel and timeline surfaces, the surfaces around footage (`preview-surround`, `preview-letterbox`, `meter-well`, `strip`, `waveform-well`, …) and `radius`. [`DESIGN.md`](DESIGN.md) gives FreeCut's values.
 - With `isolation: 'none'`, `data-theme` on the editor's `.ec-root` picks the theme, and the tokens can be set in the page's CSS.
-- `productName: 'Acme Studio'` (`mountEditor` or `mountEditorFrame`) is what the editor's copy calls itself, in notices like "Acme Studio cannot access 2 media files" and its accessible label. It's `EmbeddableCut` otherwise.
+- `productName: 'Acme Studio'` (`mountEditor` or `mountEditorFrame`) is what the editor's copy calls itself, in notices like "Acme Studio cannot access 2 media files" and its accessible label. It's `EmbeddableCut` otherwise. A mounted editor shows no logo and links nowhere outside itself: its help is the host's ([actions](#taking-over-saving-and-exporting)).
 
 ## Extending the UI
 
@@ -105,6 +105,46 @@ await mountEditor(target, {
 
 Icons are Lucide names (`'upload'`) or components. `order` places a contribution among the built-ins, which sit at multiples of 100.
 
+## Taking over saving and exporting
+
+`actions` replaces what the editor does when the user saves, exports or asks for help, wherever they ask: the toolbar, the menus, the shortcuts and auto-save. Each handler gets `{ editor, runDefault }`, and `runDefault()` still does what the editor would have.
+
+```ts
+const mounted = await mountEditor(target, {
+  document: await api.load(projectId),
+  actions: {
+    save: async ({ editor, trigger }) => {
+      await api.save(projectId, editor.toDocument())   // trigger: 'user', 'auto', 'leave' or 'export'
+    },
+    exportVideo: async ({ editor, runDefault }) => {
+      if (await api.canRender()) await api.render(projectId, editor.toDocument())  // a server render, no dialog
+      else await runDefault()                                                      // the export dialog after all
+    },
+    deliver: {
+      label: 'Publish',
+      icon: 'upload',
+      run: async ({ file }) => api.publish(projectId, file.blob, file.mimeType),
+    },
+    help: () => openHelpPanel(),
+  },
+  settings: { values: { autoSaveInterval: 1 }, locked: ['autoSaveInterval'] },
+})
+mounted.setActions({ help: () => openHelpPanel() })   // replaces every handler given before
+```
+
+| Action | Replaces | `runDefault()` |
+| --- | --- | --- |
+| `save` | Save, its shortcut, auto-save, saving before leaving for the projects page (`trigger: 'leave'`) and before a project zip (`'export'`) | Writes a workspace project to its workspace; nothing for a project opened from a document |
+| `exportVideo` | Export › Video and its shortcut | Opens the export dialog |
+| `exportBundle` | Export › Project zip | Asks where to save the zip and writes it |
+| `deliver` | The export dialog's Download, which becomes `label` | Downloads the file |
+| `help` | The toolbar's User Guide | Opens the app's user guide; a mounted editor has none, so it shows the button only with a handler |
+
+- **Saving marks the project clean** once the handler resolves, unless the timeline changed while it ran; a handler that throws leaves it dirty, and the user sees the save fail. Other handlers' errors are shown to the user too.
+- **Auto-save** runs `save` every `autoSaveInterval` minutes while there are unsaved changes. To save on every edit instead, listen to `editor.on('change')` and save from there.
+- A project zip is built from the workspace's copy, so a `save` handler wanting the zip to have the latest edits calls `runDefault()` when `trigger` is `'export'`.
+- In an iframe, `mountEditorFrame(target, { src, actions })` and `framed.setActions(...)` take the same handlers, given `{ editor: RemoteEditor, runDefault }`; `deliver.icon` is a Lucide name. Over the bridge they're `ui.setActions` and the `action` event ([BRIDGE.md](BRIDGE.md#actions)).
+
 ## Hiding and locking features
 
 A host can switch off the editor's own features: hidden ones don't render, locked ones render disabled and take no input, and either way their keyboard shortcuts don't fire. Settings and edits are policed by the engine itself, so they hold for shortcuts and the SDK too.
@@ -131,7 +171,7 @@ mounted.setFeatures({ export: 'locked' })       // replaces every switch given b
 
 | Ids | What they switch |
 | --- | --- |
-| `toolbar.project`, `.workspaces`, `.docs`, `.whats-new`, `.settings`, `.shortcuts`, `.language`, `.save`, `.render-queue` | The top bar's built-in pieces: the back button and project name, the Edit/Color/Animate switcher, the user guide, What's New, the settings and shortcuts dialogs, the language picker, Save, the render queue |
+| `toolbar.project`, `.workspaces`, `.docs`, `.whats-new`, `.settings`, `.shortcuts`, `.language`, `.save`, `.render-queue` | The top bar's built-in pieces: the back button and project name, the Edit/Color/Animate switcher, help, What's New, the settings and shortcuts dialogs, the language picker, Save, the render queue |
 | `export`, `export.video`, `export.bundle` | The Export menu, and its video and project-zip entries |
 | `project.size`, `project.frame-rate`, `project.background` | Changing the canvas: the canvas panel's size and background, and the offer to match the project to the first clip added |
 | `sidebar.media`, `.text`, `.shapes`, `.effects`, `.transitions`, `.stickers`, `.transcript`, `.ai` | The left sidebar's tabs; `sidebar` is the whole sidebar |

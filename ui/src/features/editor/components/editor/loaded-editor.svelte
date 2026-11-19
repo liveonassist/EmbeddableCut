@@ -49,6 +49,12 @@
   import ErrorBoundary from '@/components/error-boundary.svelte'
   import Contribution from '@/components/contribution.svelte'
   import type { PanelContribution, ReplaceableSlot } from '../../../../extensions/contributions'
+  import {
+    runAction,
+    type ActionHandler,
+    type SaveContext,
+    type SaveTrigger,
+  } from '../../../../extensions/actions.svelte'
   import ContributionIcon from '@/components/contribution-icon.svelte'
   import Toolbar from '../toolbar.svelte'
   import MediaSidebar from '../media-sidebar.svelte'
@@ -98,6 +104,7 @@
 
   const editorUi = maybeEditorUi()
   const contributions = editorUi?.contributions ?? null
+  const hostActions = editorUi?.actions
 
   let exportDialogOpen = $state(false)
   let bundleExportDialogOpen = $state(false)
@@ -229,8 +236,42 @@
     }
   })
 
-  // Save the project through the SDK (with guard against concurrent saves).
-  async function handleSave(): Promise<void> {
+  // The editor's own save. A project loaded from a document has no workspace
+  // to save to: the host keeps it, through `toDocument()` or a save handler.
+  async function saveToWorkspace(): Promise<boolean> {
+    try {
+      await editorUi?.editor.save()
+      return true
+    } catch (error) {
+      if (error instanceof EditorError && error.code === 'NO_PROJECT') return false
+      throw error
+    }
+  }
+
+  // The host saves instead. The project is clean afterwards only if nothing
+  // changed while the host's save was in flight.
+  async function saveThroughHost(handler: ActionHandler<SaveContext>, trigger: SaveTrigger) {
+    const editor = editorUi!.editor
+    let changed = false
+    const stopListening = editor.on('change', () => {
+      changed = true
+    })
+    try {
+      await handler({
+        editor,
+        trigger,
+        runDefault: async () => {
+          await saveToWorkspace()
+        },
+      })
+    } finally {
+      stopListening()
+    }
+    if (!changed) useTimelineSettingsStore.getState().markClean()
+  }
+
+  // Save the project (with guard against concurrent saves).
+  async function handleSave(trigger: SaveTrigger = 'user'): Promise<void> {
     if (isSaving) {
       return
     }
@@ -238,13 +279,12 @@
     isSaving = true
 
     try {
-      await editorUi?.editor.save()
+      const handler = hostActions?.current.save
+      if (handler && editorUi) await saveThroughHost(handler, trigger)
+      else if (!(await saveToWorkspace())) return
       logger.debug('Project saved successfully')
       toast.success(i18n.t('editor.editor.projectSaved'))
     } catch (error) {
-      // A project loaded from a document has no workspace to save to: the
-      // host keeps it, through `toDocument()`.
-      if (error instanceof EditorError && error.code === 'NO_PROJECT') return
       logger.error('Failed to save project:', error)
       toast.error(i18n.t('editor.editor.projectSaveFailed'))
       throw error // Re-throw so callers know save failed
@@ -253,11 +293,23 @@
     }
   }
 
+  function openExportDialog() {
+    void preloadExportDialog()
+    exportDialogOpen = true
+  }
+
   function handleExport() {
     // Pause playback when opening export dialog
     usePlaybackStore.getState().pause()
-    void preloadExportDialog()
-    exportDialogOpen = true
+    const handler = hostActions?.current.exportVideo
+    if (handler && editorUi) {
+      void runAction(handler, {
+        editor: editorUi.editor,
+        runDefault: async () => openExportDialog(),
+      })
+      return
+    }
+    openExportDialog()
   }
 
   function handleOpenRenderQueue() {
@@ -266,6 +318,15 @@
   }
 
   async function handleExportBundle() {
+    const handler = hostActions?.current.exportBundle
+    if (handler && editorUi) {
+      await runAction(handler, { editor: editorUi.editor, runDefault: exportBundle })
+      return
+    }
+    await exportBundle()
+  }
+
+  async function exportBundle() {
     void preloadBundleExportDialog()
 
     // Show native save picker BEFORE opening the modal dialog to avoid
@@ -302,7 +363,7 @@
     onExport: handleExport,
   }))
   useTimelineShortcuts()
-  useAutoSave(() => ({ isDirty: isDirty.current, onSave: handleSave }))
+  useAutoSave(() => ({ isDirty: isDirty.current, onSave: () => handleSave('auto') }))
 
   // Enable transition breakage notifications
   useTransitionBreakageNotifications()
@@ -554,7 +615,7 @@
           bundleFileHandle = undefined
         }}
         {projectId}
-        onBeforeExport={handleSave}
+        onBeforeExport={() => handleSave('export')}
         fileHandle={bundleFileHandle}
       />
     {/await}

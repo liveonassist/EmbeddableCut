@@ -15,8 +15,14 @@
  * `?productName=` is what the editor's copy calls itself.
  */
 
-import { acceptFrameConnection, serveBridge, stringTransport } from '@embeddablecut/sdk'
+import {
+  acceptFrameConnection,
+  serveBridge,
+  stringTransport,
+  type ServeBridgeOptions,
+} from '@embeddablecut/sdk'
 import { mountEditor, type MountedEditor } from './mount'
+import { bridgedActions } from './frame-actions'
 import '../styles/app.css'
 
 interface NativeChannel {
@@ -37,6 +43,8 @@ const setTheme = (theme: string | Record<string, string>) =>
   mounted?.setTheme(theme as Parameters<MountedEditor['setTheme']>[0])
 const setFeatures = (features: Record<string, boolean | 'locked'>) =>
   mounted?.setFeatures(features as Parameters<MountedEditor['setFeatures']>[0])
+const setActions: ServeBridgeOptions['setActions'] = (actions, dispatch) =>
+  mounted?.setActions(bridgedActions(actions, dispatch))
 
 const ready = mountEditor(document.body, {
   isolation: 'none',
@@ -63,12 +71,13 @@ if (native) {
           return () => listeners.delete(listener)
         },
       ),
-      { setTheme, setFeatures },
+      { setTheme, setFeatures, setActions },
     ),
   )
 } else {
   acceptFrameConnection(ready, parents.length > 0 ? parents : [location.origin], {
     setTheme,
     setFeatures,
+    setActions,
   })
 }

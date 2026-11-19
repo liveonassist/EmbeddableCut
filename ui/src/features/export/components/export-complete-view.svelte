@@ -10,6 +10,7 @@
   import HardDrive from 'lucide-svelte/icons/hard-drive'
   import { Alert, AlertDescription } from '@/components/ui/alert'
   import { Button } from '@/components/ui/button'
+  import ContributionIcon from '@/components/contribution-icon.svelte'
   import { formatFileSize, formatTime } from '@/features/export/utils/export-format'
   import { t } from '$lib/i18n.svelte'
   import ExportPreviewPlayer from './export-preview-player.svelte'
@@ -23,6 +24,8 @@
     elapsedSeconds,
     onClose,
     onDownload,
+    deliverAction,
+    delivering = false,
   }: ExportCompleteViewProps = $props()
 </script>
 
@@ -59,9 +62,18 @@
     <Button variant="outline" onclick={onClose}>
       {t('common.close')}
     </Button>
-    <Button onclick={onDownload}>
-      <Download class="mr-2 h-4 w-4" />
-      {t('export.complete.download')}
-    </Button>
+    {#if deliverAction}
+      <Button onclick={onDownload} disabled={delivering}>
+        {#if deliverAction.icon}
+          <ContributionIcon icon={deliverAction.icon} class="mr-2 h-4 w-4" />
+        {/if}
+        {deliverAction.label}
+      </Button>
+    {:else}
+      <Button onclick={onDownload}>
+        <Download class="mr-2 h-4 w-4" />
+        {t('export.complete.download')}
+      </Button>
+    {/if}
   </div>
 </div>

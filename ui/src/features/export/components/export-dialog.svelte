@@ -19,6 +19,8 @@
     SubtitleExportMode,
   } from '@/types/export'
   import { useClientRender } from '../hooks/use-client-render.svelte'
+  import { findEditorUi } from '$lib/context'
+  import { runAction } from '../../../extensions/actions.svelte'
   import { useExportDialogView } from '../hooks/use-export-dialog-view.svelte'
   import {
     buildRenderJob,
@@ -260,6 +262,31 @@
 
   // Render hook
   const clientRender = useClientRender()
+
+  // A host taking the rendered file (`EditorActions.deliver`) replaces Download.
+  const editorUi = findEditorUi()
+  const deliver = $derived(editorUi?.actions?.current.deliver)
+  let delivering = $state(false)
+
+  const handleDeliver = async () => {
+    const result = clientRender.result
+    if (!deliver || !editorUi || !result) return
+    const sidecar = result.subtitleSidecar
+    delivering = true
+    try {
+      await runAction(deliver.run, {
+        editor: editorUi.editor,
+        file: {
+          blob: result.blob,
+          mimeType: result.mimeType,
+          ...(sidecar && { subtitles: { fileName: sidecar.filename, content: sidecar.content } }),
+        },
+        runDefault: async () => clientRender.downloadVideo(),
+      })
+    } finally {
+      delivering = false
+    }
+  }
 
   let supportedVideoCodecs = $state.raw<ClientCodec[] | null>(null)
   let isCheckingVideoSupport = $state(false)
@@ -625,7 +652,9 @@
         {fileSize}
         elapsedSeconds={dialogView.elapsedSeconds}
         onClose={dialogView.handleClose}
-        onDownload={clientRender.downloadVideo}
+        onDownload={deliver ? handleDeliver : clientRender.downloadVideo}
+        deliverAction={deliver}
+        {delivering}
       />
     {/if}
 

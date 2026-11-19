@@ -18,9 +18,11 @@ import {
 } from '@embeddablecut/sdk'
 import { ContributionRegistry } from '../extensions/registry.svelte'
 import { FeatureGate } from '../extensions/feature-gate.svelte'
+import { HostActions, type EditorActions } from '../extensions/actions.svelte'
 import type { EditorFeatures, FeatureId, FeatureSetting } from '../extensions/features'
 import type { Theme, ThemeMode } from '../theme/theme'
 import { createEditorShell } from './shell'
+import { answerFrameActions, toBridgeActions, type FrameActions } from './frame-actions'
 import { setProductName } from '@/i18n/product-name'
 import EditorApp from '../app/editor-app.svelte'
 
@@ -37,6 +39,8 @@ export interface MountEditorOptions extends EditorOptions {
   ui?: UiContributions
   /** Built-in features to hide (`false`) or lock (`'locked'`), by id; see `FEATURE_IDS`. */
   features?: EditorFeatures
+  /** What the host does in place of saving, exporting and help. */
+  actions?: EditorActions
   /** A project document to open. */
   document?: unknown
   /** A workspace project to open instead (needs `workspace`). */
@@ -54,6 +58,8 @@ export interface MountedEditor {
   configure(ui: UiContributions): void
   /** Replaces every feature switch given in `features`. */
   setFeatures(features: EditorFeatures): void
+  /** Replaces the handlers given in `actions`. */
+  setActions(actions: EditorActions): void
   /** Removes the editor and disposes it, so another can be mounted. */
   unmount(): Promise<void>
 }
@@ -68,6 +74,7 @@ export async function mountEditor(
     theme = 'dark',
     ui = {},
     features = {},
+    actions = {},
     document: doc,
     projectId,
     allowUpgrade,
@@ -81,9 +88,19 @@ export async function mountEditor(
 
   const contributions = new ContributionRegistry(editor, ui)
   const gate = new FeatureGate(editor, features)
+  const hostActions = new HostActions(actions)
   const app = mount(EditorApp, {
     target: root,
-    props: { ui: { editor, contributions, features: gate, theme: themes, portalTarget } },
+    props: {
+      ui: {
+        editor,
+        contributions,
+        features: gate,
+        actions: hostActions,
+        theme: themes,
+        portalTarget,
+      },
+    },
   })
 
   try {
@@ -108,6 +125,7 @@ export async function mountEditor(
     setTheme: (next) => themes.setTheme(next),
     configure: (next) => contributions.setHost(next),
     setFeatures: (next) => gate.set(next),
+    setActions: (next) => hostActions.set(next),
     unmount: teardown,
   }
 }
@@ -120,6 +138,8 @@ export interface MountEditorFrameOptions {
   features?: Partial<Record<FeatureId, FeatureSetting>>
   /** What the editor's copy calls itself, as in `mountEditor`. */
   productName?: string
+  /** What the host does in place of saving, exporting and help, as in `mountEditor`. */
+  actions?: FrameActions
   /** Attributes for the iframe element, such as `title` or `class`. */
   attributes?: Record<string, string>
 }
@@ -129,6 +149,8 @@ export interface MountedEditorFrame {
   readonly frame: HTMLIFrameElement
   setTheme(theme: ThemeMode | Theme | Record<string, string>): Promise<void>
   setFeatures(features: Partial<Record<FeatureId, FeatureSetting>>): Promise<void>
+  /** Replaces the handlers given in `actions`. */
+  setActions(actions: FrameActions): Promise<void>
   unmount(): void
 }
 
@@ -155,6 +177,9 @@ export async function mountEditorFrame(
   const editor = await connected
   if (options.theme) await editor.call('ui.setTheme', { theme: options.theme as never })
   if (options.features) await editor.call('ui.setFeatures', { features: options.features })
+  let actions = options.actions ?? {}
+  const stopAnswering = answerFrameActions(editor, () => actions)
+  if (options.actions) await editor.call('ui.setActions', { actions: toBridgeActions(actions) })
   return {
     editor,
     frame,
@@ -164,7 +189,12 @@ export async function mountEditorFrame(
     setFeatures: async (features) => {
       await editor.call('ui.setFeatures', { features })
     },
+    setActions: async (next) => {
+      actions = next
+      await editor.call('ui.setActions', { actions: toBridgeActions(next) })
+    },
     unmount: () => {
+      stopAnswering()
       editor.close()
       frame.remove()
     },
