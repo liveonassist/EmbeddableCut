@@ -13,7 +13,7 @@ import {
 const root = path.resolve(import.meta.dirname, '..')
 const workspace = fs.mkdtempSync(path.join(os.tmpdir(), 'freecut-lifecycle-e2e-'))
 fs.writeFileSync(
-  path.join(workspace, '.freecut-workspace.json'),
+  path.join(workspace, '.embeddablecut-workspace.json'),
   '{"schemaVersion":"2.0","createdAt":1}\n',
 )
 const port = 20_000 + Math.floor(Math.random() * 20_000)
@@ -389,7 +389,7 @@ try {
   assert.equal(didExit, true, 'service did not exit after SIGTERM')
   // Windows TerminateProcess does not run Node exit hooks. The test owns this
   // workspace and has confirmed the writer PID exited, so its lock is stale.
-  const lockPath = path.join(workspace, '.freecut-headless', 'writer.lock')
+  const lockPath = path.join(workspace, '.embeddablecut-render', 'writer.lock')
   if (process.platform === 'win32') fs.rmSync(lockPath, { force: true })
   else assert.equal(fs.existsSync(lockPath), false, 'writer lock survived graceful shutdown')
 }
@@ -449,7 +449,7 @@ try {
   ])
   assert.equal(didExit, true, 'restarted service did not exit after SIGTERM')
   if (process.platform === 'win32')
-    fs.rmSync(path.join(workspace, '.freecut-headless', 'writer.lock'), { force: true })
+    fs.rmSync(path.join(workspace, '.embeddablecut-render', 'writer.lock'), { force: true })
 }
 
 try {
@@ -514,7 +514,7 @@ try {
 
 const corruptWorkspace = fs.mkdtempSync(path.join(os.tmpdir(), 'freecut-corrupt-checkpoint-'))
 try {
-  const operationRoot = path.join(corruptWorkspace, '.freecut-headless', 'checkpoint-operations')
+  const operationRoot = path.join(corruptWorkspace, '.embeddablecut-render', 'checkpoint-operations')
   fs.mkdirSync(operationRoot, { recursive: true })
   fs.writeFileSync(
     path.join(operationRoot, '018f22d2-8d42-7c2a-a4cc-7a3f2c5f6b10.json'),

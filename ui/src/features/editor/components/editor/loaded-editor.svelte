@@ -338,11 +338,11 @@
         .substring(0, 100)
       try {
         bundleFileHandle = await window.showSaveFilePicker({
-          suggestedName: `${safeName}.freecut.zip`,
+          suggestedName: `${safeName}.embeddablecut.zip`,
           types: [
             {
               description: i18n.t('editor.editor.projectBundle'),
-              accept: { 'application/zip': ['.freecut.zip'] },
+              accept: { 'application/zip': ['.embeddablecut.zip'] },
             },
           ],
         })

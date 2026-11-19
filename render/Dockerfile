@@ -11,7 +11,7 @@
 # Build (context = repo root):
 #   docker build -f render/Dockerfile -t embeddablecut-render .
 # Run (the lifecycle service requires a writable workspace for locks/atomic writes):
-#   docker run --rm -p 8787:8787 -v /path/to/FreeCutProjects:/workspace embeddablecut-render
+#   docker run --rm -p 8787:8787 -v /path/to/EmbeddableCutProjects:/workspace embeddablecut-render
 #   curl localhost:8787/health    # -> {"ok":true,"gpu":true,...}
 # Extensions: mount their modules and name them, e.g.
 #   -v /srv/extensions:/extensions:ro -e FREECUT_EXTENSIONS=/extensions/looks.js

@@ -4,24 +4,24 @@
 
   const logger = createLogger('ProjectsIndex')
 
-  const PROJECTS_FOLDER_NAME = 'FreeCutProjects'
+  const PROJECTS_FOLDER_NAME = 'EmbeddableCutProjects'
 
   // Extract project name from bundle filename
-  // Handles both "myproject.freecut.zip" and browser-renamed "myproject.freecut (1).zip"
+  // Handles both "myproject.embeddablecut.zip" and browser-renamed "myproject.embeddablecut (1).zip"
   const extractProjectName = (fileName: string): string => {
     // Remove .zip extension first
     let name = fileName.replace(/\.zip$/i, '')
     // Remove browser duplicate suffix like " (1)", " (2)", etc.
     name = name.replace(/\s*\(\d+\)$/, '')
-    // Remove .freecut suffix
-    name = name.replace(/\.freecut$/i, '')
+    // Remove .embeddablecut suffix
+    name = name.replace(/\.embeddablecut$/i, '')
     return name
   }
 
-  // Check if file is a valid bundle (handles browser-renamed files like "project.freecut (1).zip")
+  // Check if file is a valid bundle (handles browser-renamed files like "project.embeddablecut (1).zip")
   const isValidBundleFile = (fileName: string): boolean => {
-    // Match: anything.freecut.zip or anything.freecut (N).zip
-    return /\.freecut(\s*\(\d+\))?\.zip$/i.test(fileName)
+    // Match: anything.embeddablecut.zip or anything.embeddablecut (N).zip
+    return /\.embeddablecut(\s*\(\d+\))?\.zip$/i.test(fileName)
   }
 
   // Format file size for display
@@ -82,7 +82,7 @@
   let projectNameFromFile = $state<string | null>(null)
   let destinationDir = $state.raw<FileSystemDirectoryHandle | null>(null)
   let destinationName = $state<string | null>(null)
-  let useProjectsFolder = $state(true) // Create FreeCutProjects subfolder
+  let useProjectsFolder = $state(true) // Create EmbeddableCutProjects subfolder
   let importDialogOpen = $state(false)
   let importProgress = $state.raw<ImportProgress | null>(null)
   let importError = $state<string | null>(null)
@@ -115,7 +115,7 @@
     // Reset file input for next selection
     event.currentTarget.value = ''
 
-    // Validate file extension (handles browser-renamed files like "project.freecut (1).zip")
+    // Validate file extension (handles browser-renamed files like "project.embeddablecut (1).zip")
     if (!isValidBundleFile(file.name)) {
       importError = t('projects.import.invalidFile', { extension: BUNDLE_EXTENSION })
       importDialogOpen = true
@@ -170,7 +170,7 @@
     importProgress = { percent: 0, stage: 'validating' }
 
     try {
-      // If useProjectsFolder is enabled, create/get the FreeCutProjects subfolder first
+      // If useProjectsFolder is enabled, create/get the EmbeddableCutProjects subfolder first
       let finalDestination = destinationDir
       if (useProjectsFolder) {
         try {
@@ -178,7 +178,7 @@
             create: true,
           })
         } catch (err) {
-          logger.error('Failed to create FreeCutProjects folder:', err)
+          logger.error('Failed to create EmbeddableCutProjects folder:', err)
           throw new Error(t('projects.import.createFolderFailed', { folder: PROJECTS_FOLDER_NAME }))
         }
       }
@@ -464,7 +464,7 @@
             {/if}
           </Button>
 
-          <!-- FreeCutProjects subfolder option -->
+          <!-- EmbeddableCutProjects subfolder option -->
           <label class="flex items-center gap-2 cursor-pointer">
             <input
               type="checkbox"

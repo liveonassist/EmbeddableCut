@@ -136,7 +136,7 @@ test('exclusive writer lock refuses a second writer', async (t) => {
 test('writer lock automatically recovers an old lock with a confirmed-dead local PID', async (t) => {
   const root = tempWorkspace()
   t.after(() => fs.rmSync(root, { recursive: true, force: true }))
-  const lockDir = path.join(root, '.freecut-headless')
+  const lockDir = path.join(root, '.embeddablecut-render')
   fs.mkdirSync(lockDir, { recursive: true })
   fs.writeFileSync(
     path.join(lockDir, 'writer.lock'),

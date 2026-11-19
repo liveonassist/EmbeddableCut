@@ -29,7 +29,7 @@ export const SCHEMA_VERSIONS = {
   asset: ASSET_SCHEMA_VERSION,
   /** The workspace folder layout, owned by FreeCut: `infrastructure/storage/workspace-fs/`. */
   workspace: WORKSPACE_SCHEMA_VERSION,
-  /** The `.freecut.zip` bundle manifest, owned by FreeCut: `features/project-bundle/`. */
+  /** The `.embeddablecut.zip` bundle manifest, owned by FreeCut: `features/project-bundle/`. */
   bundle: BUNDLE_VERSION,
   /** FreeCut's JSON snapshot export, owned by FreeCut: `features/project-bundle/`. */
   snapshot: SNAPSHOT_VERSION,

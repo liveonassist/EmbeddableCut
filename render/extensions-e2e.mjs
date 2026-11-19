@@ -193,7 +193,7 @@ async function main() {
   }
   const workspace = fs.mkdtempSync(path.join(os.tmpdir(), 'embeddablecut-extensions-'))
   fs.writeFileSync(
-    path.join(workspace, '.freecut-workspace.json'),
+    path.join(workspace, '.embeddablecut-workspace.json'),
     '{"schemaVersion":"2.0","createdAt":1}\n',
   )
   await writeClip(workspace, 'red', 'red')

@@ -445,7 +445,7 @@ export async function showImportFilePicker(
   // Create file input
   const input = document.createElement('input')
   input.type = 'file'
-  input.accept = '.json,.freecut.json'
+  input.accept = '.json,.embeddablecut.json'
 
   return new Promise((resolve) => {
     input.onchange = async () => {

@@ -107,7 +107,7 @@ export function resolveCheckpointOutputPath(workspace, relativePath) {
 }
 
 function operationRoot(workspace) {
-  return resolveContained(workspace, '.freecut-headless/checkpoint-operations')
+  return resolveContained(workspace, '.embeddablecut-render/checkpoint-operations')
 }
 
 function operationFile(workspace, operationId) {

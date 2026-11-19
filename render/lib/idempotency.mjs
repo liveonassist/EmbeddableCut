@@ -86,7 +86,7 @@ export async function withIdempotency(
   operation,
 ) {
   validateIdempotencyKey(key)
-  const dir = path.join(workspace, '.freecut-headless', 'idempotency')
+  const dir = path.join(workspace, '.embeddablecut-render', 'idempotency')
   const keyHash = hash(key)
   const file = path.join(dir, `${keyHash}.json`)
   const requestHash = hash(requestBytes)

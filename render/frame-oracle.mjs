@@ -322,7 +322,7 @@ async function main() {
   const workspace = fs.mkdtempSync(path.join(os.tmpdir(), 'freecut-frame-oracle-'))
   const sources = path.join(workspace, 'sources')
   fs.mkdirSync(sources)
-  fs.writeFileSync(path.join(workspace, '.freecut-workspace.json'), '{"schemaVersion":"2.0","createdAt":1}\n')
+  fs.writeFileSync(path.join(workspace, '.embeddablecut-workspace.json'), '{"schemaVersion":"2.0","createdAt":1}\n')
   const port = await freePort()
   const base = `http://127.0.0.1:${port}`
   log(`workspace ${workspace}`)

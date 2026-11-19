@@ -11,8 +11,8 @@ Every format EmbeddableCut persists or exchanges has one owner, an explicit vers
 | Asset record | integer, versioned with the document | EmbeddableCut: `engine/src/schema/asset.ts` | a project document's `assets` |
 | Edit operation | the render API's `apiVersion` | FreeCut: `render/lib/contract.mjs` | the SDK's `apply`, the service's `/edit`, the bridge |
 | Bridge messages | `BRIDGE_VERSION` | EmbeddableCut: `sdk/src/bridge/protocol.ts` | iframe and WebView hosts ([`BRIDGE.md`](BRIDGE.md)) |
-| Workspace layout | `"2.0"` in `.freecut-workspace.json` | FreeCut: `engine/src/infrastructure/storage/workspace-fs/` | the workspace folder |
-| Bundle manifest (`.freecut.zip`) | `"1.0"` | FreeCut: `engine/src/features/project-bundle/` | project bundles |
+| Workspace layout | `"2.0"` in `.embeddablecut-workspace.json` | FreeCut: `engine/src/infrastructure/storage/workspace-fs/` | the workspace folder |
+| Bundle manifest (`.embeddablecut.zip`) | `"1.0"` | FreeCut: `engine/src/features/project-bundle/` | project bundles |
 | JSON snapshot | `"1.0"` | FreeCut: `engine/src/features/project-bundle/` | FreeCut's JSON export |
 | Render API | `apiVersion`, `HEADLESS_API_VERSION` | FreeCut: `render/lib/contract.mjs` | the HTTP service's requests and responses; EmbeddableCut's additions are announced in `/v1/capabilities` |
 

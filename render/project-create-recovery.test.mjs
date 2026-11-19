@@ -18,7 +18,7 @@ const requestHash = (bytes) => crypto.createHash('sha256').update(bytes).digest(
 const keyHash = (key) => crypto.createHash('sha256').update(key).digest('hex')
 
 function writePending(root, key, raw) {
-  const directory = path.join(root, '.freecut-headless', 'idempotency')
+  const directory = path.join(root, '.embeddablecut-render', 'idempotency')
   fs.mkdirSync(directory, { recursive: true })
   const file = path.join(directory, `${keyHash(key)}.json`)
   fs.writeFileSync(

@@ -1257,7 +1257,7 @@ export async function probeMedia(input: { url: string; fileName: string; mimeTyp
   }
   const root = await navigator.storage.getDirectory()
   const safeName = input.fileName.replace(/[^A-Za-z0-9._-]/g, '_').slice(-160) || 'source.bin'
-  const tempName = `.freecut-probe-${crypto.randomUUID()}-${safeName}`
+  const tempName = `.embeddablecut-probe-${crypto.randomUUID()}-${safeName}`
   try {
     const handle = await root.getFileHandle(tempName, { create: true })
     const writable = await handle.createWritable()

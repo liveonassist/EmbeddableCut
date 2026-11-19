@@ -28,13 +28,13 @@ test('expired ledgers are deterministically removed before capacity accounting',
     operation,
   )
   assert.equal(result.status, 201)
-  assert.equal(fs.readdirSync(path.join(root, '.freecut-headless', 'idempotency')).length, 1)
+  assert.equal(fs.readdirSync(path.join(root, '.embeddablecut-render', 'idempotency')).length, 1)
 })
 
 test('capacity exhaustion is structured and does not evict a live pending ledger', async (t) => {
   const root = workspace()
   t.after(() => fs.rmSync(root, { recursive: true, force: true }))
-  const dir = path.join(root, '.freecut-headless', 'idempotency')
+  const dir = path.join(root, '.embeddablecut-render', 'idempotency')
   fs.mkdirSync(dir, { recursive: true })
   const pendingFile = path.join(dir, `${'0'.repeat(64)}.json`)
   fs.writeFileSync(

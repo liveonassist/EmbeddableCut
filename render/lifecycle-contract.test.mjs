@@ -206,7 +206,7 @@ test('checkpoint request validates canonical ids, hashes, and portable output pa
     'artifacts\\..\\out.mp4',
     'artifacts\0out.mp4',
     'projects/project_1/project.json',
-    '.freecut-headless/checkpoint-operations/record.json',
+    '.embeddablecut-render/checkpoint-operations/record.json',
   ]) {
     const request = validCheckpointRequest()
     request.outputRelativePath = outputRelativePath

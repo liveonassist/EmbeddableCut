@@ -53,7 +53,7 @@ function workspace(t) {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'freecut-import-'))
   t.after(() => fs.rmSync(root, { recursive: true, force: true }))
   fs.writeFileSync(
-    path.join(root, '.freecut-workspace.json'),
+    path.join(root, '.embeddablecut-workspace.json'),
     '{"schemaVersion":"2.0","createdAt":1}\n',
   )
   fs.mkdirSync(path.join(root, 'recording'))
@@ -118,23 +118,23 @@ test('media import schema is strict and rejects unsafe POSIX and Windows paths',
 
 test('workspace identity hashes exact marker bytes and capabilities advertise import', async (t) => {
   const root = workspace(t)
-  const marker = fs.readFileSync(path.join(root, '.freecut-workspace.json'))
+  const marker = fs.readFileSync(path.join(root, '.embeddablecut-workspace.json'))
   assert.deepEqual(await workspaceFingerprint(root), {
     schemaVersion: '2.0',
     fingerprint: sha256(marker),
   })
   assert.ok(capabilities().lifecycle.routes.includes('POST /v1/media/import'))
   assert.ok(capabilities().schemas.mediaImport)
-  fs.writeFileSync(path.join(root, '.freecut-workspace.json'), '{bad')
+  fs.writeFileSync(path.join(root, '.embeddablecut-workspace.json'), '{bad')
   assert.equal(await workspaceFingerprint(root), null)
-  fs.writeFileSync(path.join(root, '.freecut-workspace.json'), Buffer.alloc(64 * 1024 + 1, 1))
+  fs.writeFileSync(path.join(root, '.embeddablecut-workspace.json'), Buffer.alloc(64 * 1024 + 1, 1))
   assert.equal(await workspaceFingerprint(root), null)
-  fs.rmSync(path.join(root, '.freecut-workspace.json'))
+  fs.rmSync(path.join(root, '.embeddablecut-workspace.json'))
   fs.writeFileSync(path.join(root, 'marker-target.json'), '{"schemaVersion":"2.0"}')
   fileSymlinkFixture(
     t,
     path.join(root, 'marker-target.json'),
-    path.join(root, '.freecut-workspace.json'),
+    path.join(root, '.embeddablecut-workspace.json'),
   )
   assert.equal(await workspaceFingerprint(root), null)
 })
@@ -177,7 +177,7 @@ test('imports, probes, promotes atomically, associates a real project, and retur
   assert.deepEqual(media.projectIds, [project.id])
   assert.deepEqual(fs.readFileSync(path.join(root, 'media', body.mediaId, 'ролик.mp4')), bytes)
   assert.equal(
-    fs.existsSync(path.join(root, '.freecut-headless', 'media-imports', requestHashOf(raw))),
+    fs.existsSync(path.join(root, '.embeddablecut-render', 'media-imports', requestHashOf(raw))),
     false,
   )
 })
@@ -250,7 +250,7 @@ test('crash-left pending idempotency receipt is reconciled through the route ope
   const key = 'crash-key'
   const keyHash = crypto.createHash('sha256').update(key).digest('hex')
   const requestHash = requestHashOf(raw)
-  const ledgerDir = path.join(root, '.freecut-headless', 'idempotency')
+  const ledgerDir = path.join(root, '.embeddablecut-render', 'idempotency')
   fs.mkdirSync(ledgerDir, { recursive: true })
   fs.writeFileSync(
     path.join(ledgerDir, `${keyHash}.json`),
@@ -326,7 +326,7 @@ test('rejects symlinks, hash/size mismatch, missing identity, and leaves no part
     /probe failed/,
   )
   assert.equal(fs.existsSync(path.join(root, 'media', body.mediaId)), false)
-  fs.writeFileSync(path.join(root, '.freecut-workspace.json'), '{bad')
+  fs.writeFileSync(path.join(root, '.embeddablecut-workspace.json'), '{bad')
   await assert.rejects(
     () => run(body),
     (e) => e.code === 'WORKSPACE_IDENTITY_UNAVAILABLE',
@@ -397,7 +397,7 @@ test('post-promotion failures retain pending idempotency and retry reconciles af
     SyntaxError,
   )
   assert.equal(fs.existsSync(path.join(root, 'media', body.mediaId)), true)
-  const ledger = path.join(root, '.freecut-headless', 'idempotency', `${keyHash}.json`)
+  const ledger = path.join(root, '.embeddablecut-render', 'idempotency', `${keyHash}.json`)
   assert.equal(JSON.parse(fs.readFileSync(ledger, 'utf8')).state, 'pending')
   fs.writeFileSync(
     path.join(root, 'projects', project.id, 'media-links.json'),
@@ -449,7 +449,7 @@ test('promotion fsyncs both rename parents before an injected crash boundary', a
     [path.basename(root), requestHashOf(raw), 'media'],
   )
   assert.equal(fs.existsSync(path.join(root, 'media', body.mediaId)), true)
-  const ledger = path.join(root, '.freecut-headless', 'idempotency', `${keyHash}.json`)
+  const ledger = path.join(root, '.embeddablecut-render', 'idempotency', `${keyHash}.json`)
   assert.equal(JSON.parse(fs.readFileSync(ledger, 'utf8')).state, 'pending')
 })
 

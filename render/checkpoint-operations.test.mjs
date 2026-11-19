@@ -515,7 +515,7 @@ test('phase records missing required durable evidence are rejected as corrupt', 
   await setup.store.submit({ request: setup.req, idempotencyKey: 'key' })
   const recordFile = path.join(
     root,
-    '.freecut-headless',
+    '.embeddablecut-render',
     'checkpoint-operations',
     `${OPERATION_ID}.json`,
   )
@@ -644,7 +644,7 @@ test('output containment rejects cross-platform traversal and symlink escapes', 
     '\\\\server\\share\\escape.mp4',
     '//server/share/escape.mp4',
     'projects/p1/project.json',
-    '.freecut-headless/checkpoint-operations/018f22d2-8d42-7c2a-a4cc-7a3f2c5f6b10.json',
+    '.embeddablecut-render/checkpoint-operations/018f22d2-8d42-7c2a-a4cc-7a3f2c5f6b10.json',
   ]) {
     assert.throws(() => resolveCheckpointOutputPath(root, candidate), {
       code: 'INVALID_OUTPUT_PATH',
@@ -660,7 +660,7 @@ test('output containment rejects cross-platform traversal and symlink escapes', 
     code: 'INVALID_OUTPUT_PATH',
   })
   fs.unlinkSync(path.join(root, 'artifacts', 'escape-link'))
-  for (const protectedName of ['projects', 'media', '.freecut-headless']) {
+  for (const protectedName of ['projects', 'media', '.embeddablecut-render']) {
     fs.mkdirSync(path.join(root, protectedName), { recursive: true })
     const link = path.join(root, 'artifacts', `internal-${protectedName.replace('.', '')}`)
     fs.symlinkSync(

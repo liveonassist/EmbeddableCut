@@ -34,8 +34,8 @@ Build the harness once, then point the renderer at a workspace:
 
 ```sh
 just web build
-just render video --workspace ~/Videos/FreeCutProjects --project <id>
-just render serve --workspace ~/Videos/FreeCutProjects   # the HTTP API on :8787
+just render video --workspace ~/Videos/EmbeddableCutProjects --project <id>
+just render serve --workspace ~/Videos/EmbeddableCutProjects   # the HTTP API on :8787
 ```
 
 `just render image` builds the container; [`render/AGENTS.md`](../render/AGENTS.md) covers the CLIs, the API and running on a GPU.

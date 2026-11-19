@@ -75,7 +75,7 @@ function safeSourcePath(workspace, relativePath) {
 
 function importRoot(workspace, requestHash) {
   if (!/^[0-9a-f]{64}$/.test(requestHash)) throw new Error('Invalid internal request hash')
-  return resolveContained(path.join(workspace, '.freecut-headless', 'media-imports'), requestHash)
+  return resolveContained(path.join(workspace, '.embeddablecut-render', 'media-imports'), requestHash)
 }
 
 async function hashFile(file) {
@@ -499,7 +499,7 @@ export async function workspaceFingerprint(workspace) {
   let handle
   try {
     const canonicalWorkspace = await fs.promises.realpath(workspace)
-    const marker = path.join(canonicalWorkspace, '.freecut-workspace.json')
+    const marker = path.join(canonicalWorkspace, '.embeddablecut-workspace.json')
     handle = await fs.promises.open(marker, fs.constants.O_RDONLY | (fs.constants.O_NOFOLLOW ?? 0))
     const before = await handle.stat()
     if (!before.isFile() || before.size === 0 || before.size > WORKSPACE_MARKER_MAX_BYTES)

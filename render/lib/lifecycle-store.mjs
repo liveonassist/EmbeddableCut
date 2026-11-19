@@ -388,7 +388,7 @@ export async function acquireWriterLock(
   workspace,
   { breakLock = false, staleGraceMs = 60_000 } = {},
 ) {
-  const dir = path.join(workspace, '.freecut-headless')
+  const dir = path.join(workspace, '.embeddablecut-render')
   await fs.promises.mkdir(dir, { recursive: true })
   const lockPath = path.join(dir, 'writer.lock')
   const handle = await openWriterLock(dir, lockPath, { breakLock, staleGraceMs })
@@ -415,7 +415,7 @@ export async function acquireWriterLock(
 }
 
 export async function assertAtomicReplace(workspace) {
-  const dir = path.join(workspace, '.freecut-headless')
+  const dir = path.join(workspace, '.embeddablecut-render')
   await fs.promises.mkdir(dir, { recursive: true })
   const file = path.join(dir, 'atomic-test')
   try {

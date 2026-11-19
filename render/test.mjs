@@ -201,7 +201,7 @@ async function main() {
         const root = await navigator.storage.getDirectory()
         const leftovers = []
         for await (const name of root.keys()) {
-          if (name.startsWith('.freecut-probe-')) leftovers.push(name)
+          if (name.startsWith('.embeddablecut-probe-')) leftovers.push(name)
         }
         return { blobCalled, leftovers, mimeType: probe.mimeType }
       } finally {

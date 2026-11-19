@@ -272,7 +272,7 @@
     {
       label: 'Download JSON',
       icon: Download,
-      action: () => runAction(handleExportJson, 'Downloaded .freecut.json'),
+      action: () => runAction(handleExportJson, 'Downloaded .embeddablecut.json'),
       description: 'Download project as JSON file',
     },
     {
