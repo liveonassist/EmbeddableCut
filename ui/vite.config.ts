@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-import { defineConfig, lazyPlugins, type Plugin } from 'vite-plus'
+import { defaultClientConditions, defineConfig, lazyPlugins, type Plugin } from 'vite-plus'
 import { svelte } from '@sveltejs/vite-plugin-svelte'
 import tailwindcss from '@tailwindcss/vite'
 import { readFileSync } from 'node:fs'
@@ -95,7 +95,12 @@ export default defineConfig({
       $components: fileURLToPath(new URL('./src/components', import.meta.url)),
     },
     // Vitest resolves for the server by default; Svelte's client runtime needs the browser entries.
-    ...(process.env.VITEST ? { conditions: ['browser'] } : {}),
+    // Builds resolve onnxruntime-web to its entry without the wasm inlined:
+    // every session sets `wasmPaths` to the CDN (ort-runtime.ts), so the
+    // inlined copy, one per worker, is never loaded.
+    conditions: process.env.VITEST
+      ? ['browser']
+      : ['onnxruntime-web-use-extern-wasm', ...defaultClientConditions],
   },
   test: {
     globals: true,
