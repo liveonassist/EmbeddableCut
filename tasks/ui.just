@@ -9,6 +9,11 @@ default:
 dev:
     npm run dev
 
+# Build the kit hosts vendor (library, declarations, schemas) into ui/dist/kit.
+[working-directory('../ui')]
+kit:
+    npm run build:kit
+
 # Run the UI's tests, optionally narrowed to a path or name filter.
 [working-directory('../ui')]
 test *args:

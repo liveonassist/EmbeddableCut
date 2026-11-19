@@ -17,6 +17,7 @@
     "test": "vp test run",
     "dev": "vp dev",
     "build": "vp build && vp build --mode lib",
+    "build:kit": "vp build --mode lib && node scripts/build-kit.mjs",
     "test:preview-sync": "vp test run src/features/preview/components/video-preview.sync.test.ts",
     "test:preview-sync:stress": "node scripts/preview-sync-stress.mjs --runs 20",
     "changelog:append": "node scripts/changelog-append.mjs",

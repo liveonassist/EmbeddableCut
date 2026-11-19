@@ -1,0 +1,24 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": false,
+    "declaration": true,
+    "emitDeclarationOnly": true,
+    "rootDir": "..",
+    "types": ["@webgpu/types", "svelte"],
+    // The base config's paths, plus the workspace packages mapped to their
+    // sources, so the SDK's and engine's declarations are emitted beside the
+    // UI's instead of left as package imports a host can't resolve.
+    "paths": {
+      "@/*": ["./src/*", "../engine/src/*"],
+      "$lib/*": ["./src/lib/*"],
+      "$components/*": ["./src/components/*"],
+      "@embeddablecut/sdk": ["../sdk/src/index.ts"],
+      "@embeddablecut/sdk/*": ["../sdk/src/*"],
+      "@embeddablecut/engine/*": ["../engine/src/*"]
+    }
+  },
+  // Only what the public entries reach: `scripts/build-kit.mjs` emits these
+  // declarations for hosts.
+  "include": ["src/index.ts", "../sdk/src/index.ts", "src/**/*.d.ts", "../engine/src/**/*.d.ts"]
+}

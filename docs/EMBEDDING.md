@@ -19,6 +19,8 @@ The engine's state is per page, so a second `mountEditor` is refused until the f
 - The editor needs WebGPU, WebCodecs and a cross-origin-isolated page: serve the host page (and the iframe page) with `Cross-Origin-Opener-Policy: same-origin` and `Cross-Origin-Embedder-Policy: require-corp` (or `credentialless`).
 - `npm run build` in `ui/` writes the library to `dist/lib/` (`embeddablecut.js`, with the stylesheet inside it, plus its workers and chunks) and the iframe page to `dist/embed/` (`embed.html`, which loads its assets relatively, so it can be served from any path).
 - Hosts in this workspace can import `@embeddablecut/ui` as source and bundle it with Vite and `@sveltejs/vite-plugin-svelte`, resolving `@/` and `$lib` as `web/vite.config.ts` does.
+- Hosts outside this workspace vendor the kit: `npm run build:kit` in `ui/` (or `just ui kit`) writes `dist/kit/` with the library in `lib/`, declarations for the UI's and the SDK's API in `types/` (`types/index.d.ts`, with every specifier relative, so they don't depend on this workspace's `@/` or `$lib`), the JSON Schemas in `schemas/`, and `kit.json` naming the revision it was built from. Serve `lib/` from the host's own origin, since workers can't load cross-origin, and import `lib/embeddablecut.js` at runtime.
+- onnxruntime-web resolves to its build without the wasm inlined (the `onnxruntime-web-use-extern-wasm` condition); every session loads the wasm from the CDN pinned in `ort-runtime.ts`, and Transformers.js from its own. The AI features then need network access to `cdn.jsdelivr.net`.
 
 ## The editor in the page
 
