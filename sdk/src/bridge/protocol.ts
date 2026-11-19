@@ -86,6 +86,39 @@ export interface BridgeMethods {
   'ui.setTheme': { params: { theme: string | Record<string, string> }; result: null }
   /** Editor UI only: hide (`false`) or lock (`'locked'`) built-in features by id; replaces the last set. */
   'ui.setFeatures': { params: { features: Record<string, boolean | 'locked'> }; result: null }
+  /**
+   * Editor UI only: the actions the host takes over, replacing the last set.
+   * Each then reaches the host as an `action` event, and waits for its
+   * `ui.completeAction`.
+   */
+  'ui.setActions': { params: { actions: BridgeActions }; result: null }
+  /** Runs the editor's own behavior for a waiting action, as `runDefault()` does in the page. */
+  'ui.runDefaultAction': { params: { id: number }; result: null }
+  /** Ends a waiting action; an `error` is shown to the user as its failure. */
+  'ui.completeAction': { params: { id: number; error?: string }; result: null }
+}
+
+/** The editor actions a host takes over (`EditorActions` in the UI), by name. */
+export interface BridgeActions {
+  save?: boolean
+  exportVideo?: boolean
+  exportBundle?: boolean
+  /** Replaces the export dialog's Download with `label` (and a Lucide `icon` name). */
+  deliver?: { label: string; icon?: string }
+  help?: boolean
+}
+
+export type BridgeActionName = keyof BridgeActions
+
+/** The payload of an `action` event. */
+export interface BridgeActionEvent {
+  /** Names the action in `ui.runDefaultAction` and `ui.completeAction`. */
+  id: number
+  action: BridgeActionName
+  /** `save`'s: `user`, `auto`, `leave` or `export`. */
+  trigger?: string
+  /** `deliver`'s: the rendered file. */
+  file?: BinaryResult & { subtitles?: { fileName: string; content: string } }
 }
 
 export type BridgeMethod = keyof BridgeMethods
@@ -109,8 +142,11 @@ export interface BinaryResult {
   encoding?: 'base64'
 }
 
-/** Events the guest sends unasked: the editor's own, and `ready` once it can take calls. */
-export type BridgeEvent = 'ready' | 'project' | 'change' | 'playback' | 'notification'
+/**
+ * Events the guest sends unasked: the editor's own, `ready` once it can take
+ * calls, and `action` for an action the host took over.
+ */
+export type BridgeEvent = 'ready' | 'project' | 'change' | 'playback' | 'notification' | 'action'
 
 interface Envelope {
   protocol: typeof BRIDGE_PROTOCOL

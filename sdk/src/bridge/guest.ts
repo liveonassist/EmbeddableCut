@@ -11,6 +11,9 @@ import {
   portTransport,
   toBase64,
   type BinaryResult,
+  type BridgeActionEvent,
+  type BridgeActionName,
+  type BridgeActions,
   type BridgeEvent,
   type BridgeMethod,
   type BridgeMethods,
@@ -24,11 +27,23 @@ type Handlers = {
   ) => Promise<BridgeMethods[M]['result']> | BridgeMethods[M]['result']
 }
 
+/**
+ * Hands an action to the host and resolves when the host completes it;
+ * `runDefault` is what `ui.runDefaultAction` runs meanwhile.
+ */
+export type ActionDispatch = (
+  action: BridgeActionName,
+  payload: { trigger?: string; file?: Blob; subtitles?: { fileName: string; content: string } },
+  runDefault: () => Promise<void>,
+) => Promise<void>
+
 export interface ServeBridgeOptions {
   /** Applies `ui.setTheme`; without it the method fails with `UNSUPPORTED`. */
   setTheme?: (theme: string | Record<string, string>) => void
   /** Applies `ui.setFeatures`; without it the method fails. */
   setFeatures?: (features: Record<string, boolean | 'locked'>) => void
+  /** Applies `ui.setActions`, routing each action the host took to `dispatch`; without it the method fails. */
+  setActions?: (actions: BridgeActions, dispatch: ActionDispatch) => void
 }
 
 /**
@@ -53,6 +68,38 @@ export function serveBridge(
           encoding: 'base64',
         }
       : { mimeType: blob.type, ...(fileName ? { fileName } : {}), data: buffer, transfer: buffer }
+  }
+
+  let tookActions = false
+  let nextActionId = 1
+  const waitingActions = new Map<
+    number,
+    { runDefault: () => Promise<void>; resolve: () => void; reject: (error: Error) => void }
+  >()
+  const dispatch: ActionDispatch = async (action, { file, subtitles, trigger }, runDefault) => {
+    const id = nextActionId++
+    const done = new Promise<void>((resolve, reject) => {
+      waitingActions.set(id, { runDefault, resolve, reject })
+    })
+    const encoded = file ? await binary(file) : null
+    const transfer = encoded?.transfer
+    if (encoded) delete encoded.transfer
+    const payload: BridgeActionEvent = {
+      id,
+      action,
+      ...(trigger ? { trigger } : {}),
+      ...(encoded ? { file: { ...encoded, ...(subtitles ? { subtitles } : {}) } } : {}),
+    }
+    transport.send(
+      { protocol: BRIDGE_PROTOCOL, version: BRIDGE_VERSION, event: 'action', payload },
+      transfer ? [transfer] : [],
+    )
+    return done
+  }
+  const waitingAction = (id: number) => {
+    const waiting = waitingActions.get(id)
+    if (!waiting) throw new EditorError('OPERATION_FAILED', `No action ${id} is waiting`)
+    return waiting
   }
 
   const handlers: Handlers = {
@@ -133,6 +180,24 @@ export function serveBridge(
       options.setTheme(theme)
       return null
     },
+    'ui.setActions': ({ actions }) => {
+      if (!options.setActions)
+        throw new EditorError('OPERATION_FAILED', 'This editor has no UI to take actions from')
+      options.setActions(actions, dispatch)
+      tookActions = true
+      return null
+    },
+    'ui.runDefaultAction': async ({ id }) => {
+      await waitingAction(id).runDefault()
+      return null
+    },
+    'ui.completeAction': ({ id, error }) => {
+      const waiting = waitingAction(id)
+      waitingActions.delete(id)
+      if (error === undefined) waiting.resolve()
+      else waiting.reject(new Error(error))
+      return null
+    },
   }
 
   const emit = (event: BridgeEvent, payload?: unknown) =>
@@ -196,6 +261,11 @@ export function serveBridge(
   emit('ready')
   return () => {
     for (const step of stop) step()
+    // Actions go back to the editor's own: no host is left to take them.
+    if (tookActions) options.setActions?.({}, dispatch)
+    for (const waiting of waitingActions.values())
+      waiting.reject(new Error('The host disconnected'))
+    waitingActions.clear()
     transport.close?.()
   }
 }
