@@ -3,7 +3,8 @@ import { createLogger } from '@/shared/logging/logger'
 import { getChunkStartProgress, transcribingProgressEvent } from '../lib/chunk-progress'
 import { fetchOnnxModelBytes, fetchOnnxModelText } from '@/shared/utils/onnx-model-cache'
 
-// Parakeet TDT 0.6B v3 (NVIDIA, CC-BY-4.0) on-device ASR. Clean-room ORT-web pipeline
+// Parakeet TDT 0.6B v3 (NVIDIA, CC-BY-4.0) on-device ASR, as moondream's post-trained
+// parakeet-ultra (same architecture and tokenizer, CC-BY-4.0). Clean-room ORT-web pipeline
 // (nemo128 log-mel preprocessor -> FastConformer encoder -> token-and-duration greedy
 // decode -> BPE detokenize), authored from the published onnx-asr algorithm. The encoder
 // runs on WebGPU (fp16) while the tiny autoregressive joint runs on WASM/CPU — the joint
@@ -15,11 +16,15 @@ const logger = createLogger('ParakeetWorker')
 
 const ORT_WASM_PATH =
   'https://cdn.jsdelivr.net/npm/onnxruntime-web@1.26.0-dev.20260410-5e55544225/dist/'
-const HF_BASE = 'https://huggingface.co/Olicorne/parakeet-tdt-0.6b-v3-smoothquant-onnx/resolve/main'
+// Pinned to a commit: the repo this worker first used moved its files on `main` and broke
+// every download. The decoder's extra outputs (LSE, top-K) are unused; `outputs` is still
+// the full token-then-duration logits the greedy decode reads.
+const HF_BASE =
+  'https://huggingface.co/Olicorne/parakeet-tdt-0.6b-v3-ultra-onnx/resolve/b27f93c2238aa35e138996c005a62f1e8430f801'
 
-const ENCODER_FP16 = 'encoder-model.fp16.onnx'
-const ENCODER_INT8 = 'encoder-model.int8.onnx'
-const DECODER_INT8 = 'decoder_joint-model.int8.onnx'
+const ENCODER_FP16 = 'fp16/encoder-model.fp16.onnx'
+const ENCODER_INT8 = 'int8/encoder-model.int8.onnx'
+const DECODER_INT8 = 'int8/decoder_joint-model.int8.onnx'
 const PREPROCESSOR = 'nemo128.onnx'
 const VOCAB_FILE = 'vocab.txt'
 
@@ -32,8 +37,8 @@ const RECENT_WORD_RETENTION_SECONDS = 8
 const DUPLICATE_WORD_START_TOLERANCE_SECONDS = 0.5
 
 const ESTIMATED_BYTES: Record<'webgpu' | 'wasm', number> = {
-  webgpu: Math.round(1_270 * 1024 * 1024),
-  wasm: Math.round(820 * 1024 * 1024),
+  webgpu: Math.round(1_180 * 1024 * 1024),
+  wasm: Math.round(637 * 1024 * 1024),
 }
 
 // Approximate on-disk sizes, summing to ESTIMATED_BYTES. These only weight the aggregate
@@ -42,9 +47,9 @@ const ESTIMATED_BYTES: Record<'webgpu' | 'wasm', number> = {
 // costs nothing beyond a slightly uneven first chunk.
 const APPROX_FILE_BYTES: Record<string, number> = {
   [PREPROCESSOR]: Math.round(1 * 1024 * 1024),
-  [ENCODER_FP16]: Math.round(1_199 * 1024 * 1024),
-  [ENCODER_INT8]: Math.round(749 * 1024 * 1024),
-  [DECODER_INT8]: Math.round(70 * 1024 * 1024),
+  [ENCODER_FP16]: Math.round(1_162 * 1024 * 1024),
+  [ENCODER_INT8]: Math.round(619 * 1024 * 1024),
+  [DECODER_INT8]: Math.round(17 * 1024 * 1024),
 }
 
 type OrtModule = typeof import('onnxruntime-web')
@@ -273,7 +278,7 @@ async function initPipeline(): Promise<void> {
     let fallbackBytes = encoderBytes
     if (!encoder && webgpuAvailable) {
       // Rare: WebGPU rejected the fp16 graph, so the int8 encoder must still be fetched. That
-      // is a real ~749 MB transfer, so hand the bar back to `downloading` with its own byte
+      // is a real ~650 MB transfer, so hand the bar back to `downloading` with its own byte
       // counter — parking on the indeterminate `preparing` would hide a multi-minute download.
       const fallbackDownload = new DownloadProgress([ENCODER_INT8], true)
       fallbackBytes = await fetchOnnxModelBytes(

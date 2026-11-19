@@ -88,7 +88,11 @@ export const LOCAL_MODEL_CACHE_DEFINITIONS: LocalModelCacheDefinition[] = [
     label: 'Parakeet',
     description: 'Parakeet TDT ASR encoder, decoder/joint, preprocessor, and vocab files.',
     cacheName: ONNX_MODEL_CACHE_NAME,
-    matchPathFragments: ['/parakeet-tdt-0.6b-v3-smoothquant-onnx/'],
+    // The retired repo too, so clearing the cache frees copies downloaded from it.
+    matchPathFragments: [
+      '/parakeet-tdt-0.6b-v3-ultra-onnx/',
+      '/parakeet-tdt-0.6b-v3-smoothquant-onnx/',
+    ],
   },
   {
     id: 'supertonic-tts',

@@ -6,18 +6,18 @@ const MIB = 1024 * 1024
 const WHISPER_MODEL_BASE_ESTIMATES_MIB: Record<MediaTranscriptModel, number> = {
   // Parakeet is sized by backend via estimateParakeetRuntimeBytes(); this entry only
   // satisfies the exhaustive map and is never scaled by the whisper quantization factor.
-  'parakeet-tdt-v3': 1_270,
+  'parakeet-tdt-v3': 1_180,
   'whisper-tiny': 220,
   'whisper-base': 420,
   'whisper-small': 900,
   'whisper-large': 2_600,
 }
 
-// Parakeet ONNX footprint: fp16 encoder (~1.24 GB) + int8 decoder_joint (~18 MB) +
-// nemo128 preprocessor on WebGPU; the WASM-only fallback uses the int8 encoder (~0.79 GB).
+// Parakeet ONNX footprint: fp16 encoder (~1.22 GB) + int8 decoder_joint (~18 MB) +
+// nemo128 preprocessor on WebGPU; the WASM-only fallback uses the int8 encoder (~0.65 GB).
 const PARAKEET_RUNTIME_MIB: Record<'webgpu' | 'wasm', number> = {
-  webgpu: 1_270,
-  wasm: 820,
+  webgpu: 1_180,
+  wasm: 637,
 }
 
 const QUANTIZATION_MULTIPLIER: Record<MediaTranscriptQuantization, number> = {
