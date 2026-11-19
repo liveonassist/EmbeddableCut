@@ -4,7 +4,7 @@ import { getContext, setContext } from 'svelte'
 
 export type NestedMediaResolutionMode = 'source' | 'proxy'
 
-const NESTED_MEDIA_RESOLUTION_KEY = Symbol('freecut.nested-media-resolution')
+const NESTED_MEDIA_RESOLUTION_KEY = Symbol('embeddablecut.nested-media-resolution')
 
 /** Provided by `NestedMediaResolutionProvider`: `current` is its `value` prop. */
 export function setNestedMediaResolutionMode(mode: {

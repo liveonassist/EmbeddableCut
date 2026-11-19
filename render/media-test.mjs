@@ -111,7 +111,7 @@ async function main() {
   if (!fs.existsSync(path.join(distDir, 'headless.html'))) {
     throw new Error('dist/headless.html is missing; run npm run build first')
   }
-  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'freecut-media-test-'))
+  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'embeddablecut-media-test-'))
   const sourcePath = path.join(tempDir, 'generated-tone.wav')
   const outputPath = path.join(tempDir, 'rendered-tone.wav')
   generateToneWav(sourcePath)
@@ -129,10 +129,10 @@ async function main() {
     const context = await browser.newContext({ acceptDownloads: true })
     const page = await context.newPage()
     await page.goto(server.harnessUrl, { waitUntil: 'load', timeout: 60_000 })
-    await page.waitForFunction(() => Boolean(window.freecut?.ready), { timeout: 30_000 })
+    await page.waitForFunction(() => Boolean(window.embeddablecut?.ready), { timeout: 30_000 })
     const downloadPromise = page.waitForEvent('download', { timeout: 120_000 })
     const summary = await page.evaluate(
-      (input) => window.freecut.renderTimeline(input),
+      (input) => window.embeddablecut.renderTimeline(input),
       renderInput(server.mediaUrl(MEDIA_ID)),
     )
     const download = await downloadPromise

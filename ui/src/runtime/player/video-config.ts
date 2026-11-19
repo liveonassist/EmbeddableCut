@@ -11,7 +11,7 @@ export interface VideoConfig {
   readonly id: string
 }
 
-const VIDEO_CONFIG_KEY = Symbol('freecut.video-config')
+const VIDEO_CONFIG_KEY = Symbol('embeddablecut.video-config')
 
 /** Provides the video config to children (React's `VideoConfigContext.Provider`). */
 export function setVideoConfig(config: VideoConfig): void {

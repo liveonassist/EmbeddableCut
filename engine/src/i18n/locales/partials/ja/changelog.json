@@ -11,6 +11,6 @@
     "initialRelease": "初回リリース",
     "ctaTitle": "何か作ってみませんか？",
     "ctaDescription": "{{productName}} を開いて、最新のツールを活用しましょう。",
-    "openFreeCut": "{{productName}} を開く"
+    "openApp": "{{productName}} を開く"
   }
 }

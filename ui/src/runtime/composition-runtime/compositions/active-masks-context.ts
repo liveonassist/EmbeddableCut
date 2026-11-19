@@ -4,7 +4,7 @@ import { getContext, setContext } from 'svelte'
 import type { MaskInfo } from '../components/item-types'
 import { EMPTY_MASK_INFOS } from '../utils/mask-info'
 
-const ACTIVE_MASKS_KEY = Symbol('freecut.active-masks')
+const ACTIVE_MASKS_KEY = Symbol('embeddablecut.active-masks')
 
 /** React's `ActiveMasksContext.Provider`: `current` is the composition's active masks. */
 export function setActiveMasks(masks: { readonly current: MaskInfo[] }): void {

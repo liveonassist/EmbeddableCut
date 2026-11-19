@@ -13,7 +13,7 @@ export interface KeyframesContextValue {
   readonly canvas?: CanvasSettings
 }
 
-const KEYFRAMES_KEY = Symbol('freecut.keyframes')
+const KEYFRAMES_KEY = Symbol('embeddablecut.keyframes')
 
 /** React's `KeyframesContext.Provider`. */
 export function setKeyframesContext(value: KeyframesContextValue | null): void {

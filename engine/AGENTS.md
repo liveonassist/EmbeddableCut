@@ -25,7 +25,7 @@ Or from anywhere: `just engine check`, `just engine test [filter]`.
 - `src/runtime/renderer/` — the canvas/WebGPU render engine (`client-render-engine.ts`), export (`render-pipeline.ts`, `canvas-render-orchestrator.ts`) and its workers.
 - `src/runtime/player/clock/Clock.ts` — the frame clock; `runtime/composition-runtime/utils/` — scene assembly, video timing and preview audio primitives.
 - `src/schema/` — EmbeddableCut's portable formats: the project document, asset records, `SCHEMA_VERSIONS`, and the JSON Schema committed in `schemas/`.
-- `src/headless/` — `window.freecut`, the page API the render package drives.
+- `src/headless/` — `window.embeddablecut`, the page API the render package drives.
 - `src/i18n/` — i18next and every locale. `scripts/check-locale-coverage.mjs` reports what a locale lacks (`just engine locale-coverage <code>`).
 
 ## Code Style

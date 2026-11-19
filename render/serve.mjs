@@ -111,7 +111,7 @@ const MIME_BY_RENDER_CONTAINER = {
   m4a: 'audio/mp4',
 }
 
-const HELP = `Usage: node render/serve.mjs --workspace <dir> [options]\n\nOptions:\n  --host <address>           Bind address (default: 127.0.0.1)\n  --port <n>                 HTTP port (default: 8787)\n  --render-timeout-ms <n>    Whole render deadline (default: 1800000)\n  --edit-timeout-ms <n>      Whole edit deadline (default: 120000)\n  --max-queue-depth <n>      Waiting operations allowed behind the active one (default: 8)\n  --shutdown-timeout-ms <n>  Graceful queue drain deadline (default: 30000)\n  --extension <a.js,b.js>    EmbeddableCut extension modules to install (or FREECUT_EXTENSIONS)\n  --build  --head  --harness-url <url>\n`
+const HELP = `Usage: node render/serve.mjs --workspace <dir> [options]\n\nOptions:\n  --host <address>           Bind address (default: 127.0.0.1)\n  --port <n>                 HTTP port (default: 8787)\n  --render-timeout-ms <n>    Whole render deadline (default: 1800000)\n  --edit-timeout-ms <n>      Whole edit deadline (default: 120000)\n  --max-queue-depth <n>      Waiting operations allowed behind the active one (default: 8)\n  --shutdown-timeout-ms <n>  Graceful queue drain deadline (default: 30000)\n  --extension <a.js,b.js>    EmbeddableCut extension modules to install (or EMBEDDABLECUT_EXTENSIONS)\n  --build  --head  --harness-url <url>\n`
 const SERVE_OPTIONS = new Set([
   'workspace',
   'host',
@@ -131,12 +131,12 @@ const SERVE_OPTIONS = new Set([
 export function resolveHost(args = {}, env = process.env) {
   const host = Object.prototype.hasOwnProperty.call(args, 'host')
     ? args.host
-    : Object.prototype.hasOwnProperty.call(env, 'FREECUT_HOST')
-      ? env.FREECUT_HOST
+    : Object.prototype.hasOwnProperty.call(env, 'EMBEDDABLECUT_HOST')
+      ? env.EMBEDDABLECUT_HOST
       : '127.0.0.1'
 
   if (typeof host !== 'string' || host.trim() === '') {
-    throw new Error('Host must be a non-empty string (--host or FREECUT_HOST)')
+    throw new Error('Host must be a non-empty string (--host or EMBEDDABLECUT_HOST)')
   }
   return host.trim()
 }
@@ -237,7 +237,7 @@ async function main() {
   const shutdownTimeoutMs = positiveInt('shutdown-timeout-ms', 30_000)
 
   const transientMedia = new Map()
-  const extensionFiles = String(args.extension ?? process.env.FREECUT_EXTENSIONS ?? '')
+  const extensionFiles = String(args.extension ?? process.env.EMBEDDABLECUT_EXTENSIONS ?? '')
     .split(',')
     .map((file) => file.trim())
     .filter(Boolean)
@@ -264,7 +264,7 @@ async function main() {
   })
   await session.open()
   // What the page renders: its SDK, schema versions and installed extensions.
-  const renderer = await session.page.evaluate(() => window.freecut.describe())
+  const renderer = await session.page.evaluate(() => window.embeddablecut.describe())
   if (renderer.extensions.length) console.log(`Extensions: ${renderer.extensions.join(', ')}`)
 
   // Report the WebGPU adapter so it's obvious whether this is a real GPU.
@@ -296,7 +296,7 @@ async function main() {
   })
   serviceStatus.ready()
 
-  const tmpDir = path.join(os.tmpdir(), 'freecut-serve')
+  const tmpDir = path.join(os.tmpdir(), 'embeddablecut-serve')
   fs.mkdirSync(tmpDir, { recursive: true })
   let counter = 0
 
@@ -323,7 +323,7 @@ async function main() {
       const media = collectAddClipMedia(workspace, recipe.operations)
       try {
         const result = await session.page.evaluate(
-          (payload) => window.freecut.editProject(payload),
+          (payload) => window.embeddablecut.editProject(payload),
           { project: projectForEngine(project), ops: recipe.operations, media },
         )
         return result.project
@@ -516,7 +516,7 @@ async function main() {
       // Header values must be ASCII; sanitize defensively so a warning never
       // turns a successful render into a 500.
       ...(summary.warnings?.length
-        ? { 'X-Freecut-Warnings': warningsHeaderValue(summary.warnings) }
+        ? { 'X-EmbeddableCut-Warnings': warningsHeaderValue(summary.warnings) }
         : {}),
     })
     const stream = fs.createReadStream(summary.outputPath)
@@ -534,7 +534,7 @@ async function main() {
     const media = collectAddClipMedia(workspace, ops)
     const result = await queue.enqueue(
       () =>
-        session.page.evaluate((payload) => window.freecut.editProject(payload), {
+        session.page.evaluate((payload) => window.embeddablecut.editProject(payload), {
           project,
           ops,
           media,
@@ -546,7 +546,7 @@ async function main() {
 
   const browserNormalize = (project) =>
     queue.enqueue(
-      () => session.page.evaluate((value) => window.freecut.normalizeProject(value), project),
+      () => session.page.evaluate((value) => window.embeddablecut.normalizeProject(value), project),
       { timeoutMs: editTimeoutMs, kind: 'project-normalize' },
     )
 
@@ -589,7 +589,7 @@ async function main() {
     const route = '/v1/projects'
     const execute = async () => {
       const project = await queue.enqueue(
-        () => session.page.evaluate((value) => window.freecut.createProject(value), body),
+        () => session.page.evaluate((value) => window.embeddablecut.createProject(value), body),
         { timeoutMs: editTimeoutMs, kind: 'project-create' },
       )
       const resource = await createProjectResource(workspace, project)
@@ -658,7 +658,7 @@ async function main() {
       const media = collectAddClipMedia(workspace, body.ops)
       const result = await queue.enqueue(
         () =>
-          session.page.evaluate((payload) => window.freecut.editProject(payload), {
+          session.page.evaluate((payload) => window.embeddablecut.editProject(payload), {
             project: projectForEngine(current.project),
             ops: body.ops,
             media,
@@ -718,7 +718,7 @@ async function main() {
     if (!source) throw new HttpError(422, 'MISSING_MEDIA', 'Media source file is missing')
     const probe = await queue.enqueue(
       () =>
-        session.page.evaluate((payload) => window.freecut.probeMedia(payload), {
+        session.page.evaluate((payload) => window.embeddablecut.probeMedia(payload), {
           url: mediaUrlOf(id),
           fileName: path.basename(source),
           mimeType: current.metadata.mimeType,
@@ -761,7 +761,7 @@ async function main() {
         probe: (staged) =>
           queue.enqueue(
             () =>
-              session.page.evaluate((payload) => window.freecut.probeMedia(payload), {
+              session.page.evaluate((payload) => window.embeddablecut.probeMedia(payload), {
                 url: mediaUrlOf(staged.id),
                 fileName: staged.fileName,
                 mimeType: staged.mimeType,
@@ -816,7 +816,7 @@ async function main() {
       async () => {
         const downloadPromise = session.page.waitForEvent('download', { timeout: 5 * 60_000 })
         downloadPromise.catch(() => {})
-        const s = await session.page.evaluate((payload) => window.freecut.renderFrame(payload), {
+        const s = await session.page.evaluate((payload) => window.embeddablecut.renderFrame(payload), {
           project,
           media,
           frame: body.frame,
@@ -842,8 +842,8 @@ async function main() {
       'Content-Type': mime,
       'Content-Length': fs.statSync(outPath).size,
       'Content-Disposition': `attachment; filename="${path.basename(outPath)}"`,
-      'X-Freecut-Frame': String(summary.frame),
-      ...(missing.length ? { 'X-Freecut-Missing-Media': asciiHeader(missing) } : {}),
+      'X-EmbeddableCut-Frame': String(summary.frame),
+      ...(missing.length ? { 'X-EmbeddableCut-Missing-Media': asciiHeader(missing) } : {}),
     })
     const stream = fs.createReadStream(outPath)
     stream.pipe(res)
@@ -865,7 +865,7 @@ async function main() {
     const { media } = resolveProjectMedia(workspace, project, mediaUrlOf, null, read?.extraMedia)
     const layout = await queue.enqueue(
       () =>
-        session.page.evaluate((payload) => window.freecut.dumpLayout(payload), {
+        session.page.evaluate((payload) => window.embeddablecut.dumpLayout(payload), {
           project,
           media,
           frame: body.frame,

@@ -46,7 +46,7 @@ curl -X POST localhost:8787/v1/render -H 'content-type: application/json' \
 
 ### Extensions
 
-A project with a custom effect or transition renders on a server only if the server has the extension. `--extension` (or `FREECUT_EXTENSIONS`, comma-separated) names ES module files; the page imports each and installs its default export, one `Extension` or an array, before taking requests. `/v1/capabilities` lists them, and a document whose `requires` names one the service lacks is refused, not rendered wrong.
+A project with a custom effect or transition renders on a server only if the server has the extension. `--extension` (or `EMBEDDABLECUT_EXTENSIONS`, comma-separated) names ES module files; the page imports each and installs its default export, one `Extension` or an array, before taking requests. `/v1/capabilities` lists them, and a document whose `requires` names one the service lacks is refused, not rendered wrong.
 
 Write an extension once and load the same module in the editor (`createEditor({ extensions })` or `editor.extensions.install`) and on the server. The module runs in the harness page, so it must be self-contained: no bare imports, nothing but browser APIs.
 
@@ -57,7 +57,7 @@ Write an extension once and load the same module in the editor (`createEditor({ 
 ```sh
 docker run --rm -p 8787:8787 \
   -v /srv/workspace:/workspace \
-  -v /srv/extensions:/extensions:ro -e FREECUT_EXTENSIONS=/extensions/looks.js \
+  -v /srv/extensions:/extensions:ro -e EMBEDDABLECUT_EXTENSIONS=/extensions/looks.js \
   embeddablecut-render
 ```
 

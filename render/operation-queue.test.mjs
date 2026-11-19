@@ -70,7 +70,7 @@ test('never-resolving evaluation times out and recreates the page', async () => 
 })
 
 test('missing render download is covered by the whole-operation deadline', async () => {
-  const outDir = fs.mkdtempSync(path.join(os.tmpdir(), 'freecut-queue-test-'))
+  const outDir = fs.mkdtempSync(path.join(os.tmpdir(), 'embeddablecut-queue-test-'))
   const page = {
     waitForEvent: never,
     evaluate: async () => ({ warnings: [] }),
@@ -132,7 +132,7 @@ test('page session forwards harness render progress to the service observer', as
   let binding
   const browser = fakeBrowser(() => ({
     async exposeBinding(name, callback) {
-      assert.equal(name, '__freecutProgress')
+      assert.equal(name, '__embeddablecutProgress')
       binding = callback
     },
   }))

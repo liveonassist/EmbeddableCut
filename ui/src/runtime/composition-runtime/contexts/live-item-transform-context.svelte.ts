@@ -19,7 +19,7 @@ export interface LiveItemTransformSource {
   subscribe: (listener: () => void) => () => void
 }
 
-const LIVE_ITEM_TRANSFORM_KEY = Symbol('freecut.live-item-transform')
+const LIVE_ITEM_TRANSFORM_KEY = Symbol('embeddablecut.live-item-transform')
 const subscribeToNothing = () => () => undefined
 
 /** React's `LiveItemTransformContext.Provider`: `current` is the provider's `source` prop. */

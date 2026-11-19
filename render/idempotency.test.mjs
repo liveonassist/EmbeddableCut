@@ -5,7 +5,7 @@ import os from 'node:os'
 import path from 'node:path'
 import { withIdempotency } from './lib/idempotency.mjs'
 
-const workspace = () => fs.mkdtempSync(path.join(os.tmpdir(), 'freecut-idempotency-'))
+const workspace = () => fs.mkdtempSync(path.join(os.tmpdir(), 'embeddablecut-idempotency-'))
 const request = (key, overrides = {}) => ({
   key,
   method: 'POST',

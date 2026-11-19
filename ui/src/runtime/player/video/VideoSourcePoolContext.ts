@@ -9,7 +9,7 @@ import { getContext, setContext } from 'svelte'
 import type { VideoSourcePool } from '@/runtime/player/video/VideoSourcePool'
 import { getGlobalVideoSourcePool } from '@/runtime/player/video/VideoSourcePool'
 
-const VIDEO_SOURCE_POOL_KEY = Symbol('freecut.video-source-pool')
+const VIDEO_SOURCE_POOL_KEY = Symbol('embeddablecut.video-source-pool')
 
 export function setVideoSourcePool(pool: VideoSourcePool): void {
   setContext(VIDEO_SOURCE_POOL_KEY, pool)

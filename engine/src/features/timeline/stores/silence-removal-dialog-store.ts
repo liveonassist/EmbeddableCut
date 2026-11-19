@@ -79,7 +79,7 @@ export const useSilenceRemovalDialogStore = create<SilenceRemovalDialogStore>()(
         }),
     }),
     {
-      name: 'freecut-silence-removal-settings',
+      name: 'embeddablecut-silence-removal-settings',
       partialize: (state) => ({ settings: state.settings }) as SilenceRemovalDialogStore,
     },
   ),

@@ -5,7 +5,7 @@ import type { ResolvedTransform } from '@/types/transform'
 
 type ItemVisualSize = Pick<ResolvedTransform, 'width' | 'height'>
 
-const ITEM_VISUAL_TRANSFORM_KEY = Symbol('freecut.item-visual-transform')
+const ITEM_VISUAL_TRANSFORM_KEY = Symbol('embeddablecut.item-visual-transform')
 
 /** React's `ItemVisualTransformProvider`: `current` is the size given to children. */
 export function setItemVisualTransform(size: { readonly current: ItemVisualSize | null }): void {

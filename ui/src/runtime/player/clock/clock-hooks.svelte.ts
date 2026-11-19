@@ -51,7 +51,7 @@ export class ClockState {
   }
 }
 
-const CLOCK_KEY = Symbol('freecut.clock')
+const CLOCK_KEY = Symbol('embeddablecut.clock')
 
 export function setClockContext(state: ClockState): void {
   setContext(CLOCK_KEY, state)

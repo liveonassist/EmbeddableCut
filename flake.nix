@@ -30,7 +30,7 @@
           then pkgs.google-chrome
           else null;
         chromeEnv = lib.optionalAttrs (chrome != null) {
-          FREECUT_CHROME_PATH = "${chrome}/bin/google-chrome-stable";
+          EMBEDDABLECUT_CHROME_PATH = "${chrome}/bin/google-chrome-stable";
         };
 
         # One npm workspace: the packages build against each other's sources,
@@ -110,7 +110,7 @@
                   --add-flags $lib/$tool.mjs \
                   --set EMBEDDABLECUT_HARNESS_DIR ${web} \
                   --prefix PATH : ${lib.makeBinPath [pkgs.ffmpeg-headless]} \
-                  ${lib.optionalString (chrome != null) "--set-default FREECUT_CHROME_PATH ${chromeEnv.FREECUT_CHROME_PATH}"}
+                  ${lib.optionalString (chrome != null) "--set-default EMBEDDABLECUT_CHROME_PATH ${chromeEnv.EMBEDDABLECUT_CHROME_PATH}"}
               done
               runHook postInstall
             '';
@@ -146,7 +146,7 @@
           echo ""
           echo "  - 🟩 Node.js:  $(node --version 2>/dev/null || echo 'not found')"
           echo "  - 🎞️ ffmpeg:   $(ffmpeg -version 2>/dev/null | head -1 | awk '{print $3}' || echo 'not found')"
-          echo "  - 🌐 Chrome:   ''${FREECUT_CHROME_PATH:-the Playwright chrome channel}"
+          echo "  - 🌐 Chrome:   ''${EMBEDDABLECUT_CHROME_PATH:-the Playwright chrome channel}"
           echo ""
           echo "Quickstart:"
           echo "  - 📋 commands: just"

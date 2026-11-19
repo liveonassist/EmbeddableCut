@@ -159,7 +159,7 @@ async function main() {
     )
   }
 
-  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'freecut-headless-regression-'))
+  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'embeddablecut-headless-regression-'))
   const probeSource = path.join(tempDir, 'probe.svg')
   fs.writeFileSync(
     probeSource,
@@ -183,7 +183,7 @@ async function main() {
     })
 
     await page.goto(server.harnessUrl, { waitUntil: 'load', timeout: 60_000 })
-    await page.waitForFunction(() => Boolean(window.freecut?.ready), { timeout: 30_000 })
+    await page.waitForFunction(() => Boolean(window.embeddablecut?.ready), { timeout: 30_000 })
 
     const probeContract = await page.evaluate(async (url) => {
       const originalBlob = Response.prototype.blob
@@ -193,7 +193,7 @@ async function main() {
         throw new Error('response.blob must not be used')
       }
       try {
-        const probe = await window.freecut.probeMedia({
+        const probe = await window.embeddablecut.probeMedia({
           url,
           fileName: 'probe.svg',
           mimeType: 'image/svg+xml',
@@ -220,7 +220,7 @@ async function main() {
     const downloadPromise = page.waitForEvent('download', { timeout: 120_000 })
     downloadPromise.catch(() => {})
     const summary = await page.evaluate(
-      (input) => window.freecut.renderTimeline(input),
+      (input) => window.embeddablecut.renderTimeline(input),
       TEXT_TIMELINE,
     )
     const outPath = path.join(tempDir, 'render.webm')
@@ -246,7 +246,7 @@ async function main() {
     // the codecs installed on the CI host.
     console.log('\nForced codec fallback:')
     await page.evaluate(() => {
-      globalThis.__freecutSupportedCodecsOverride = ['vp9']
+      globalThis.__embeddablecutSupportedCodecsOverride = ['vp9']
     })
     const fallbackInput = structuredClone(TEXT_TIMELINE)
     fallbackInput.settings.codec = 'avc'
@@ -255,7 +255,7 @@ async function main() {
     const fallbackDownloadPromise = page.waitForEvent('download', { timeout: 120_000 })
     fallbackDownloadPromise.catch(() => {})
     const fallbackSummary = await page.evaluate(
-      (input) => window.freecut.renderTimeline(input),
+      (input) => window.embeddablecut.renderTimeline(input),
       fallbackInput,
     )
     const fallbackOutPath = path.join(tempDir, 'fallback.webm')
@@ -284,12 +284,12 @@ async function main() {
     )
     check('fallback bytes have WebM signature', fallbackSignature === '1a45dfa3', fallbackSignature)
     await page.evaluate(() => {
-      delete globalThis.__freecutSupportedCodecsOverride
+      delete globalThis.__embeddablecutSupportedCodecsOverride
     })
 
     // --- Edit path ---
     console.log('\nEdit:')
-    const edit = await page.evaluate((input) => window.freecut.editProject(input), {
+    const edit = await page.evaluate((input) => window.embeddablecut.editProject(input), {
       project: SAMPLE_PROJECT,
       ops: [
         {
@@ -320,7 +320,7 @@ async function main() {
 
     const referencedEdit = await page.evaluate(
       (project) =>
-        window.freecut.editProject({
+        window.embeddablecut.editProject({
           project,
           ops: [
             { callerId: 'created', op: 'addText', text: 'referenced', from: 0 },
@@ -344,7 +344,7 @@ async function main() {
 
     const missingTargetError = await page.evaluate(async (project) => {
       try {
-        await window.freecut.editProject({
+        await window.embeddablecut.editProject({
           project,
           ops: [{ op: 'updateItem', id: 'missing', updates: { label: 'nope' } }],
         })
@@ -361,7 +361,7 @@ async function main() {
 
     const missingRemoveError = await page.evaluate(async (project) => {
       try {
-        await window.freecut.editProject({
+        await window.embeddablecut.editProject({
           project,
           ops: [{ op: 'removeItems', ids: ['text-1', 'missing'] }],
         })
@@ -395,7 +395,7 @@ async function main() {
     console.log('\nEdited project render:')
     const editedDownloadPromise = page.waitForEvent('download', { timeout: 120_000 })
     editedDownloadPromise.catch(() => {})
-    const editedSummary = await page.evaluate((input) => window.freecut.renderProject(input), {
+    const editedSummary = await page.evaluate((input) => window.embeddablecut.renderProject(input), {
       project: reopenedProject,
       settings: textProjectRenderSettings(reopenedProject),
       outputFileName: 'regression-edited.webm',
@@ -421,7 +421,7 @@ async function main() {
     console.log('\nFrame grab + layout dump:')
     const frameDownloadPromise = page.waitForEvent('download', { timeout: 60_000 })
     frameDownloadPromise.catch(() => {})
-    const frameSummary = await page.evaluate((input) => window.freecut.renderFrame(input), {
+    const frameSummary = await page.evaluate((input) => window.embeddablecut.renderFrame(input), {
       project: reopenedProject,
       atSeconds: 1,
     })
@@ -437,7 +437,7 @@ async function main() {
     )
     check('frame PNG has real pixels (>10KB)', frameSize > 10_000, `size ${frameSize}`)
 
-    const layout = await page.evaluate((input) => window.freecut.dumpLayout(input), {
+    const layout = await page.evaluate((input) => window.embeddablecut.dumpLayout(input), {
       project: reopenedProject,
       atSeconds: 1,
     })
@@ -489,7 +489,7 @@ async function main() {
       from: 0,
       durationInFrames: 60,
     })
-    const spanLayoutDump = await page.evaluate((input) => window.freecut.dumpLayout(input), {
+    const spanLayoutDump = await page.evaluate((input) => window.embeddablecut.dumpLayout(input), {
       project: spanProject,
       frame: 1,
     })
@@ -517,7 +517,7 @@ async function main() {
     const strictError = await page.evaluate(
       async (input) => {
         try {
-          await window.freecut.dumpLayout(input)
+          await window.embeddablecut.dumpLayout(input)
           return null
         } catch (error) {
           return String(error?.message ?? error)

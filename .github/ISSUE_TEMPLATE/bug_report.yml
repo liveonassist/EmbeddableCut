@@ -58,7 +58,7 @@ body:
     attributes:
       label: FreeCut version
       description: Share the deployed version, release, or commit when known.
-      placeholder: "freecut.net, release tag, or commit SHA"
+      placeholder: "Deployment URL, release tag, or commit SHA"
 
   - type: checkboxes
     id: checks

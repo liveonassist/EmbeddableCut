@@ -50,7 +50,7 @@ const probe = async () => ({
 })
 
 function workspace(t) {
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'freecut-import-'))
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'embeddablecut-import-'))
   t.after(() => fs.rmSync(root, { recursive: true, force: true }))
   fs.writeFileSync(
     path.join(root, '.embeddablecut-workspace.json'),

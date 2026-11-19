@@ -11,7 +11,7 @@ import './styles/app.css'
 
 const log = createLogger('App')
 const UPDATE_CHECK_INTERVAL_MS = 5 * 60 * 1000
-const ACCEPTED_APP_UPDATE_SIGNATURE_KEY = 'freecut-accepted-app-update-signature'
+const ACCEPTED_APP_UPDATE_SIGNATURE_KEY = 'embeddablecut-accepted-app-update-signature'
 
 let updateToastVisible = false
 let devVitePreloadRecoveryInFlight = false
@@ -145,7 +145,7 @@ async function checkForAppShellUpdate() {
   }
   appShellUpdateCheckInFlight = true
   try {
-    const response = await fetch(`/?__freecut_update_check=${Date.now()}`, {
+    const response = await fetch(`/?__embeddablecut_update_check=${Date.now()}`, {
       cache: 'no-store',
       headers: {
         'Cache-Control': 'no-cache',

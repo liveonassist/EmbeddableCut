@@ -14,7 +14,7 @@
 #   docker run --rm -p 8787:8787 -v /path/to/EmbeddableCutProjects:/workspace embeddablecut-render
 #   curl localhost:8787/health    # -> {"ok":true,"gpu":true,...}
 # Extensions: mount their modules and name them, e.g.
-#   -v /srv/extensions:/extensions:ro -e FREECUT_EXTENSIONS=/extensions/looks.js
+#   -v /srv/extensions:/extensions:ro -e EMBEDDABLECUT_EXTENSIONS=/extensions/looks.js
 FROM docker.io/library/node:24-bookworm
 
 # Google Chrome (proprietary codecs) + software Vulkan (lavapipe) for WebGPU + fonts.
@@ -55,10 +55,10 @@ RUN npm run build
 # mounted and WebGPU uses the real GPU; otherwise the bundled Mesa lavapipe
 # provides software WebGPU. --no-sandbox is required running Chrome as root.
 # (To force software even on a GPU host: -e VK_ICD_FILENAMES=/usr/share/vulkan/icd.d/lvp_icd.x86_64.json)
-ENV FREECUT_CHROME_ARGS="--no-sandbox"
+ENV EMBEDDABLECUT_CHROME_ARGS="--no-sandbox"
 # The container port must accept traffic from the published Docker interface.
 # Native serve.mjs runs remain loopback-only unless explicitly overridden.
-ENV FREECUT_HOST=0.0.0.0
+ENV EMBEDDABLECUT_HOST=0.0.0.0
 
 EXPOSE 8787
 # Exec form keeps Node as PID 1 so Docker's SIGTERM reaches the graceful

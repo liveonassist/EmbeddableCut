@@ -31,7 +31,7 @@ export async function withHarnessPage(options, operation) {
       }
     })
     await page.goto(harnessUrl, { waitUntil: 'load', timeout: 60_000 })
-    await page.waitForFunction(() => Boolean(window.freecut?.ready), { timeout: 30_000 })
+    await page.waitForFunction(() => Boolean(window.embeddablecut?.ready), { timeout: 30_000 })
     await installExtensions(page, extensionUrls)
     return await operation(page)
   } finally {
@@ -42,7 +42,7 @@ export async function withHarnessPage(options, operation) {
 /** Installs EmbeddableCut extensions in a ready harness page; returns their ids. */
 export async function installExtensions(page, extensionUrls) {
   if (!extensionUrls?.length) return []
-  return page.evaluate((urls) => window.freecut.installExtensions(urls), extensionUrls)
+  return page.evaluate((urls) => window.embeddablecut.installExtensions(urls), extensionUrls)
 }
 
 export async function probeGpu(page) {
@@ -91,11 +91,11 @@ export class PageSession {
     try {
       const page = await context.newPage()
       page.on('pageerror', this.onPageError)
-      await page.exposeBinding('__freecutProgress', (_source, progress) =>
+      await page.exposeBinding('__embeddablecutProgress', (_source, progress) =>
         this.onProgress(progress),
       )
       await page.goto(this.harnessUrl, { waitUntil: 'load', timeout: 60_000 })
-      await page.waitForFunction(() => Boolean(window.freecut?.ready), { timeout: 30_000 })
+      await page.waitForFunction(() => Boolean(window.embeddablecut?.ready), { timeout: 30_000 })
       await installExtensions(page, this.extensionUrls)
       this.#context = context
       this.#page = page

@@ -243,7 +243,7 @@ export function prepareJob(workspace, jobArgs, mediaUrlOf, extraMedia = []) {
     extraMedia,
   )
 
-  const outName = `${(project.name ?? 'freecut-export').replace(/[^\w.-]+/g, '_')}.${settings.container}`
+  const outName = `${(project.name ?? 'embeddablecut-export').replace(/[^\w.-]+/g, '_')}.${settings.container}`
   const outPath = path.resolve(jobArgs.out ?? path.join('render', 'output', outName))
 
   return {
@@ -361,7 +361,7 @@ export async function renderJob(
   setProgressLabel?.(path.basename(job.outPath))
   const downloadPromise = page.waitForEvent('download', { timeout: downloadTimeoutMs })
   downloadPromise.catch(() => {})
-  const summary = await page.evaluate((payload) => window.freecut.renderProject(payload), {
+  const summary = await page.evaluate((payload) => window.embeddablecut.renderProject(payload), {
     project: job.project,
     settings: job.settings,
     media: job.media,
@@ -390,7 +390,7 @@ export async function renderJob(
  * client's error, not the page's.
  */
 export function readProjectDocumentInPage(page, document) {
-  return page.evaluate((value) => window.freecut.readDocument(value), document)
+  return page.evaluate((value) => window.embeddablecut.readDocument(value), document)
 }
 
 /**

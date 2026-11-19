@@ -2,7 +2,7 @@
 
 /**
  * The headless harness page's entry (`headless.html`): installs the engine's
- * render API as `window.freecut` for the Node/Playwright driver in `render/`.
+ * render API as `window.embeddablecut` for the Node/Playwright driver in `render/`.
  * Beyond FreeCut's API it loads extensions, so a server renders custom effects
  * and transitions exactly as the editor does, and reads project documents
  * under the same schema rules as the SDK.
@@ -108,7 +108,7 @@ function describe() {
   }
 }
 
-interface FreecutHeadlessApi {
+interface EmbeddableCutHeadlessApi {
   ready: true
   renderTimeline: typeof renderTimeline
   renderProject: typeof renderProject
@@ -125,11 +125,11 @@ interface FreecutHeadlessApi {
 
 declare global {
   interface Window {
-    freecut: FreecutHeadlessApi
+    embeddablecut: EmbeddableCutHeadlessApi
   }
 }
 
-window.freecut = {
+window.embeddablecut = {
   ready: true,
   renderTimeline,
   renderProject,

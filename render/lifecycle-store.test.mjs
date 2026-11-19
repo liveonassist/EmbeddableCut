@@ -17,7 +17,7 @@ import {
   stageLocalMedia,
 } from './lib/lifecycle-store.mjs'
 
-const tempWorkspace = () => fs.mkdtempSync(path.join(os.tmpdir(), 'freecut-lifecycle-'))
+const tempWorkspace = () => fs.mkdtempSync(path.join(os.tmpdir(), 'embeddablecut-lifecycle-'))
 const project = (id = 'p1') => ({
   id,
   name: 'One',

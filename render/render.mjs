@@ -1,7 +1,7 @@
 // FreeCut headless render CLI.
 //
 // Renders a project from a workspace folder to a video file, driving the real
-// render engine inside headless Chrome via the window.freecut harness.
+// render engine inside headless Chrome via the window.embeddablecut harness.
 //
 // Usage:
 //   node render/render.mjs --workspace <dir> --project <id|project.json> [options]
@@ -137,7 +137,7 @@ async function main() {
     workspace,
     devUrl: args['harness-url'],
     build: args.build,
-    extensions: String(args.extension ?? process.env.FREECUT_EXTENSIONS ?? '')
+    extensions: String(args.extension ?? process.env.EMBEDDABLECUT_EXTENSIONS ?? '')
       .split(',')
       .map((file) => file.trim())
       .filter(Boolean),
@@ -167,7 +167,7 @@ async function main() {
       progressLabel = label
       lastPct = -1
     }
-    await page.exposeBinding('__freecutProgress', (_src, progress) => {
+    await page.exposeBinding('__embeddablecutProgress', (_src, progress) => {
       if (args.json) return
       const pct = Math.floor(progress?.progress ?? 0)
       if (pct !== lastPct) {
@@ -179,7 +179,7 @@ async function main() {
     })
 
     await page.goto(harnessUrl, { waitUntil: 'load', timeout: 60_000 })
-    await page.waitForFunction(() => Boolean(window.freecut?.ready), { timeout: 30_000 })
+    await page.waitForFunction(() => Boolean(window.embeddablecut?.ready), { timeout: 30_000 })
     await installExtensions(page, extensionUrls)
 
     const jsonResults = []

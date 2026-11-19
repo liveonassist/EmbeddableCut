@@ -37,11 +37,11 @@ function layeredSourceAliasPlugin(): Plugin {
 // version and old cached chunks are never purged. Uses the content hash (not a timestamp)
 // so identical builds produce an identical SW and avoid needless update churn.
 function serviceWorkerVersionPlugin(): Plugin {
-  const placeholder = '__FREECUT_BUILD_ID__'
+  const placeholder = '__EMBEDDABLECUT_BUILD_ID__'
   let buildId = ''
 
   return {
-    name: 'freecut-sw-version',
+    name: 'embeddablecut-sw-version',
     apply: 'build',
     writeBundle(options, bundle) {
       const mainEntry = Object.values(bundle).find(
@@ -136,7 +136,7 @@ export default defineConfig({
     chunkSizeWarningLimit: 1200,
     rollupOptions: {
       // Multi-entry: the editor app (index.html) plus the headless render
-      // harness (headless.html), a UI-less entry that exposes window.freecut
+      // harness (headless.html), a UI-less entry that exposes window.embeddablecut
       // for the Node/Playwright headless render+edit CLI.
       input: {
         main: fileURLToPath(new URL('./index.html', import.meta.url)),

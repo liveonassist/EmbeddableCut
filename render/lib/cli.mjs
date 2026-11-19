@@ -25,23 +25,23 @@ export function parseArgs(argv, { allowed, aliases = {} } = {}) {
 /**
  * Chrome launch args for headless WebGPU, per platform. The ANGLE backend is
  * platform-specific (d3d11 on Windows, metal on macOS, vulkan on Linux). Extra
- * args can be appended via FREECUT_CHROME_ARGS (space-separated) — e.g. in
+ * args can be appended via EMBEDDABLECUT_CHROME_ARGS (space-separated) — e.g. in
  * Docker: "--no-sandbox --use-vulkan=swiftshader" for software WebGPU.
  */
 /**
- * Which Chrome Playwright launches: `FREECUT_CHROME_PATH` names an executable
+ * Which Chrome Playwright launches: `EMBEDDABLECUT_CHROME_PATH` names an executable
  * (Nix and other installs outside /opt/google), otherwise Google Chrome's
  * stable channel. Chromium lacks the proprietary codecs export needs.
  */
 export function chromeLaunchTarget() {
-  const executablePath = process.env.FREECUT_CHROME_PATH
+  const executablePath = process.env.EMBEDDABLECUT_CHROME_PATH
   return executablePath ? { executablePath } : { channel: 'chrome' }
 }
 
 export function chromeLaunchArgs() {
   // Full override (space-separated) — for tuning the GPU/WebGPU backend, esp.
   // in containers (e.g. SwiftShader). Replaces ALL args including the defaults.
-  const replace = process.env.FREECUT_CHROME_ARGS_REPLACE
+  const replace = process.env.EMBEDDABLECUT_CHROME_ARGS_REPLACE
   if (replace) return replace.split(/\s+/).filter(Boolean)
 
   const angle =
@@ -56,6 +56,6 @@ export function chromeLaunchArgs() {
     '--ignore-gpu-blocklist',
     angle,
   ]
-  const extra = (process.env.FREECUT_CHROME_ARGS ?? '').split(/\s+/).filter(Boolean)
+  const extra = (process.env.EMBEDDABLECUT_CHROME_ARGS ?? '').split(/\s+/).filter(Boolean)
   return [...base, ...extra]
 }

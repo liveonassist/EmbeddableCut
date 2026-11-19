@@ -24,10 +24,10 @@ export interface TimelineBoundsContextValue {
   readonly outFrame: number | null
 }
 
-const FRAME_KEY = Symbol('freecut.bridged-timeline-frame')
-const PLAYBACK_KEY = Symbol('freecut.bridged-timeline-playback')
-const BOUNDS_KEY = Symbol('freecut.bridged-timeline-bounds')
-const SET_TIMELINE_KEY = Symbol('freecut.bridged-set-timeline')
+const FRAME_KEY = Symbol('embeddablecut.bridged-timeline-frame')
+const PLAYBACK_KEY = Symbol('embeddablecut.bridged-timeline-playback')
+const BOUNDS_KEY = Symbol('embeddablecut.bridged-timeline-bounds')
+const SET_TIMELINE_KEY = Symbol('embeddablecut.bridged-set-timeline')
 
 export function setBridgedTimelineFrameContext(frame: { readonly current: number }): void {
   setContext(FRAME_KEY, frame)

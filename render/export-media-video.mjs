@@ -267,7 +267,7 @@ async function main() {
     throw new Error('dist/headless.html is missing; run npm run build first')
   }
 
-  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'freecut-export-contract-'))
+  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'embeddablecut-export-contract-'))
   const clipPath = path.join(tempDir, 'generated-clip.mp4')
   const tonePath = path.join(tempDir, 'generated-tone.wav')
   const outputPath = path.join(tempDir, 'export-contract.webm')
@@ -292,12 +292,12 @@ async function main() {
     const context = await browser.newContext({ acceptDownloads: true })
     const page = await context.newPage()
     await page.goto(server.harnessUrl, { waitUntil: 'load', timeout: 60_000 })
-    await page.waitForFunction(() => Boolean(window.freecut?.ready), { timeout: 30_000 })
+    await page.waitForFunction(() => Boolean(window.embeddablecut?.ready), { timeout: 30_000 })
 
     const downloadPromise = page.waitForEvent('download', { timeout: 180_000 })
     downloadPromise.catch(() => {})
     const summary = await page.evaluate(
-      (input) => window.freecut.renderTimeline(input),
+      (input) => window.embeddablecut.renderTimeline(input),
       renderInput(server.mediaUrl(VIDEO_MEDIA_ID), server.mediaUrl(AUDIO_MEDIA_ID)),
     )
     const download = await downloadPromise

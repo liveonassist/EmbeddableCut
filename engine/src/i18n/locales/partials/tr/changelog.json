@@ -11,6 +11,6 @@
     "initialRelease": "İlk sürüm",
     "ctaTitle": "Bir şeyler üretmeye hazır mısınız?",
     "ctaDescription": "{{productName}}'i açın ve en yeni araçları kullanmaya başlayın.",
-    "openFreeCut": "{{productName}}'i aç"
+    "openApp": "{{productName}}'i aç"
   }
 }

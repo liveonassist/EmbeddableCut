@@ -137,7 +137,7 @@
   async function handleSelectDestination() {
     try {
       const dirHandle = await window.showDirectoryPicker({
-        id: 'freecut-import',
+        id: 'embeddablecut-import',
         mode: 'readwrite',
         startIn: 'documents',
       })

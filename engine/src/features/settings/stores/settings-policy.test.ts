@@ -3,7 +3,7 @@ import { useSettingsStore } from './settings-store'
 import { installSettingsPolicy, isSettingLocked } from './settings-policy'
 
 function persisted(): Record<string, unknown> {
-  return JSON.parse(localStorage.getItem('freecut-settings') ?? '{}').state ?? {}
+  return JSON.parse(localStorage.getItem('embeddablecut-settings') ?? '{}').state ?? {}
 }
 
 describe('settings policy', () => {

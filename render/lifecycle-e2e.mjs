@@ -11,7 +11,7 @@ import {
 } from './lib/contract.mjs'
 
 const root = path.resolve(import.meta.dirname, '..')
-const workspace = fs.mkdtempSync(path.join(os.tmpdir(), 'freecut-lifecycle-e2e-'))
+const workspace = fs.mkdtempSync(path.join(os.tmpdir(), 'embeddablecut-lifecycle-e2e-'))
 fs.writeFileSync(
   path.join(workspace, '.embeddablecut-workspace.json'),
   '{"schemaVersion":"2.0","createdAt":1}\n',
@@ -512,7 +512,7 @@ try {
   fs.rmSync(workspace, { recursive: true, force: true })
 }
 
-const corruptWorkspace = fs.mkdtempSync(path.join(os.tmpdir(), 'freecut-corrupt-checkpoint-'))
+const corruptWorkspace = fs.mkdtempSync(path.join(os.tmpdir(), 'embeddablecut-corrupt-checkpoint-'))
 try {
   const operationRoot = path.join(corruptWorkspace, '.embeddablecut-render', 'checkpoint-operations')
   fs.mkdirSync(operationRoot, { recursive: true })

@@ -3,7 +3,7 @@
 import { getContext, setContext } from 'svelte'
 import type { PlayerEmitter } from '@/runtime/player/player-emitter'
 
-const PLAYER_EMITTER_KEY = Symbol('freecut.player-emitter')
+const PLAYER_EMITTER_KEY = Symbol('embeddablecut.player-emitter')
 
 export function setPlayerEmitter(emitter: PlayerEmitter): void {
   setContext(PLAYER_EMITTER_KEY, emitter)

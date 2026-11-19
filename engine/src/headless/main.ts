@@ -2,7 +2,7 @@
  * Headless render harness.
  *
  * The render API behind the harness page: `harness.ts` (the entry
- * `headless.html` loads) exposes it as a small `window.freecut` API so a Node/Playwright driver can render projects to
+ * `headless.html` loads) exposes it as a small `window.embeddablecut` API so a Node/Playwright driver can render projects to
  * video inside a real (headless) Chrome — reusing the exact same render engine
  * the editor uses, with no React UI, router, or workspace gate mounted.
  *
@@ -242,7 +242,7 @@ export interface HeadlessTimelineInput {
   strict?: boolean
   /** Load-time validation findings collected by the caller (renderProject). */
   validationWarnings?: HeadlessRenderWarning[]
-  /** Defaults to the driver's `__freecutProgress` binding. */
+  /** Defaults to the driver's `__embeddablecutProgress` binding. */
   onProgress?: ProgressSink
   /** Defaults to a download the driver catches. */
   deliver?: RenderDelivery
@@ -433,7 +433,7 @@ function reportValidationWarnings(
 }
 
 function reportProgress(progress: RenderProgress): void {
-  const sink = (globalThis as unknown as { __freecutProgress?: ProgressSink }).__freecutProgress
+  const sink = (globalThis as unknown as { __embeddablecutProgress?: ProgressSink }).__embeddablecutProgress
   if (!sink) return
   try {
     sink(progress)
@@ -472,7 +472,7 @@ function triggerDownload(blob: Blob, fileName: string): void {
 }
 
 function defaultFileName(settings: ClientExportSettings): string {
-  return `freecut-export.${settings.container}`
+  return `embeddablecut-export.${settings.container}`
 }
 
 function effectiveFileName(requested: string | undefined, settings: ClientExportSettings): string {
@@ -560,9 +560,9 @@ async function adaptVideoSettings(
   if (settings.mode === 'audio') return { settings, warnings: [] }
   const testOverride = (
     globalThis as unknown as {
-      __freecutSupportedCodecsOverride?: Awaited<ReturnType<typeof getSupportedCodecs>>
+      __embeddablecutSupportedCodecsOverride?: Awaited<ReturnType<typeof getSupportedCodecs>>
     }
-  ).__freecutSupportedCodecsOverride
+  ).__embeddablecutSupportedCodecsOverride
   const supported =
     testOverride ??
     (await getSupportedCodecs({
@@ -983,7 +983,7 @@ export async function renderFrame(input: HeadlessFrameInput): Promise<HeadlessFr
     quality: input.quality ?? 1,
   })
   const ext = format === 'image/jpeg' ? 'jpg' : format === 'image/webp' ? 'webp' : 'png'
-  const fileName = input.outputFileName ?? `freecut-frame-${frame}.${ext}`
+  const fileName = input.outputFileName ?? `embeddablecut-frame-${frame}.${ext}`
   ;(input.deliver ?? triggerDownload)(blob, fileName)
 
   log.info('Headless frame grab complete', {

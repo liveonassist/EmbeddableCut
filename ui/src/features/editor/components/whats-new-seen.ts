@@ -4,7 +4,7 @@ import changelogData from '@/data/changelog.json'
 import type { ChangelogFile } from '@/data/changelog-types'
 
 const data = changelogData as ChangelogFile
-const LAST_SEEN_KEY = 'freecut:whatsNewLastSeen'
+const LAST_SEEN_KEY = 'embeddablecut:whatsNewLastSeen'
 
 function getLatestIdentifier(): string {
   if (data.current) return `current:${data.current.date}`

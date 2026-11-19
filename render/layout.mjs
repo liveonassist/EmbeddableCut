@@ -75,7 +75,7 @@ async function dumpLayoutToOutput(page, { args, workspace, mediaUrlOf, frame, at
     )
   }
 
-  const layout = await page.evaluate((payload) => window.freecut.dumpLayout(payload), {
+  const layout = await page.evaluate((payload) => window.embeddablecut.dumpLayout(payload), {
     project,
     media,
     frame,

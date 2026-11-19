@@ -80,7 +80,7 @@
   async function handleAdd() {
     try {
       const handle = await window.showDirectoryPicker({
-        id: 'freecut-workspace',
+        id: 'embeddablecut-workspace',
         mode: 'readwrite',
         startIn: 'documents',
       })

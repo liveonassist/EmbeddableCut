@@ -11,6 +11,6 @@
     "initialRelease": "Initial release",
     "ctaTitle": "Ready to make something?",
     "ctaDescription": "Open {{productName}} and put the latest tools to work.",
-    "openFreeCut": "Open {{productName}}"
+    "openApp": "Open {{productName}}"
   }
 }

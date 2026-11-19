@@ -319,7 +319,7 @@ async function main() {
   if (!fs.existsSync(path.join(HARNESS_DIST, 'headless.html'))) {
     throw new Error('dist/headless.html is missing; run `npm run build` first')
   }
-  const workspace = fs.mkdtempSync(path.join(os.tmpdir(), 'freecut-frame-oracle-'))
+  const workspace = fs.mkdtempSync(path.join(os.tmpdir(), 'embeddablecut-frame-oracle-'))
   const sources = path.join(workspace, 'sources')
   fs.mkdirSync(sources)
   fs.writeFileSync(path.join(workspace, '.embeddablecut-workspace.json'), '{"schemaVersion":"2.0","createdAt":1}\n')

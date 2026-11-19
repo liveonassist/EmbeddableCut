@@ -85,7 +85,7 @@ fs.writeFileSync(
 )
 fs.writeFileSync(
   path.join(OVERLAY, 'package.json'),
-  JSON.stringify({ name: 'freecut-layout', private: true, type: 'module', scripts: Object.fromEntries(
+  JSON.stringify({ name: 'embeddablecut-layout', private: true, type: 'module', scripts: Object.fromEntries(
     fs.readdirSync(CHECKS_DIR).filter((f) => /^(check|report)-.*\.mjs$/.test(f)).map((f) => [f, `node scripts/${f}`]),
   ), dependencies: {
     ...JSON.parse(fs.readFileSync(path.join(REPO_ROOT, 'engine', 'package.json'), 'utf8')).dependencies,

@@ -202,7 +202,7 @@
         <Button class="gap-2">
           {#snippet child({ props })}
             <Link {...props} to="/projects">
-              {t('changelog.openFreeCut')}
+              {t('changelog.openApp')}
               <ArrowRight class="h-4 w-4" />
             </Link>
           {/snippet}

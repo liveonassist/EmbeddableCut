@@ -3,8 +3,8 @@
  * scrollLeft. Native `scroll` can arrive a paint later, which is too late for
  * overlays in a separate panel that must visually share the same axis.
  */
-export const TIMELINE_LIVE_SCROLL_EVENT = 'freecut:timeline-live-scroll'
-export const TIMELINE_SCRUB_VISUAL_FRAME_EVENT = 'freecut:timeline-scrub-visual-frame'
+export const TIMELINE_LIVE_SCROLL_EVENT = 'embeddablecut:timeline-live-scroll'
+export const TIMELINE_SCRUB_VISUAL_FRAME_EVENT = 'embeddablecut:timeline-scrub-visual-frame'
 
 export interface TimelineScrubVisualFrameDetail {
   frame: number

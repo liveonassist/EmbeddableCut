@@ -12,7 +12,7 @@ export interface CompositionSpace {
   scale: number
 }
 
-const COMPOSITION_SPACE_KEY = Symbol('freecut.composition-space')
+const COMPOSITION_SPACE_KEY = Symbol('embeddablecut.composition-space')
 
 export function resolveCompositionScale(
   projectWidth: number,

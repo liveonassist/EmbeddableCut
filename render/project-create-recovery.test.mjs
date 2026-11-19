@@ -9,7 +9,7 @@ import { createProjectResource } from './lib/lifecycle-store.mjs'
 import { recoverDeterministicProjectCreate } from './serve.mjs'
 
 const workspace = (t) => {
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'freecut-project-recovery-'))
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'embeddablecut-project-recovery-'))
   t.after(() => fs.rmSync(root, { recursive: true, force: true }))
   return root
 }

@@ -187,11 +187,11 @@ async function main() {
     const page = await (await browser.newContext({ acceptDownloads: true })).newPage();
     page.on("pageerror", (error) => console.error("  [pageerror]", error.message));
     await page.goto(harness.harnessUrl, { waitUntil: "load", timeout: 60_000 });
-    await page.waitForFunction(() => Boolean(window.freecut?.ready), { timeout: 30_000 });
+    await page.waitForFunction(() => Boolean(window.embeddablecut?.ready), { timeout: 30_000 });
 
     // Frame 24 s into the stream: segment 12 of 20.
     const frameDownload = page.waitForEvent("download", { timeout: 120_000 });
-    const frame = await page.evaluate((input) => window.freecut.renderFrame(input), {
+    const frame = await page.evaluate((input) => window.embeddablecut.renderFrame(input), {
       project: project(24 * FPS, FPS),
       media: media(host),
       frame: 0,
@@ -212,7 +212,7 @@ async function main() {
 
     // A two-second cut from 30 s: segments 15 and 16, and mediabunny's read-ahead past them.
     const exportDownload = page.waitForEvent("download", { timeout: 180_000 });
-    const summary = await page.evaluate((input) => window.freecut.renderProject(input), {
+    const summary = await page.evaluate((input) => window.embeddablecut.renderProject(input), {
       project: project(30 * FPS, 2 * FPS),
       media: media(host),
       settings: {

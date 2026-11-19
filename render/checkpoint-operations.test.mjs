@@ -20,7 +20,7 @@ import {
 } from './lib/checkpoint-operations.mjs'
 
 const OPERATION_ID = '018f22d2-8d42-7c2a-a4cc-7a3f2c5f6b10'
-const tempWorkspace = () => fs.mkdtempSync(path.join(os.tmpdir(), 'freecut-checkpoint-'))
+const tempWorkspace = () => fs.mkdtempSync(path.join(os.tmpdir(), 'embeddablecut-checkpoint-'))
 const projectPath = (root) => path.join(root, 'projects', 'p1', 'project.json')
 const finalMediaProbe = (overrides = {}) => ({
   width: 1080,

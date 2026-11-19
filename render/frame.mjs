@@ -91,7 +91,7 @@ async function grabFrame(page, { args, workspace, mediaUrlOf, outPath, mime, fra
   const started = Date.now()
   const downloadPromise = page.waitForEvent('download', { timeout: 5 * 60_000 })
   downloadPromise.catch(() => {})
-  const summary = await page.evaluate((payload) => window.freecut.renderFrame(payload), {
+  const summary = await page.evaluate((payload) => window.embeddablecut.renderFrame(payload), {
     project,
     media,
     frame,

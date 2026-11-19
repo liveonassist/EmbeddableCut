@@ -190,10 +190,10 @@ async function main() {
       })
     }
     await page.goto(harness.harnessUrl, { waitUntil: 'load', timeout: 60_000 })
-    await page.waitForFunction(() => Boolean(window.freecut?.ready), { timeout: 30_000 })
+    await page.waitForFunction(() => Boolean(window.embeddablecut?.ready), { timeout: 30_000 })
 
     const frameDownload = page.waitForEvent('download', { timeout: 120_000 })
-    const frame = await page.evaluate((input) => window.freecut.renderFrame(input), {
+    const frame = await page.evaluate((input) => window.embeddablecut.renderFrame(input), {
       project: project(),
       media: media(host),
       frame: FRAMES / 2,
@@ -210,7 +210,7 @@ async function main() {
     )
 
     const exportDownload = page.waitForEvent('download', { timeout: 180_000 })
-    const summary = await page.evaluate((input) => window.freecut.renderProject(input), {
+    const summary = await page.evaluate((input) => window.embeddablecut.renderProject(input), {
       project: project(),
       media: media(host),
       settings: {
