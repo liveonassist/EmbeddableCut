@@ -54,4 +54,4 @@ While you work, the scoped recipes are quicker: `just engine test <filter>`, `ju
 ## Next steps
 
 - Read [`AGENTS.md`](../AGENTS.md) and the one in each package you touch.
-- [`UPSTREAM.md`](UPSTREAM.md) explains how FreeCut's changes are merged in.
+- [`UPSTREAM.md`](UPSTREAM.md) explains how upstream's changes are merged in.

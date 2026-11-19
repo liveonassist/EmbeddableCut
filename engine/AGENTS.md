@@ -1,6 +1,6 @@
 # Engine
 
-`engine/` is `@embeddablecut/engine`: everything in FreeCut that runs without a UI framework. Types, timeline state and editing actions, media import and resolution, persistence, effects and transitions, the canvas and WebGPU renderer, the playback clock, export, and the headless harness's page side. Hosts consume it as TypeScript source; there's no build step.
+`engine/` is `@embeddablecut/engine`: everything in the editor that runs without a UI framework. Types, timeline state and editing actions, media import and resolution, persistence, effects and transitions, the canvas and WebGPU renderer, the playback clock, export, and the headless harness's page side. Hosts consume it as TypeScript source; there's no build step.
 
 ## Commands
 
@@ -16,7 +16,7 @@ Or from anywhere: `just engine check`, `just engine test [filter]`.
 
 ## Layout
 
-`src/` mirrors FreeCut's `src/` path for path, so `@/features/timeline/stores/items-store` names the same module here as upstream. Only FreeCut's React UI is missing: it is ported to Svelte in `ui/src/` at the same paths.
+`src/` mirrors upstream's `src/` path for path, so `@/features/timeline/stores/items-store` names the same module here as upstream. Only upstream's React UI is missing: it is ported to Svelte in `ui/src/` at the same paths.
 
 - `src/types/` — the data model: `Project`, the `TimelineItem` union, `Transition`, keyframes, effects, `MediaMetadata`.
 - `src/features/<feature>/{stores,services,utils,deps}` — feature state and logic. `timeline/stores/actions/` is the editing API; `timeline/stores/timeline-actions.ts` is its barrel.
@@ -43,7 +43,7 @@ Don't break these without an architecture discussion in the PR description.
 
 - **The engine never imports the app.** `@/` resolves only to `engine/src/` here, and `npm run check` type-checks the engine alone, so an import of anything in `ui/src/` fails. A component or hook belongs in `ui/`.
 - **No UI framework, not even its types.** `engine/vite.config.ts` bans React, Svelte, Radix, Lucide, `zustand`'s React entry and `sonner`. Stores use `create` from `@/shared/state/bound-store`, notices go through `toast` from `@/shared/notifications`.
-- **Cross-feature imports go through `deps/`.** A feature reaches another only inside `features/<name>/deps/*-contract.ts`; its code imports the sibling adapter (`deps/<name>.ts`). `just check architecture` enforces it, with FreeCut's layer rules and edge budgets.
+- **Cross-feature imports go through `deps/`.** A feature reaches another only inside `features/<name>/deps/*-contract.ts`; its code imports the sibling adapter (`deps/<name>.ts`). `just check architecture` enforces it, with upstream's layer rules and edge budgets.
 - When a contract would re-export a component or hook, that export goes in the UI's `deps/<name>-ui-contract.ts` and `-ui` adapter instead.
 - `shared/`, `infrastructure/`, `types/`, `config/` and `i18n/` never import `features/` or `runtime/`. `runtime/` reaches feature state only through `runtime/<engine>/deps/*-contract.ts`.
 
@@ -56,7 +56,7 @@ Don't break these without an architecture discussion in the PR description.
 - **Host guards run in `execute`**: it diffs the snapshots around each command, and an edit that removes an item `EditGuards.remove` refuses is restored with no undo step, then reported to `onEditRefused` (`stores/edit-guards.ts`). Trims, splits (the left half keeps its id) and moves into compound clips aren't removals.
 - A host's settings policy (`settings/stores/settings-policy.ts`) swaps the settings store's actions so locked keys refuse changes, and persists the user's own values while it holds.
 - `timeline-persistence.ts` is the only bridge between the stores and a saved `Project`: `buildTimelineFromStores()` out, `hydrateTimelineStoresFromProject()` in.
-- Persisted projects carry `schemaVersion`; `migrateProject()` runs every migration in `shared/projects/migrations/` on load, and throws `ProjectSchemaTooNewError` for a project from a newer editor. The project schema is FreeCut's: EmbeddableCut adds no project migrations of its own.
+- Persisted projects carry `schemaVersion`; `migrateProject()` runs every migration in `shared/projects/migrations/` on load, and throws `ProjectSchemaTooNewError` for a project from a newer editor. The project schema is upstream's: EmbeddableCut adds no project migrations of its own.
 - A change to a format EmbeddableCut owns (`src/schema/`) bumps its version, adds a migration and regenerates `schemas/` (`npx vp test run src/schema -u`); `docs/SCHEMAS.md` is the checklist.
 
 ### URL media

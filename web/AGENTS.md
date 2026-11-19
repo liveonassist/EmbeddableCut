@@ -1,6 +1,6 @@
 # Editor App
 
-`web/` is `@embeddablecut/web`: the build of FreeCut's editor app, a static PWA (`index.html`) and the headless harness page (`headless.html`) the render package drives. Its only sources are two one-line entries: `app.ts` imports the app from `@embeddablecut/ui/app` (the Svelte UI's `src/bootstrap.ts`) for `index.html`, `headless.ts` the harness from `@embeddablecut/sdk/harness` for `headless.html`. Vite's dev server can't resolve a package named in HTML, so the pages load these modules instead.
+`web/` is `@embeddablecut/web`: the build of the editor app, a static PWA (`index.html`) and the headless harness page (`headless.html`) the render package drives. Its only sources are two one-line entries: `app.ts` imports the app from `@embeddablecut/ui/app` (the Svelte UI's `src/bootstrap.ts`) for `index.html`, `headless.ts` the harness from `@embeddablecut/sdk/harness` for `headless.html`. Vite's dev server can't resolve a package named in HTML, so the pages load these modules instead.
 
 ## Commands
 

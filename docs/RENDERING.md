@@ -29,9 +29,9 @@ just render frame --workspace ~/Projects --project <id> --at 2
 | --- | --- |
 | `GET /health` | GPU, harness and workspace, and the extensions installed |
 | `GET /v1/capabilities` | Request schemas, render options, `projectDocument: true`, and `renderer`: the SDK version, `schemaVersions` and extensions this service renders with |
-| `POST /v1/render` | Render to a file: `project` (a workspace id), `projectObject` (FreeCut's project JSON) or `projectDocument` |
+| `POST /v1/render` | Render to a file: `project` (a workspace id), `projectObject` (a bare project, as `project.json` holds it) or `projectDocument` |
 | `POST /frame`, `POST /layout` | One frame as an image, or the items' boxes at a frame; the same three project sources |
-| `/v1/projects`, `/v1/media`, `/v1/checkpoint-operations` | FreeCut's lifecycle API over the workspace: revisions, idempotent writes, crash-safe operations |
+| `/v1/projects`, `/v1/media`, `/v1/checkpoint-operations` | The lifecycle API over the workspace: revisions, idempotent writes, crash-safe operations |
 
 Every response carries `apiVersion`. Errors are `{ ok: false, error: { code, message, fields } }`; a project document refused by the schema reader answers 400 with its `SchemaError` code (`SCHEMA_TOO_NEW`, `SCHEMA_INVALID`, ...), and one needing an extension the service lacks answers 422 `EXTENSION_MISSING`.
 

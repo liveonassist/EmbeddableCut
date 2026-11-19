@@ -16,14 +16,18 @@ AI generation, and export all run in the browser.
 
 ## Product Purpose
 
-FreeCut is a browser-based, local-first, multi-track video editor. It exists to
-give serious editors a real NLE that runs entirely in the browser, with a
-workspace folder on their own disk as the source of truth (projects, media
+EmbeddableCut is a browser-based, local-first, multi-track video editor that
+other products can embed. It exists to give serious editors a real NLE that runs
+entirely in the browser, on its own or inside a host's app, with projects kept
+where the host keeps them: a workspace folder on the user's disk (projects, media
 metadata, thumbnails, waveforms, transcripts, scene cuts, caches all as plain
-files). Success is an editor who would otherwise open Premiere choosing FreeCut
-for a real cut, and never noticing the browser, because playback is
-frame-accurate, scrubbing is responsive, and the tools they reach for by muscle
-memory are all there.
+files), or the host's own storage. Success is an editor who would otherwise open
+Premiere doing a real cut in it, and never noticing the browser or the host,
+because playback is frame-accurate, scrubbing is responsive, and the tools they
+reach for by muscle memory are all there.
+
+Embedded, the editor is the host's: it names the host's product, links nowhere
+of its own, and hands saving and exporting to the host when asked.
 
 ## Brand Personality
 
@@ -36,7 +40,7 @@ projects expert confidence by being legible, predictable, and fast.
 ## Anti-references
 
 - **Consumer-cute editors** (CapCut, iMovie): playful mascots, rounded candy
-  buttons, emoji, gamified flourishes. FreeCut is a pro tool, not a toy.
+  buttons, emoji, gamified flourishes. EmbeddableCut is a pro tool, not a toy.
 - **Flashy SaaS dashboards**: gradient heroes, glassmorphism, big-number metric
   cards, marketing-grade decoration inside the working UI.
 - **Cramped legacy NLE chrome**: dense to the point of noise, beveled gray

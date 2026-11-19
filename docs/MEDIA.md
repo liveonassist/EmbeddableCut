@@ -1,10 +1,10 @@
 # Media
 
-EmbeddableCut edits two kinds of media side by side: files from the user's disk, as FreeCut does, and media at URLs, read where they live. A project can mix both, and a host decides which its editor accepts.
+EmbeddableCut edits two kinds of media side by side: files from the user's disk and media at URLs, read where they live. A project can mix both, and a host decides which its editor accepts.
 
 ## Local files
 
-FreeCut's workflows are unchanged. Dropped or imported files are copied into the workspace folder (`copy`) or referenced on the user's disk (`link`), with proxies, filmstrips, waveforms and caches beside them. A linked file asks for permission again in a later session, and relinking finds a moved one.
+Dropped or imported files are copied into the workspace folder (`copy`) or referenced on the user's disk (`link`), with proxies, filmstrips, waveforms and caches beside them. A linked file asks for permission again in a later session, and relinking finds a moved one.
 
 An editor with no workspace holds what users import in the page's memory instead (`storageType: 'memory'`, `source.type: 'memory'` in a document), probed and thumbnailed as usual. Those files are gone with the page unless the host uploads them; see [deferred uploads](#deferred-uploads).
 
@@ -49,7 +49,7 @@ async function save() {
 
 URL media is a first-class kind of asset (`storageType: 'url'` in the media library, `source.type: 'url'` in a project document). Nothing downloads it whole:
 
-- **Probing reads a few ranges.** `editor.media.addUrl({ url })` reads the container's index and one frame for the thumbnail through range requests, with FreeCut's own metadata extraction running in its worker.
+- **Probing reads a few ranges.** `editor.media.addUrl({ url })` reads the container's index and one frame for the thumbnail through range requests, with the editor's own metadata extraction running in its worker.
 - **Playback streams.** The preview's `<video>` elements read the URL directly, and seeking fetches only what the new position needs.
 - **Decoding reads ranges, once.** Everything that decodes through mediabunny (scrub frames, filmstrips, waveforms, export, server renders) reads through one fetch layer (`infrastructure/remote-media/remote-fetch.ts`). It fetches 1 MiB blocks into a cache in Cache Storage that every worker and tab shares, so a byte the preview fetched isn't fetched again by the waveform worker or by an export. Reads stream block by block, so a reader that stops early fetches no more, and a block two contexts reach at once is fetched once, under a Web Lock.
 - **Derived data persists.** Filmstrips, waveforms and thumbnails live in the workspace, which is the origin's private storage (OPFS) unless the host names another, so reopening a project rebuilds none of them. `workspace: 'none'` keeps them in memory for the session.
@@ -115,7 +115,7 @@ A project document's URL assets render on the render service exactly as in the b
 
 ```ts
 createEditor({ media: { local: false, url: true } })   // URL media only: nothing from the user's disk
-createEditor({ media: { local: true, url: false } })   // FreeCut's behavior: files only
+createEditor({ media: { local: true, url: false } })   // files only
 ```
 
 A turned-off source is refused with `MEDIA_SOURCE_DISABLED`, both when adding media and when loading a document that uses it.

@@ -2,15 +2,15 @@
 
 _A real video editor, in any app_ 🎬✂️
 
-EmbeddableCut is an embeddable video editing SDK built from [FreeCut](https://github.com/walterlow/freecut), a browser-based multi-track editor. It keeps FreeCut's editor whole and makes it something you can build on: a framework-independent engine for editing, playback and rendering, the full editor to mount in your own app, and a headless Chrome renderer for your servers.
+EmbeddableCut is an embeddable video editing SDK built from [FreeCut](https://github.com/walterlow/freecut), a browser-based multi-track editor. It keeps that editor whole and makes it something you can build on: a framework-independent engine for editing, playback and rendering, the full editor to mount in your own app, and a headless Chrome renderer for your servers.
 
-> **Status: pre-alpha.** The monorepo and the engine split are in place; the SDK, the Svelte 5 editor and URL-based media are being built. FreeCut's editor works exactly as it does upstream.
+> **Status: pre-alpha.** The engine, the SDK, the Svelte 5 editor, URL media and the render service work end to end. APIs and formats still change without notice.
 
 ![The editor's workspace](./web/public/assets/landing/main.png)
 
 ## Features
 
-Everything FreeCut's editor does, the SDK keeps. Projects and media stay local: editing, preview, analysis, transcription, AI generation and export all run in the browser through WebGPU, WebCodecs, Web Workers, OPFS and the File System Access API.
+Everything the editor does, the SDK keeps. Projects and media stay local: editing, preview, analysis, transcription, AI generation and export all run in the browser through WebGPU, WebCodecs, Web Workers, OPFS and the File System Access API.
 
 ### Timeline and editing
 
@@ -21,7 +21,7 @@ Everything FreeCut's editor does, the SDK keeps. Projects and media stay local: 
 
 ### Preview, effects and audio
 
-- **Frame-accurate playback** through FreeCut's own clock, with fast scrub overlays, decoder prewarming and adaptive preview quality.
+- **Frame-accurate playback** through the engine's own clock, with fast scrub overlays, decoder prewarming and adaptive preview quality.
 - **WebGPU effects:** blurs, color grading with curves, wheels and `.cube` LUTs, distortions, stylize effects, chroma key, 25 blend modes, masks and pen paths.
 - **GPU scopes:** waveform, vectorscope and histogram.
 - **Audio:** clip and track EQ, pitch shift, fades, faders, a master bus and LED meters, preserved through export.
@@ -41,9 +41,9 @@ Everything FreeCut's editor does, the SDK keeps. Projects and media stay local: 
 
 ## Layout & Tech Stack
 
-**⚙️ Engine: TypeScript, no UI framework.** `engine/` holds FreeCut's state, editing actions, media handling, persistence, effects, transitions, renderer and clock. Hosts bundle it as source.
+**⚙️ Engine: TypeScript, no UI framework.** `engine/` holds the editor's state, editing actions, media handling, persistence, effects, transitions, renderer and clock. Hosts bundle it as source.
 
-**🖥️ Editor: Svelte 5.** `ui/` is FreeCut's editor ported from React file for file, with the same behavior and look, mountable in any page, in a shadow root or an iframe. `web/` builds it with Vite+ into the static PWA FreeCut ships.
+**🖥️ Editor: Svelte 5.** `ui/` is the editor, ported from upstream's React UI file for file, mountable in any page, in a shadow root or an iframe. `web/` builds it with Vite+ into a static PWA.
 
 **🎥 Render: headless Chrome.** `render/` drives the engine through Playwright for CLIs and an HTTP service, with a container image for clusters.
 
@@ -53,10 +53,10 @@ Everything FreeCut's editor does, the SDK keeps. Projects and media stay local: 
 
 ## Philosophy
 
-- **FreeCut stays whole.** Nothing in its editor is removed or simplified to make it embeddable. By default EmbeddableCut is FreeCut: the same features, look, editing behavior and render fidelity.
+- **The editor stays whole.** Nothing is removed or simplified to make it embeddable: an embedded editor has the full app's features, editing behavior and render fidelity, and a host trims it only where it chooses.
 - **The engine owns the work.** Editing, playback and rendering live below any UI framework, so a host can drive them with or without the editor on screen.
 - **One engine everywhere.** Preview, browser export and server rendering run the same code, so what an editor sees is what a server renders.
-- **Stay close to upstream.** Every file keeps its path from FreeCut's tree, so FreeCut's fixes and features keep flowing in.
+- **Stay mergeable with upstream.** Every file keeps its path from upstream's tree, so upstream's fixes and features keep flowing in.
 
 ## Getting Started
 
@@ -72,7 +72,7 @@ just            # every other command
 ## Documentation
 
 - [`docs/GETTING_STARTED.md`](docs/GETTING_STARTED.md): build, run, and test from source.
-- [`docs/UPSTREAM.md`](docs/UPSTREAM.md): how FreeCut's changes are merged in.
+- [`docs/UPSTREAM.md`](docs/UPSTREAM.md): how upstream's changes are merged in.
 - [`docs/SCHEMAS.md`](docs/SCHEMAS.md): the versioned formats and their migration policy.
 - [`docs/MEDIA.md`](docs/MEDIA.md): local files and URL media, authentication, caching.
 - [`docs/RENDERING.md`](docs/RENDERING.md): preview, browser export and the render service; extensions on servers; scaling.
@@ -80,11 +80,11 @@ just            # every other command
 - [`docs/BRIDGE.md`](docs/BRIDGE.md): driving an editor in an iframe or a WebView.
 - [`docs/FLUTTER.md`](docs/FLUTTER.md): using EmbeddableCut from a Flutter app, and toward a native one.
 - [`sdk/README.md`](sdk/README.md): driving the editor from your own app.
-- [`docs/DESIGN.md`](docs/DESIGN.md) and [`docs/PRODUCT.md`](docs/PRODUCT.md): FreeCut's design system and who it's for.
+- [`docs/DESIGN.md`](docs/DESIGN.md) and [`docs/PRODUCT.md`](docs/PRODUCT.md): the design system and who it's for.
 - [`render/AGENTS.md`](render/AGENTS.md): the render CLIs, HTTP service and container.
 - [`CONTRIBUTING.md`](CONTRIBUTING.md): how changes land.
-- [FreeCut's user guide](https://freecut.net/docs) covers the editor itself.
+- The app's user guide (`/docs` in `just web dev`) covers the editor itself.
 
 ## License
 
-[MIT](LICENSE), as FreeCut is. EmbeddableCut is a fork of [FreeCut](https://github.com/walterlow/freecut) and keeps its copyright notice.
+[MIT](LICENSE). EmbeddableCut is a fork of [FreeCut](https://github.com/walterlow/freecut) and keeps its copyright notice.

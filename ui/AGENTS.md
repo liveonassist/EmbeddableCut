@@ -1,6 +1,6 @@
 # Editor UI
 
-`ui/` is `@embeddablecut/ui`: FreeCut's editor in Svelte 5, mountable in any page, and the app around it (`mountApp`), which `web/` builds. `mountEditor` renders the full editor in a shadow root (or straight into a page, as the app does), `mountEditorFrame` runs it in an iframe over the SDK's bridge, and every piece is a component hosts can reuse, extend or replace. It drives the engine through `@embeddablecut/sdk` and the engine's stores, exactly as the React app does.
+`ui/` is `@embeddablecut/ui`: the editor in Svelte 5, mountable in any page, and the app around it (`mountApp`), which `web/` builds. `mountEditor` renders the full editor in a shadow root (or straight into a page, as the app does), `mountEditorFrame` runs it in an iframe over the SDK's bridge, and every piece is a component hosts can reuse, extend or replace. It drives the engine through `@embeddablecut/sdk` and the engine's stores, exactly as upstream's React app does.
 
 ## Commands
 
@@ -18,19 +18,19 @@ The changelog the app shows is `src/data/changelog.json` and `CHANGELOG.md`, app
 
 ## Layout
 
-`src/` is FreeCut's React UI, ported path for path: **FreeCut's `src/<path>/<name>.tsx` is `ui/src/<path>/<name>.svelte`**, a React hook `use-<name>.ts` is `use-<name>.svelte.ts`, and UI-only helpers keep their `.ts` names. Keep FreeCut's file names (kebab-case), so an upstream change to a React file names the Svelte file to carry it to ([`docs/UPSTREAM.md`](../docs/UPSTREAM.md)). FreeCut's `src/main.tsx` and `src/bootstrap.ts` are `src/main.ts` and `src/bootstrap.ts`, the app's entry (`@embeddablecut/ui/app`).
+`src/` is upstream's React UI, ported path for path: **Upstream's `src/<path>/<name>.tsx` is `ui/src/<path>/<name>.svelte`**, a React hook `use-<name>.ts` is `use-<name>.svelte.ts`, and UI-only helpers keep their `.ts` names. Keep upstream's file names (kebab-case), so an upstream change to a React file names the Svelte file to carry it to ([`docs/UPSTREAM.md`](../docs/UPSTREAM.md)). Upstream's `src/main.tsx` and `src/bootstrap.ts` are `src/main.ts` and `src/bootstrap.ts`, the app's entry (`@embeddablecut/ui/app`).
 
 - `src/lib/` — the bindings every component uses, standing in for the React libraries: `store.svelte.ts` (`select`), `i18n.svelte.ts` (`t`), `hotkeys.svelte.ts` (`useHotkeys`, react-hotkeys-hook's rules), `router/` (TanStack Router's API on the history API), `cn.ts`, `context.ts` (`getEditorUi`, `portalTarget`).
 - `src/components/ui/` — the primitives, ports of the shadcn/Radix kit on bits-ui, with the React kit's class strings unchanged ([Primitives](#primitives)).
 - `src/embed/` — `mountEditor`, `mountEditorFrame`, the iframe page's entry, fonts.
 - `src/extensions/` — what hosts and extensions contribute (`UiContributions`), and the `ContributionRegistry` the UI reads them from; the built-in features hosts can hide or lock (`features.ts`, `FeatureGate`); the actions hosts can take over (`actions.svelte.ts`, `HostActions`), and their bridge twins in `src/embed/frame-actions.ts`.
-- `src/theme/` — `ThemeController`: dark (FreeCut's), light, system, and token overrides.
-- `src/styles/app.css` — FreeCut's stylesheet, scoped for shadow roots, with the light theme.
+- `src/theme/` — `ThemeController`: dark (the default), light, system, and token overrides.
+- `src/styles/app.css` — upstream's stylesheet, scoped for shadow roots, with the light theme.
 - `src/app/` — `editor-app.svelte` (the full editor `mountEditor` mounts: `editor-root.svelte` around `editor-view.svelte`), `editor-root.svelte` (context, tooltips, toaster), and the app around it: `app.svelte`, `mount-app.ts` (`mountApp`) and `route-tree.ts`.
 
 ## Porting from React
 
-The bar is FreeCut's editor as it is: same markup, same Tailwind classes, same behavior, same keyboard and pointer handling, same accessibility attributes. A port is a translation, not a redesign.
+The bar is upstream's editor as it is: same markup, same Tailwind classes, same behavior, same keyboard and pointer handling, same accessibility attributes. A port is a translation, not a redesign.
 
 | React | Svelte 5 |
 | --- | --- |
@@ -62,10 +62,10 @@ The bar is FreeCut's editor as it is: same markup, same Tailwind classes, same b
 | React `memo`, `startTransition` | nothing: Svelte updates only what read a changed value |
 
 - **Imports stay as they were.** `@/` resolves against `ui/src` first and then `engine/src`, so a ported file imports engine modules (`@/features/timeline/stores/items-store`, `deps/` adapters, `@/shared/...`) with the same specifiers as the React original. Import Svelte siblings with their `.svelte` extension.
-- **The `deps/` seams carry over.** A feature reaches another through its `deps/` adapters. FreeCut's `deps/*-ui-contract.ts` files re-export components; their Svelte twins live at the same paths here, re-exporting `.svelte` components.
+- **The `deps/` seams carry over.** A feature reaches another through its `deps/` adapters. Upstream's `deps/*-ui-contract.ts` files re-export components; their Svelte twins live at the same paths here, re-exporting `.svelte` components.
 - **Portals render inside the editor.** Every dialog, popover, menu and tooltip portals to `portalTarget()` (the primitives already do), never to the host's `document.body`.
-- **Global cursors and drag state** set classes on `document.body` in FreeCut. Set them on `document.body` and on the editor's `.ec-root` (`getEditorUi().portalTarget` and its root), since a shadow root sees only the latter; the CSS matches both.
-- **Ports keep FreeCut's comments** where they explain the why, and drop those that described React mechanics.
+- **Global cursors and drag state** set classes on `document.body` upstream. Set them on `document.body` and on the editor's `.ec-root` (`getEditorUi().portalTarget` and its root), since a shadow root sees only the latter; the CSS matches both.
+- **Ports keep upstream's comments** where they explain the why, and drop those that described React mechanics.
 - New files start with an SPDX header: `<!-- SPDX-License-Identifier: MIT -->` in `.svelte`, `// SPDX-License-Identifier: MIT` in `.ts`.
 - **A React file exporting several components becomes a folder** named after it: one `.svelte` per component and an `index.ts` re-exporting them under the React names (`io-range-markers.tsx` → `io-range-markers/`, `shapes/components.tsx` → `shapes/components/`). The React file's barrels (`index.ts`) port as barrels of `.svelte` defaults.
 - **Element refs passed in become elements.** A `RefObject<El>` prop is the element itself, named without `Ref` (`positionSyncTargetRef` → `positionSyncTarget`, `scrollRef` → `scroll`), bound with `bind:this` to a `$state`. Mutable value refs (`suppressRefs`, `rafRef`) keep their `{ current }` shape.
@@ -90,9 +90,9 @@ The bar is FreeCut's editor as it is: same markup, same Tailwind classes, same b
 
 ## Primitives
 
-`src/components/ui/` ports FreeCut's shadcn/Radix kit onto bits-ui 2 (and paneforge, svelte-sonner), with every class string as the React kit has it.
+`src/components/ui/` ports upstream's shadcn/Radix kit onto bits-ui 2 (and paneforge, svelte-sonner), with every class string as the React kit has it.
 
-- **One folder per React file, imported as the React file was.** FreeCut's `src/components/ui/<name>.tsx` is `ui/src/components/ui/<name>/`: one `.svelte` per exported part (`dropdown-menu/dropdown-menu-content.svelte`) and an `index.ts` exporting them under the React names, so `import { DropdownMenu, DropdownMenuContent } from '@/components/ui/dropdown-menu'` works unchanged. Single components follow the same scheme (`input/input.svelte` + `input/index.ts`). `button-variants.ts` stays at `components/ui/button-variants.ts`, where React imports it.
+- **One folder per React file, imported as the React file was.** Upstream's `src/components/ui/<name>.tsx` is `ui/src/components/ui/<name>/`: one `.svelte` per exported part (`dropdown-menu/dropdown-menu-content.svelte`) and an `index.ts` exporting them under the React names, so `import { DropdownMenu, DropdownMenuContent } from '@/components/ui/dropdown-menu'` works unchanged. Single components follow the same scheme (`input/input.svelte` + `input/index.ts`). `button-variants.ts` stays at `components/ui/button-variants.ts`, where React imports it.
 - Parts that Radix and bits-ui share unchanged are re-exported straight from bits-ui (`export const DropdownMenuTrigger = DropdownMenuPrimitive.Trigger`); parts with classes or markup are `.svelte` wrappers.
 - **Roots accept Radix's uncontrolled defaults** where bits-ui has none: `Tabs`/`Accordion`/`Select` `defaultValue`, `Collapsible`/`Select` `defaultOpen`, `Switch` `defaultChecked`. Controlled props bind (`bind:value`, `bind:open`) or pair with `onValueChange`/`onOpenChange`.
 - **`asChild` is the `child` snippet**: `<PopoverTrigger>{#snippet child({ props })}<Button {...props}>…</Button>{/snippet}</PopoverTrigger>`.
@@ -104,13 +104,13 @@ The bar is FreeCut's editor as it is: same markup, same Tailwind classes, same b
   - Menu labels are plain `<div>`s (bits-ui's `GroupHeading` needs a group); `ContextMenuTrigger` renders Radix's `<span>`.
   - bits-ui has no Progress Indicator or Slider Track part: the wrappers render Radix's markup for them.
   - `GlobalTooltip` listens on its own root node: `mouseenter` isn't composed, so the host's document never sees the editor's shadow-root elements.
-- `editor-root.svelte` mounts what FreeCut's `app.tsx` does: `TooltipProvider` (bits-ui tooltips need one), `GlobalTooltip`, and the kit's `Toaster`.
+- `editor-root.svelte` mounts what upstream's `app.tsx` does: `TooltipProvider` (bits-ui tooltips need one), `GlobalTooltip`, and the kit's `Toaster`.
 - `svelte.config.js` compiles `node_modules` components in their own mode (lucide-svelte is Svelte 4 syntax) with `css: 'injected'`, which Svelte appends to the component's root node, so library styles (svelte-sonner, bits-ui) reach a shadow-root editor.
 
 ## Conventions
 
 - **`svelte-check` runs on TypeScript 6** through `scripts/svelte-check.mjs`: the workspace pins TypeScript 7 for oxlint, which has no language service, so 6 is installed as `typescript6` and resolved for svelte-check alone.
-- The UI reaches the engine through the SDK's `Editor` (`getEditorUi().editor`) for anything the SDK offers, and through the engine's stores and actions for the rest, as FreeCut's components do.
+- The UI reaches the engine through the SDK's `Editor` (`getEditorUi().editor`) for anything the SDK offers, and through the engine's stores and actions for the rest, as upstream's components do.
 - One editor per page (the engine's stores are per page): `mountEditor` refuses a second until the first is unmounted. More than one is `mountEditorFrame`.
 - Shortcuts are scoped to the editor's shadow root when it's embedded (`setHotkeyScope`), so keys typed in the host page never reach it.
 - **Built-in UI a host may switch off checks the feature gate**: wrap it in `<Feature id>` (`@/components/feature.svelte`), or read `useFeatures().mode(id)` for menu items (a locked one is `disabled`). A new id goes in `FEATURE_IDS`, its shortcuts in `FEATURE_HOTKEYS` (`useResolvedHotkeys` unassigns them), and its row in docs/EMBEDDING.md. A setting's control sits in `<SettingGate keys>`, which reads the engine's settings policy.

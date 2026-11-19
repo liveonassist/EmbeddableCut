@@ -6,21 +6,21 @@ Every format EmbeddableCut persists or exchanges has one owner, an explicit vers
 
 | Format | Version | Owner | Where it lives |
 | --- | --- | --- | --- |
-| Project (`project.json`) | integer, `project.schemaVersion` | FreeCut: `engine/src/shared/projects/migrations/` | the workspace, and inside every project document |
+| Project (`project.json`) | integer, `project.schemaVersion` | Upstream: `engine/src/shared/projects/migrations/` | the workspace, and inside every project document |
 | Project document | integer, `schemaVersion` | EmbeddableCut: `engine/src/schema/project-document.ts` | the SDK's load and save, the render API, other clients |
 | Asset record | integer, versioned with the document | EmbeddableCut: `engine/src/schema/asset.ts` | a project document's `assets` |
-| Edit operation | the render API's `apiVersion` | FreeCut: `render/lib/contract.mjs` | the SDK's `apply`, the service's `/edit`, the bridge |
+| Edit operation | the render API's `apiVersion` | Upstream: `render/lib/contract.mjs` | the SDK's `apply`, the service's `/edit`, the bridge |
 | Bridge messages | `BRIDGE_VERSION` | EmbeddableCut: `sdk/src/bridge/protocol.ts` | iframe and WebView hosts ([`BRIDGE.md`](BRIDGE.md)) |
-| Workspace layout | `"2.0"` in `.embeddablecut-workspace.json` | FreeCut: `engine/src/infrastructure/storage/workspace-fs/` | the workspace folder |
-| Bundle manifest (`.embeddablecut.zip`) | `"1.0"` | FreeCut: `engine/src/features/project-bundle/` | project bundles |
-| JSON snapshot | `"1.0"` | FreeCut: `engine/src/features/project-bundle/` | FreeCut's JSON export |
-| Render API | `apiVersion`, `HEADLESS_API_VERSION` | FreeCut: `render/lib/contract.mjs` | the HTTP service's requests and responses; EmbeddableCut's additions are announced in `/v1/capabilities` |
+| Workspace layout | `"2.0"` in `.embeddablecut-workspace.json` | Upstream: `engine/src/infrastructure/storage/workspace-fs/` | the workspace folder |
+| Bundle manifest (`.embeddablecut.zip`) | `"1.0"` | Upstream: `engine/src/features/project-bundle/` | project bundles |
+| JSON snapshot | `"1.0"` | Upstream: `engine/src/features/project-bundle/` | the editor's JSON export |
+| Render API | `apiVersion`, `HEADLESS_API_VERSION` | Upstream: `render/lib/contract.mjs` | the HTTP service's requests and responses; EmbeddableCut's additions are announced in `/v1/capabilities` |
 
 `SCHEMA_VERSIONS` in `engine/src/schema/versions.ts` lists the current version of each data format in one place.
 
 ### The project document
 
-The project document is the portable format: a FreeCut project, the asset record for every media item it references, and the extensions it can't render faithfully without.
+The project document is the portable format: a project, the asset record for every media item it references, and the extensions it can't render faithfully without.
 
 ```json
 {
@@ -32,9 +32,9 @@ The project document is the portable format: a FreeCut project, the asset record
 }
 ```
 
-It carries two versions on purpose. The envelope's `schemaVersion` is EmbeddableCut's; `project.schemaVersion` is FreeCut's, which moves whenever upstream adds a migration. Keeping them apart means an upstream release never renumbers the envelope, and a change to the envelope never collides with upstream's numbering.
+It carries two versions on purpose. The envelope's `schemaVersion` is EmbeddableCut's; `project.schemaVersion` is upstream's, which moves whenever upstream adds a migration. Keeping them apart means an upstream release never renumbers the envelope, and a change to the envelope never collides with upstream's numbering.
 
-The editor's workspace keeps FreeCut's layout: `project.json` per project and `metadata.json` per media. A document is assembled from those, and taken apart into them.
+The editor's workspace keeps upstream's layout, under EmbeddableCut's file names: `project.json` per project and `metadata.json` per media. A document is assembled from those, and taken apart into them.
 
 JSON Schema for each portable format is generated from the zod schema the engine validates with and committed in [`schemas/`](../schemas), for clients that don't run TypeScript. A test fails when the committed copy drifts; `npx vp test run src/schema -u` in `engine/` regenerates it.
 
@@ -44,7 +44,7 @@ JSON Schema for each portable format is generated from the zod schema the engine
 - **Every change to a format bumps its version,** additive ones included, so a reader knows exactly what it's reading. One change, one bump, one migration.
 - **Until EmbeddableCut's first release, its own formats change in place.** Nothing outside the repo reads them yet, so the project document, the asset record and the bridge stay at v1 and change without a bump or a migration. Versioning starts with the first release.
 - **A version has one owner,** the module in the table above. Only that module defines the version, the schema and the migrations.
-- **No implicit versions.** Everything new is written with its version. FreeCut's projects from before `schemaVersion` existed are read as version 1, the one exception, and are written back versioned.
+- **No implicit versions.** Everything new is written with its version. Projects from before `schemaVersion` existed are read as version 1, the one exception, and are written back versioned.
 
 ## Reading
 
@@ -68,7 +68,7 @@ Breaking changes are allowed when they make the format better; pre-1.0 they land
 
 ### Upstream's project schema
 
-FreeCut owns the project schema, so its migrations come in with upstream merges, and EmbeddableCut doesn't add its own project migrations. What EmbeddableCut needs to store goes in the document envelope or in asset records, which it owns. If the project itself must change, the change goes to FreeCut first.
+Upstream owns the project schema, so its migrations come in with upstream merges, and EmbeddableCut doesn't add its own project migrations. What EmbeddableCut needs to store goes in the document envelope or in asset records, which it owns. If the project itself must change, the change goes upstream first.
 
 ## Extensions and other clients
 

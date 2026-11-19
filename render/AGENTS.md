@@ -1,6 +1,6 @@
 # Render
 
-`render/` is `@embeddablecut/render`, FreeCut's headless renderer: Node drivers that open the harness page (`headless.html` from the web build) in Google Chrome through Playwright and call `window.freecut`. The engine renders exactly as it does in the editor, WebCodecs and WebGPU included. [`docs/RENDERING.md`](../docs/RENDERING.md) is the operator's view.
+`render/` is `@embeddablecut/render`, the headless renderer: Node drivers that open the harness page (`headless.html` from the web build) in Google Chrome through Playwright and call `window.freecut`. The engine renders exactly as it does in the editor, WebCodecs and WebGPU included. [`docs/RENDERING.md`](../docs/RENDERING.md) is the operator's view.
 
 ## Commands
 
@@ -24,7 +24,7 @@ just render image                                # the container image (render/D
 - `lib/lifecycle-store.mjs`, `lib/checkpoint-operations.mjs`, `lib/idempotency.mjs`, `lib/operation-queue.mjs` — the service's revisions, crash-safe operations, idempotent writes and single-page queue.
 - `lib/paths.mjs` — where the built harness is: `EMBEDDABLECUT_HARNESS_DIR`, else `web/dist`.
 - `server.mjs` — the static harness server (COOP/COEP/CORP, Range requests for `/media/:id`, extension modules at `/extensions/<n>/<file>`).
-- The page side is `sdk/src/harness/harness.ts`: FreeCut's render API from `engine/src/headless/main.ts`, plus `installExtensions`, `readDocument` and `describe`.
+- The page side is `sdk/src/harness/harness.ts`: the engine's render API from `engine/src/headless/main.ts`, plus `installExtensions`, `readDocument` and `describe`.
 
 ## Conventions
 
@@ -32,7 +32,7 @@ just render image                                # the container image (render/D
 - The service binds to 127.0.0.1 and has no authentication. Put it behind something that does before exposing it; the container binds 0.0.0.0 for its own network.
 - One warm page serves every request, serialized through the operation queue; scale out with more processes or containers, each with its own workspace lock.
 - Software WebGPU (lavapipe in the container) rejects GPU-effect renders, which can come out blank there. Real-GPU effects need a GPU host.
-- Every response carries `apiVersion`; a change to a request or response shape bumps `HEADLESS_API_VERSION` in `lib/contract.mjs`. That version is FreeCut's: what EmbeddableCut adds (`projectDocument`, `renderer`) is announced in `/v1/capabilities` instead, so upstream's numbering stays its own.
+- Every response carries `apiVersion`; a change to a request or response shape bumps `HEADLESS_API_VERSION` in `lib/contract.mjs`. That version is upstream's: what EmbeddableCut adds (`projectDocument`, `renderer`) is announced in `/v1/capabilities` instead, so upstream's numbering stays its own.
 - **A project document is read in the page** (`readProjectDocumentInPage`), under the SDK's schema rules, and refused outside the operation queue (`acceptProjectDocument`): a bad document is the client's error, and the queue treats anything thrown inside it as the page failing and recreates it.
 - **Extensions load before the first request** (`--extension`, `FREECUT_EXTENSIONS`), in every page the service opens or recreates (`PageSession`'s `extensionUrls`); `describe()` reports them.
 - URL media is passed to the page as the asset's URL and read there; the Node side never fetches it.

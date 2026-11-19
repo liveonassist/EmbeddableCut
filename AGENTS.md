@@ -24,20 +24,20 @@ Each project subdirectory owns an `AGENTS.md` describing its stack, commands, an
 
 ## Layout
 
-- `engine/` — `@embeddablecut/engine`: everything that runs without a UI framework. Its `src/` mirrors FreeCut's `src/`.
+- `engine/` — `@embeddablecut/engine`: everything that runs without a UI framework. Its `src/` mirrors upstream's `src/`.
 - `sdk/` — `@embeddablecut/sdk`: the public API over the engine, which hosts and the editor UI use alike.
-- `ui/` — `@embeddablecut/ui`: the editor in Svelte 5, mountable in any page, and the app around it. Its `src/` is FreeCut's React UI ported file for file, at FreeCut's paths.
+- `ui/` — `@embeddablecut/ui`: the editor in Svelte 5, mountable in any page, and the app around it. Its `src/` is upstream's React UI ported file for file, at upstream's paths.
 - `web/` — `@embeddablecut/web`: the editor app's build: the UI's app as a static PWA, plus the headless harness page.
-- `render/` — `@embeddablecut/render`: FreeCut's headless renderer (formerly `headless/`), driving the harness in Chrome.
+- `render/` — `@embeddablecut/render`: the headless renderer, driving the harness in Chrome.
 - `schemas/` — generated JSON Schema for the portable formats; [`docs/SCHEMAS.md`](docs/SCHEMAS.md) is the policy.
-- `scripts/checks/` — FreeCut's architecture ratchets, run over both trees by `overlay.mjs`.
+- `scripts/checks/` — the architecture ratchets, run over both trees by `overlay.mjs`.
 - `flake.nix` — the dev shell, packages, and checks.
 - `justfile`, `tasks/`, `scripts/tasks/` — the command interface: one `mod` per group, with anything longer than a few lines in a script.
 - `docs/` — contributor docs, linked from `README.md`.
 
 ## Upstream
 
-- **FreeCut is upstream, and every path keeps its upstream twin.** A file at FreeCut's `src/<path>` lives at `engine/src/<path>`, or, if it is React UI, is ported to its twin under `ui/src/<path>`; never both. Merges follow the engine's renames, and an upstream change to a React file names the Svelte file to carry it to. Don't move a file within a tree without a reason that outweighs that.
+- **FreeCut is upstream, and every path keeps its upstream twin.** A file at upstream's `src/<path>` lives at `engine/src/<path>`, or, if it is React UI, is ported to its twin under `ui/src/<path>`; never both. Merges follow the engine's renames, and an upstream change to a React file names the Svelte file to carry it to. Don't move a file within a tree without a reason that outweighs that.
 - Merge upstream with `just upstream merge`; [`docs/UPSTREAM.md`](docs/UPSTREAM.md) is the procedure. Never push to the `upstream` remote; its push URL is disabled.
 - Code that only EmbeddableCut has goes in new files where it can, so upstream's edits to theirs merge cleanly.
 - Never reformat an upstream file wholesale: upstream isn't format-clean, and the noise would conflict with every merge. Format what you write, from inside its package (`cd engine && npx vp fmt src/...`): the repo root has no Vite config, and oxfmt there falls back to its defaults.
@@ -46,13 +46,13 @@ Each project subdirectory owns an `AGENTS.md` describing its stack, commands, an
 
 - A _project_ holds media references and a root timeline; _compositions_ (pre-comps and sequences) nest timelines inside it. Items reference media by `mediaId`; `src` is a runtime URL and is never persisted for workspace media.
 - **Time is in frames** at the project's fps (`from`, `durationInFrames`, `sourceStart`). Seconds appear only at the edges: media probing, export settings, the render API.
-- **Persisted data is versioned and owned** ([`docs/SCHEMAS.md`](docs/SCHEMAS.md)): older versions migrate, newer ones are refused, unknown fields are errors. FreeCut owns the project schema; EmbeddableCut owns the project document around it.
+- **Persisted data is versioned and owned** ([`docs/SCHEMAS.md`](docs/SCHEMAS.md)): older versions migrate, newer ones are refused, unknown fields are errors. Upstream owns the project schema; EmbeddableCut owns the project document around it.
 - Undo is whole-timeline snapshots per editing context (`timeline-command-store.ts`), not inverse operations. Anything that edits the timeline goes through `execute(...)` in the timeline actions.
 - **Local-first.** Projects and media live in a workspace folder the user picks; nothing is uploaded unless a host wires it up.
 
 ## Design language
 
-FreeCut's design is the default and the bar. [`docs/DESIGN.md`](docs/DESIGN.md) holds its tokens and rules, [`docs/PRODUCT.md`](docs/PRODUCT.md) who it's for.
+The editor's design is the default and the bar. [`docs/DESIGN.md`](docs/DESIGN.md) holds its tokens and rules, [`docs/PRODUCT.md`](docs/PRODUCT.md) who it's for.
 
 - **Precise, confident, calm.** Dense panels read at a glance by editors coming from Premiere Pro and DaVinci Resolve; keyboard first, frame accurate.
 - **Chrome stays dark and neutral** so footage carries the color. One accent (`--primary`, orange), IBM Plex Sans and Mono, Lucide icons.
@@ -63,9 +63,9 @@ FreeCut's design is the default and the bar. [`docs/DESIGN.md`](docs/DESIGN.md) 
 - The toolchain comes from the Nix flake — enter it with `nix develop` or `direnv`. Never a system `node`. Need a tool? Add it to `flake.nix`, in the group its shell composes from.
 - `just` is the entry point for common tasks: `just` lists every recipe, `just <group>` one group. A command people run more than once gets a recipe.
 - npm workspaces: one `package-lock.json` at the root. Install with `just web install` (`npm install` at the root); add a dependency to the package that imports it, exact-pinned, never `^` or `~`. A lockfile change also refreshes the flake's `npmDepsHash`: `just check npm-hash`.
-- `onnxruntime-web` (a dev build) and `lucide-svelte` (0.468.x, FreeCut's `lucide-react` version, so the icons match) are pinned deliberately: never routine-bump either.
+- `onnxruntime-web` (a dev build) and `lucide-svelte` (0.468.x, upstream's `lucide-react` version, so the icons match) are pinned deliberately: never routine-bump either.
 - Shell scripts pass `shfmt --indent 2` and `shellcheck`, justfiles `just --fmt`, the flake `alejandra` (`just check tasks`).
-- License is MIT, FreeCut's. New source files start with an SPDX header (`// SPDX-License-Identifier: MIT`, or the file type's comment equivalent); upstream files stay as upstream has them.
+- License is MIT, inherited from upstream. New source files start with an SPDX header (`// SPDX-License-Identifier: MIT`, or the file type's comment equivalent); upstream files stay as upstream has them.
 - Code from elsewhere goes in a commit of its own, keeps its notice, and names its source and license in the message.
 - Comments explain **why**, not what. Keep them minimal.
 - No back-compat shims for hypothetical changes. Pre-1.0, breaking changes land cleanly.
@@ -80,7 +80,7 @@ CI runs these; run them before committing (details in each subdirectory's `AGENT
 
 ```sh
 just check tasks          # justfiles, task scripts, flake formatting
-just check architecture   # FreeCut's boundary, seam, dead-code and edge-budget ratchets
+just check architecture   # boundary, seam, dead-code and edge-budget ratchets
 just check engine         # lint, type-check and test the engine on its own
 just check sdk            # lint, type-check and test the SDK
 just check ui             # lint, svelte-check and test the editor UI

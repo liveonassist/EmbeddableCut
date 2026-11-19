@@ -1,7 +1,7 @@
 <!-- SPDX-License-Identifier: MIT -->
 # EmbeddableCut SDK
 
-Drive FreeCut's editing engine from your own app: build and change projects, apply edit operations, render frames and export video in the browser, with or without the editor on screen.
+Drive EmbeddableCut's editing engine from your own app: build and change projects, apply edit operations, render frames and export video in the browser, with or without the editor on screen.
 
 ```ts
 import { createEditor } from '@embeddablecut/sdk'

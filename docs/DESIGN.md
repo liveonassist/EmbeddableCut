@@ -1,5 +1,5 @@
 ---
-name: FreeCut
+name: EmbeddableCut
 description: A browser-based, local-first, multi-track video editor for pro editors.
 colors:
   background: "oklch(0.15 0 0)"
@@ -110,13 +110,13 @@ components:
     height: "36px"
 ---
 
-# Design System: FreeCut
+# Design System: EmbeddableCut
 
 ## 1. Overview
 
 **Creative North Star: "The Quiet Instrument"**
 
-FreeCut is a precision tool that recedes. The visual system behaves like a
+EmbeddableCut is a precision tool that recedes. The visual system behaves like a
 well-machined instrument in a darkened room: graphite panels, restrained chrome,
 no decoration that doesn't earn its pixels. The footage in the preview is the
 brightest, most saturated thing on the screen, and everything else is tuned to

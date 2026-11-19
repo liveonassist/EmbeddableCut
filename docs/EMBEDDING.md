@@ -1,6 +1,6 @@
 # Embedding the editor
 
-`@embeddablecut/ui` puts FreeCut's editor, or just its preview, in any page, whatever framework the page uses. The editor is driven through the SDK's `Editor` ([`sdk/README.md`](../sdk/README.md)), the same API a host without the UI uses.
+`@embeddablecut/ui` puts the editor, or just its preview, in any page, whatever framework the page uses. The editor is driven through the SDK's `Editor` ([`sdk/README.md`](../sdk/README.md)), the same API a host without the UI uses.
 
 ## Choosing a mode
 
@@ -9,7 +9,7 @@
 | `mountEditor(target, options)` | The full editor in a shadow root (or straight in the page with `isolation: 'none'`), driven by an in-page `Editor` | one at a time |
 | `mountEditorFrame(target, { src })` | The full editor in an iframe, driven by a `RemoteEditor` over the [bridge](BRIDGE.md) | any number |
 | `mountPreview(target, { editor })` | Only the playable composition, for hosts with their own editing UI | one, beside the editor's engine |
-| `mountApp(target)` | FreeCut's whole app: landing page, projects, docs, editor (what `web/` ships) | one |
+| `mountApp(target)` | The whole app: landing page, projects, docs, editor (what `web/` ships) | one |
 | `createEditor()` from the SDK | No UI: edit, play, render and export headless | one per page |
 
 The engine's state is per page, so a second `mountEditor` is refused until the first is unmounted. Editors in iframes each have their own engine.
@@ -35,7 +35,7 @@ await editor.apply([{ op: 'addText', id: 'title', text: 'Hello', from: 0, durati
 await mounted.unmount()
 ```
 
-- **Size:** the editor fills its container, which needs a height. The shadow host has inline-size containment, so the editor's minimum width never widens a host's grid or flex track; FreeCut's layout is dense, and works best from about 1280px wide.
+- **Size:** the editor fills its container, which needs a height. The shadow host has inline-size containment, so the editor's minimum width never widens a host's grid or flex track; the editor's layout is dense, and works best from about 1280px wide.
 - **Isolation:** in a shadow root, the editor's stylesheet stays inside and the host's styles stay out; dialogs, menus and tooltips portal inside the editor. Keyboard shortcuts only see keys typed inside it.
 - **Opening a project:** `document` (a project document) or `projectId` with a `workspace` in the options open one while mounting; `editor.loadDocument`, `openProject` and `createProject` do it any time.
 
@@ -57,8 +57,8 @@ framed.unmount()
 
 ## Theming
 
-- `theme: 'dark' | 'light' | 'system'` picks a theme; `mounted.setTheme(...)` switches it at runtime. Dark is FreeCut's.
-- Any token can be overridden: `setTheme({ mode: 'dark', tokens: { primary: 'oklch(0.7 0.15 250)', 'preview-surround': '#101418' } })`, or a plain `{ token: value }` record, which keeps the current mode and replaces the overrides. `THEME_TOKENS` lists them: the semantic colors (`background`, `primary`, `border`, …), panel and timeline surfaces, the surfaces around footage (`preview-surround`, `preview-letterbox`, `meter-well`, `strip`, `waveform-well`, …) and `radius`. [`DESIGN.md`](DESIGN.md) gives FreeCut's values.
+- `theme: 'dark' | 'light' | 'system'` picks a theme; `mounted.setTheme(...)` switches it at runtime. Dark is the default.
+- Any token can be overridden: `setTheme({ mode: 'dark', tokens: { primary: 'oklch(0.7 0.15 250)', 'preview-surround': '#101418' } })`, or a plain `{ token: value }` record, which keeps the current mode and replaces the overrides. `THEME_TOKENS` lists them: the semantic colors (`background`, `primary`, `border`, …), panel and timeline surfaces, the surfaces around footage (`preview-surround`, `preview-letterbox`, `meter-well`, `strip`, `waveform-well`, …) and `radius`. [`DESIGN.md`](DESIGN.md) gives the default values.
 - With `isolation: 'none'`, `data-theme` on the editor's `.ec-root` picks the theme, and the tokens can be set in the page's CSS.
 - `productName: 'Acme Studio'` (`mountEditor` or `mountEditorFrame`) is what the editor's copy calls itself, in notices like "Acme Studio cannot access 2 media files" and its accessible label. It's `EmbeddableCut` otherwise. A mounted editor shows no logo and links nowhere outside itself: its help is the host's ([actions](#taking-over-saving-and-exporting)).
 

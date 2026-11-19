@@ -49,7 +49,7 @@ Future<void> call(int id, String method, Map<String, dynamic>? params) {
 
 A Flutter app can build and change projects as data and leave the editing to EmbeddableCut:
 
-- **On a server:** `POST /edit` with a `projectObject` and `ops`, or the workspace's `/v1/projects/:id/edit`, applies edit operations and returns the edited project. It runs FreeCut's own editing actions, so ripple, linking and transition repair behave as in the editor.
+- **On a server:** `POST /edit` with a `projectObject` and `ops`, or the workspace's `/v1/projects/:id/edit`, applies edit operations and returns the edited project. It runs the editor's own editing actions, so ripple, linking and transition repair behave as in the editor.
 - **In a hidden WebView:** `timeline.apply` over the bridge, then `project.toDocument`.
 
 Edit operations are small JSON objects (`{ "op": "split", "id": "clip-1", "frame": 120 }`) that can refer to earlier results (`{ "$ref": "track#/detail/trackId" }`), so a client can record them as an op log and replay it.
