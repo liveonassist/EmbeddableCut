@@ -3,6 +3,7 @@ import LanguageDetector from 'i18next-browser-languagedetector'
 import { createLogger } from '@/shared/logging/logger'
 import { DEFAULT_LANGUAGE, SUPPORTED_LANGUAGE_CODES, resolveSupportedLanguage } from './languages'
 import en from './locales/en.json'
+import { DEFAULT_PRODUCT_NAME } from './product-name'
 
 const log = createLogger('i18n')
 
@@ -82,6 +83,7 @@ void i18n
     interpolation: {
       // UI frameworks escape interpolated text themselves.
       escapeValue: false,
+      defaultVariables: { productName: DEFAULT_PRODUCT_NAME },
     },
     detection: {
       order: ['localStorage', 'navigator'],

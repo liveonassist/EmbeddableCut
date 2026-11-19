@@ -3,6 +3,7 @@
 import { untrack } from 'svelte'
 import type { TimelineItem as TimelineItemType } from '@/types/timeline'
 import { select } from '$lib/store.svelte'
+import { i18n } from '@/i18n'
 import { useItemsStore } from '@/features/timeline/stores/items-store'
 import { selectConsolidatableCaptionClipIds } from '@/features/timeline/stores/items-store-indexes'
 import { useMediaLibraryStore } from '@/features/timeline/deps/media-library-store'
@@ -148,7 +149,7 @@ export function useCaptionDialogState(
         if (!granted) {
           mediaStore.showNotification?.({
             type: 'error',
-            message: `FreeCut needs permission to read "${media.fileName}" before extracting subtitles.`,
+            message: i18n.t('media.card.subtitlesNeedPermission', { name: media.fileName }),
           })
           return
         }
@@ -161,7 +162,7 @@ export function useCaptionDialogState(
       if (!blob) {
         mediaStore.showNotification?.({
           type: 'error',
-          message: `FreeCut could not load "${media.fileName}".`,
+          message: `The editor could not load "${media.fileName}".`,
         })
         return
       }
