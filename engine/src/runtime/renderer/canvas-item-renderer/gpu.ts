@@ -94,6 +94,7 @@ import {
   resolveGpuShapeUnsupportedReason,
 } from './gpu-shape-support-policy'
 import type { GpuShapePathVertex, GpuShapeUnsupportedReason } from './gpu-shape-support-policy'
+import { getHeldFrameRate } from '@/shared/timeline/clip-frame-rate'
 
 type GpuParticipantRenderOptions = { clear?: boolean; blend?: boolean }
 
@@ -384,9 +385,10 @@ function canRenderPreviewGpuEffectFrame(
   return true
 }
 
-/** Reports the item-level reasons this preview frame falls back: crop or corner pin. */
+/** Reports the item-level reasons this preview frame falls back: crop, corner pin or frame rate. */
 function skipPreviewGpuEffectForItem(
   item: VideoItem,
+  fps: number,
   record: PreviewGpuEffectFastPathRecorder,
 ): boolean {
   if (item.crop) {
@@ -395,6 +397,10 @@ function skipPreviewGpuEffectForItem(
   }
   if (hasCornerPin(item.cornerPin)) {
     record('corner-pin')
+    return true
+  }
+  if (getHeldFrameRate(item, fps) !== null) {
+    record('frame-rate')
     return true
   }
   return false
@@ -548,7 +554,7 @@ export function renderPreviewVideoGpuEffectsToCanvas(
   }
 
   if (!canRenderPreviewGpuEffectFrame(item, rctx, recordFastPath)) return null
-  if (skipPreviewGpuEffectForItem(item, recordFastPath)) return null
+  if (skipPreviewGpuEffectForItem(item, rctx.fps, recordFastPath)) return null
   if (skipPreviewGpuEffectForTransform(item, transform, recordFastPath)) return null
   const enabledEffects = resolvePreviewGpuEffectEnabledEffects(effects, recordFastPath)
   if (!enabledEffects) return null
@@ -854,6 +860,7 @@ function resolveGpuDomVideoParticipantSource(
   rctx: ItemRenderContext,
 ): ResolvedGpuMediaParticipantSource | null {
   const item = participant.item
+  if (getHeldFrameRate(item, rctx.fps) !== null) return null
   const domVideo = rctx.domVideoElementProvider?.(item.id) ?? null
   const domDecision = resolveGpuDomVideoDrawDecision({
     domVideo,

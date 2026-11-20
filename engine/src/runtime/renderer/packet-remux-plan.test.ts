@@ -209,6 +209,7 @@ describe('clipBlocksRemux', () => {
     { name: 'effects', item: { effects: [{ id: 'fx' }] as VideoItem['effects'] } },
     { name: 'transform', item: { transform: { rotation: 45 } } },
     { name: 'speed change', item: { speed: 2 } },
+    { name: 'held frame rate', item: { frameRate: 2 } },
     { name: 'visual fades', item: { fadeIn: 0.2 } },
   ])('blocks on $name', ({ item }) => {
     expect(clipBlocksRemux(makeVideoItem(item), makeComposition())).toBe(true)

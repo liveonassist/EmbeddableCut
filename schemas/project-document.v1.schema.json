@@ -1308,6 +1308,10 @@
                     "type": "number",
                     "minimum": 0
                   },
+                  "frameRate": {
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  },
                   "effects": {
                     "type": "array",
                     "items": {
@@ -3295,6 +3299,10 @@
                         "fadeOut": {
                           "type": "number",
                           "minimum": 0
+                        },
+                        "frameRate": {
+                          "type": "number",
+                          "exclusiveMinimum": 0
                         },
                         "effects": {
                           "type": "array",

@@ -601,6 +601,8 @@ const timelineItemSchema = z
     // Video properties
     fadeIn: z.number().min(0).optional(),
     fadeOut: z.number().min(0).optional(),
+    // EmbeddableCut: a video clip's own frame rate (docs/SCHEMAS.md)
+    frameRate: z.number().positive().optional(),
     // Effects
     effects: z.array(itemEffectSchema).optional(),
     // Adjustment layer

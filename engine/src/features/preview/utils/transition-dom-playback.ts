@@ -1,6 +1,7 @@
 import type { TimelineItem, VideoItem } from '@/types/timeline'
 import type { ResolvedTransitionWindow } from '@/shared/timeline/transitions/transition-planner'
 import { getBrowserMediaPlaybackRate } from '@/shared/state/playback/shuttle'
+import { getHeldFrameRate } from '@/shared/timeline/clip-frame-rate'
 import {
   isFrameInsideSourceTimeRamp,
   resolveAATransitionRamps,
@@ -66,6 +67,8 @@ export function resolveTransitionDomPlaybackState({
   transportRate: number
 }): TransitionDomPlaybackState | null {
   if (frame < window.startFrame || frame >= window.endFrame) return null
+  // A held clip's picture comes from decoded frames, not its playing element.
+  if (getHeldFrameRate(clip, timelineFps) !== null) return null
 
   const transitionRange = {
     transitionStart: window.startFrame,

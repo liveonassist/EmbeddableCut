@@ -199,6 +199,9 @@ export type VideoItem = BaseTimelineItem & {
   // Source dimensions (intrinsic size from media metadata)
   sourceWidth?: number
   sourceHeight?: number
+  // EmbeddableCut: the rate the picture updates at, below the timeline's fps
+  // (see shared/timeline/clip-frame-rate.ts). Unset plays every frame.
+  frameRate?: number
 }
 
 export type AudioItem = BaseTimelineItem & {

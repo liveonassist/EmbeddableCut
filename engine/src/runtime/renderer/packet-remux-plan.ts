@@ -11,6 +11,7 @@ import type { CompositionInputProps } from '@/types/export'
 import type { TimelineTrack, TimelineItem, VideoItem } from '@/types/timeline'
 import type { ClientExportSettings } from './client-renderer'
 import { hasMediaCrop } from '@/shared/utils/media-crop'
+import { getHeldFrameRate } from '@/shared/timeline/clip-frame-rate'
 
 export interface PacketRemuxPlan {
   src: string
@@ -74,6 +75,7 @@ export function clipBlocksRemux(videoItem: VideoItem, composition: CompositionIn
   if (videoItem.from !== 0) return true
   if (videoItem.durationInFrames !== composition.durationInFrames) return true
   if ((videoItem.effects?.length ?? 0) > 0) return true
+  if (getHeldFrameRate(videoItem, composition.fps) !== null) return true
   if (!isIdentityTransform(videoItem)) return true
 
   const speed = videoItem.speed ?? 1

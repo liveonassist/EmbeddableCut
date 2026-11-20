@@ -1,6 +1,7 @@
 import type { CompositionItem, TimelineItem, VideoItem } from '@/types/timeline'
 import type { ActiveTransition } from './canvas-transitions'
 import { timelineToSourceFrames } from '@/runtime/renderer/deps/timeline-frame-contract'
+import { resolveHeldTimelineFrame } from '@/shared/timeline/clip-frame-rate'
 
 /**
  * Linear source-time ramp applied during a transition window.
@@ -262,7 +263,8 @@ export function resolveVideoRenderSourceTimeSeconds(
   fps: number,
   sourceFrameOffset = 0,
 ): number {
-  const localFrame = frame - renderSpan.from
+  const heldFrame = resolveHeldTimelineFrame(item, frame, fps)
+  const localFrame = heldFrame - renderSpan.from
   const localTime = localFrame / fps
   const sourceStart = getRenderTimelineSourceStart(item, renderSpan)
   const sourceFps = item.sourceFps ?? fps
@@ -272,7 +274,7 @@ export function resolveVideoRenderSourceTimeSeconds(
   const adjustedSourceStart = sourceStart + sourceFrameOffset
   const rampOffsetSourceFrames =
     renderSpan.sourceTimeRamp && !item.isReversed
-      ? getSourceFrameRampOffset(renderSpan.sourceTimeRamp, frame)
+      ? getSourceFrameRampOffset(renderSpan.sourceTimeRamp, heldFrame)
       : 0
   const unclampedSourceTime = item.isReversed
     ? (reverseSourceEnd - localFrame * speed * (sourceFps / fps) - 1) / sourceFps

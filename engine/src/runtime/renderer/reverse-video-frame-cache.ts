@@ -3,6 +3,7 @@ import { getVideoTargetTimeSeconds } from '@/runtime/renderer/deps/composition-r
 import type { RenderTimelineSpan } from './render-span'
 import { getRenderTimelineSourceStart } from './render-span'
 import type { VideoFrameSource } from './shared-video-extractor'
+import { resolveHeldTimelineFrame } from '@/shared/timeline/clip-frame-rate'
 
 const DEFAULT_MAX_BYTES = 96 * 1024 * 1024
 const DEFAULT_MAX_WINDOW_FRAMES = 4
@@ -123,7 +124,8 @@ export class ReverseVideoFrameCache {
   }
 
   private getSourceTime(request: ReverseVideoFrameRequest, outputFrame: number): number {
-    const localFrame = outputFrame - request.renderSpan.from
+    const localFrame =
+      resolveHeldTimelineFrame(request.item, outputFrame, request.fps) - request.renderSpan.from
     const sourceStart = getRenderTimelineSourceStart(request.item, request.renderSpan)
     const sourceFramesNeeded =
       (request.item.durationInFrames * request.speed * request.sourceFps) / request.fps

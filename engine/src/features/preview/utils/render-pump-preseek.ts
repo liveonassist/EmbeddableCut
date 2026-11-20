@@ -3,6 +3,7 @@ import {
   resolveTrackRenderState,
 } from '@/features/preview/deps/composition-runtime'
 import { timelineToSourceFrames } from '@/features/preview/deps/timeline-utils'
+import { resolveHeldTimelineFrame } from '@/shared/timeline/clip-frame-rate'
 import type { CompositionItem, TimelineItem, TimelineTrack, VideoItem } from '@/types/timeline'
 
 /** Minimal sub-composition shape preseek needs to see inside compound clips. */
@@ -96,8 +97,8 @@ export function getVideoItemSourceTimeSeconds(
 ): number | null {
   if (!isPreseekableVideoItem(item)) return null
 
-  const localFrame = timelineFrame - item.from
-  if (localFrame < 0 || localFrame >= item.durationInFrames) return null
+  if (timelineFrame < item.from || timelineFrame >= item.from + item.durationInFrames) return null
+  const localFrame = resolveHeldTimelineFrame(item, timelineFrame, timelineFps) - item.from
 
   const sourceFps = options.requireExplicitSourceFps
     ? item.sourceFps

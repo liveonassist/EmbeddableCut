@@ -36,6 +36,7 @@ import {
 } from './media-draw'
 import { isPreviewTraceEnabled, recordRenderTrace } from '@/shared/logging/preview-trace'
 import { recordPreviewVideoSource } from '@/shared/logging/preview-scrub-performance'
+import { getHeldFrameRate } from '@/shared/timeline/clip-frame-rate'
 
 function getTier2VideoFrameToleranceSeconds(sourceFps: number): number {
   const normalizedSourceFps = Number.isFinite(sourceFps) && sourceFps > 0 ? sourceFps : 30
@@ -481,6 +482,8 @@ async function resolveDomVideoDecision(state: VideoRenderStage): Promise<void> {
     state.isPreviewMode &&
     rctx.domVideoElementProvider &&
     state.sourceFrameOffset === 0 &&
+    // The playing element shows every frame; a held clip's picture is decoded.
+    getHeldFrameRate(item, state.fps) === null &&
     isFrameInsideItemTimelineSpan(effectiveRenderSpan, frame)
       ? rctx.domVideoElementProvider(item.id)
       : null

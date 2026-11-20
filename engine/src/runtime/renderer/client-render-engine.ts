@@ -51,6 +51,7 @@ import { resolveCompositionSourceFrame } from './render-span'
 import { itemHasEnabledGpuEffect, isAnimatedImage, isGifFormat, subCompositionRenderDataHasGpuEffects } from './render-engine-predicates'
 import { buildTransitionTrackOrderById, collectTopLevelMediaItems, collectTopLevelVideoItems, resolveCompositionRenderTracks } from './composition-render-inputs'
 import { CANVAS_POOL_OBSERVER_BY_RENDER_MODE, createRendererCrossFrameCaches } from './render-mode-resources'
+import { resolveHeldTimelineFrame } from '@/shared/timeline/clip-frame-rate'
 
 function getLog() {
   return createLogger('ClientRenderEngine')
@@ -84,7 +85,7 @@ export function buildSubCompositionRenderTracks(
 }
 
 function getPrewarmVideoSourceTimeSeconds(item: VideoItem, frame: number, fps: number): number {
-  const localFrame = frame - item.from
+  const localFrame = resolveHeldTimelineFrame(item, frame, fps) - item.from
   const sourceStart = item.sourceStart ?? item.trimStart ?? 0
   const sourceFps = item.sourceFps ?? fps
   const speed = item.speed ?? 1
