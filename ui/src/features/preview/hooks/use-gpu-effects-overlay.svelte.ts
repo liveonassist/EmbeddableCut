@@ -46,12 +46,18 @@ function hasTextMotionSpec(item: TimelineItem): boolean {
   )
 }
 
+/** A held frame rate only renders through the canvas path, which decodes the held frames. */
+function hasClipFrameRate(item: TimelineItem): boolean {
+  return item.type === 'video' && item.frameRate !== undefined
+}
+
 function needsRenderedOverlayPath(item: TimelineItem): boolean {
   return (
     hasEnabledGpuEffect(item.effects) ||
     hasRenderableBlendMode(item) ||
     hasCornerPin(item.cornerPin) ||
-    hasTextMotionSpec(item)
+    hasTextMotionSpec(item) ||
+    hasClipFrameRate(item)
   )
 }
 
@@ -173,6 +179,7 @@ function itemNeedsWindowedOverlayContent(
   if (hasEnabledGpuEffect(effectiveEffects)) return true
   if (hasRenderableBlendMode(item)) return true
   if (hasCornerPin(item.cornerPin)) return true
+  if (hasClipFrameRate(item)) return true
   // Keep the continuous GPU overlay on while a text clip's motion window is
   // active — otherwise playback falls to the DOM Player, which cannot render
   // per-glyph motion (fps is unused by isTextMotionActive).
@@ -198,6 +205,7 @@ export function buildContinuousPreviewOverlayIndex(
     if (hasRenderableBlendMode(item)) return true
     if (hasCornerPin(item.cornerPin)) return true
     if (hasTextMotionSpec(item)) return true
+    if (hasClipFrameRate(item)) return true
     if (item.type === 'composition' && compositionById) {
       const subComp = compositionById[item.compositionId]
       return Boolean(subComp && subCompositionNeedsRenderedOverlayPath(subComp, compositionById))
@@ -274,7 +282,7 @@ export function shouldForceContinuousPreviewOverlayFromIndex(
 /**
  * Frame-independent scan: does the timeline contain ANY content that can only
  * be shown through the GPU overlay (enabled GPU effects, non-normal blend modes,
- * corner pin, text motion) — anywhere, on any clip, at any time?
+ * corner pin, text motion, a held frame rate) — anywhere, on any clip, at any time?
  *
  * This is an inventory helper only. Presentation routing must remain bounded to
  * the playhead so one effected clip cannot force the expensive renderer across

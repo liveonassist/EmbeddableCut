@@ -70,6 +70,7 @@ import {
   resolvePausedVariableSpeedPrewarmPlan,
   shouldRunJumpPreseek,
 } from '@/features/preview/utils/render-pump-preseek'
+import { getHeldFrameRate } from '@/shared/timeline/clip-frame-rate'
 import { createReversePlaybackWindowScheduler } from '@/features/preview/utils/reverse-playback-window'
 import {
   beginPlaybackColdStart,
@@ -1704,6 +1705,8 @@ export function usePreviewRenderPump(params: () => UsePreviewRenderPumpParams) {
       if (sessionWindow && transitionSessionPinnedElementsRef.current.size > 0) {
         for (const clip of [sessionWindow.leftClip, sessionWindow.rightClip]) {
           if (clip.type !== 'video') continue
+          // The renderer decodes a held clip's frames; its element isn't shown.
+          if (getHeldFrameRate(clip, fps) !== null) continue
           const el =
             transitionSessionPinnedElementsRef.current.get(clip.id) ??
             getPinnedTransitionElementForItem(clip.id)
