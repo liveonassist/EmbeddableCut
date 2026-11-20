@@ -209,7 +209,7 @@
       stroke="var(--color-timeline-playhead)"
       stroke-width={1}
       onpointerdown={isInteractive ? handlePointerDown : undefined}
-      style:filter="drop-shadow(0 0 5px rgba(255, 140, 58, 0.65))"
+      style:filter="drop-shadow(0 0 5px color-mix(in oklab, var(--color-timeline-playhead) 65%, transparent))"
       style:cursor={isInteractive ? 'ew-resize' : 'default'}
     />
   {/if}

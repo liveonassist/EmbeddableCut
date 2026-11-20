@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: MIT */
-/* FreeCut's web/src/features/timeline/theme.css, with the body-level cursor and drag classes also matched on `.ec-root`, and the preview background a theme token. */
+/* FreeCut's web/src/features/timeline/theme.css, with the body-level cursor and drag classes also matched on `.ec-root`, and the preview background and playhead theme tokens. */
 /**
  * Timeline Feature Theme Extension
  *
@@ -22,8 +22,7 @@
   --color-timeline-text: oklch(0.671 0 290);
   --color-timeline-shape: oklch(0.68 0.19 45);
 
-  /* Playhead color */
-  --color-timeline-playhead: oklch(0.68 0.19 45); /* Orange (matches primary) */
+  /* --color-timeline-playhead is the --primary token (styles/app.css). */
 
   /* In/Out marker colors */
   --color-timeline-in: oklch(0.65 0.18 142); /* Green - in point */

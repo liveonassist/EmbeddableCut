@@ -254,6 +254,7 @@
   --color-panel-header: var(--panel-header);
   --color-timeline-bg: var(--timeline-bg);
   --color-video-preview-background: var(--preview-surround);
+  --color-timeline-playhead: var(--primary);
   --color-preview-letterbox: var(--preview-letterbox);
   --color-meter-well: var(--meter-well);
   --color-strip: var(--strip);

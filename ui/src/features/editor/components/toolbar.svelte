@@ -449,7 +449,7 @@
           <Save class="h-4 w-4" />
         {/if}
         {#if isDirty.current}
-          <span class="absolute -right-1 -top-1 h-2 w-2 animate-pulse rounded-full bg-orange-500"></span>
+          <span class="absolute -right-1 -top-1 h-2 w-2 animate-pulse rounded-full bg-primary"></span>
         {/if}
       </div>
       {t('toolbar.save')}

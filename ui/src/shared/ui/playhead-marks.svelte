@@ -32,7 +32,7 @@
   }
 
   /**
-   * Shared visual marks for a timeline playhead: a vertical accent-orange line
+   * Shared visual marks for a timeline playhead: a vertical accent line
    * (the `--color-timeline-playhead` token) with an optional flag handle, optional
    * pointer, and a soft glow.
    *
@@ -56,7 +56,7 @@
 <span
   data-playhead-mark="line"
   class={cn(
-    'pointer-events-none absolute w-px -translate-x-1/2 bg-timeline-playhead shadow-[0_0_5px_rgba(255,140,58,0.65)]',
+    'pointer-events-none absolute w-px -translate-x-1/2 bg-timeline-playhead shadow-[0_0_5px_color-mix(in_oklab,var(--color-timeline-playhead)_65%,transparent)]',
     bleedBottom ? '-bottom-px' : 'bottom-0',
     className,
   )}
@@ -66,7 +66,7 @@
   <span
     data-playhead-mark="handle"
     class={cn(
-      'pointer-events-none absolute left-0 block h-3 w-2 -translate-x-1/2 rounded-b-[2px] border border-timeline-playhead/60 bg-timeline-playhead shadow-[0_0_7px_rgba(255,140,58,0.55)]',
+      'pointer-events-none absolute left-0 block h-3 w-2 -translate-x-1/2 rounded-b-[2px] border border-timeline-playhead/60 bg-timeline-playhead shadow-[0_0_7px_color-mix(in_oklab,var(--color-timeline-playhead)_55%,transparent)]',
       handleClass,
     )}
     style:top="{topOffsetPx}px"
