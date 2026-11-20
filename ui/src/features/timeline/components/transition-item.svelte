@@ -630,7 +630,7 @@
           data-transition-id={transition.id}
           class={cn(
             'absolute inset-y-0 overflow-visible rounded-sm pointer-events-none',
-            isSelected.current && 'ring-2 ring-inset ring-orange-400',
+            isSelected.current && 'ring-2 ring-inset ring-primary',
             dragPreviewMatches.current && 'ring-2 ring-inset ring-amber-300',
             resize.isResizing && 'ring-2 ring-inset ring-purple-400',
           )}
@@ -650,7 +650,7 @@
             class={cn(
               'pointer-events-none relative h-full w-full rounded-sm border transition-colors',
               showOrangeBridge
-                ? 'border-orange-400/90 bg-orange-500/10 shadow-[0_0_0_1px_rgba(251,146,60,0.18)]'
+                ? 'border-primary/90 bg-primary/10 shadow-[0_0_0_1px_color-mix(in_oklab,var(--color-primary)_18%,transparent)]'
                 : 'border-slate-100/80 shadow-[0_0_0_1px_rgba(248,250,252,0.1)]',
             )}
           >

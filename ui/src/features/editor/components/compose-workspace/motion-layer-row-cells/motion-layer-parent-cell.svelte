@@ -61,7 +61,7 @@
     })}
     class={cn(
       'flex h-6 w-6 shrink-0 touch-none items-center justify-center rounded-sm outline-none transition-colors hover:bg-accent focus-visible:ring-1 focus-visible:ring-primary',
-      parentItemId ? 'text-orange-400' : 'text-muted-foreground hover:text-foreground',
+      parentItemId ? 'text-primary' : 'text-muted-foreground hover:text-foreground',
     )}
   >
     <PickWhipIcon class="h-3.5 w-3.5" />

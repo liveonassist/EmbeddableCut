@@ -20,7 +20,7 @@ describe('TimelineDropGhostPreviews', () => {
 
     const ghost = screen.getByText('Drop media').parentElement
     expect(ghost?.className).toContain('inset-y-0')
-    expect(ghost?.className).toContain('border-orange-500')
+    expect(ghost?.className).toContain('border-primary')
     expect(ghost).toHaveStyle({ left: '12px', width: '48px' })
   })
 

@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: MIT */
-/* FreeCut's web/src/features/timeline/theme.css, with the body-level cursor and drag classes also matched on `.ec-root`, and the preview background and playhead theme tokens. */
+/* FreeCut's web/src/features/timeline/theme.css, with the body-level cursor and drag classes also matched on `.ec-root`, and the preview background and the primary-colored timeline marks theme tokens. */
 /**
  * Timeline Feature Theme Extension
  *
@@ -20,9 +20,8 @@
   --color-timeline-motion-segment: oklch(0.38 0 0);
   --color-timeline-image: oklch(0.62 0.17 250);
   --color-timeline-text: oklch(0.671 0 290);
-  --color-timeline-shape: oklch(0.68 0.19 45);
 
-  /* --color-timeline-playhead is the --primary token (styles/app.css). */
+  /* --color-timeline-shape, -playhead, -snap and -join derive from the --primary token (styles/app.css). */
 
   /* In/Out marker colors */
   --color-timeline-in: oklch(0.65 0.18 142); /* Green - in point */
@@ -41,9 +40,6 @@
   /* Marker color */
   --color-timeline-marker: oklch(0.65 0.2 250); /* Blue - timeline markers */
 
-  /* Snap/Join indicator colors */
-  --color-timeline-snap: #f97316; /* orange-500 - snap indicator */
-  --color-timeline-join: #fb923c; /* orange-400 - join indicator */
 
   /* --color-video-preview-background is the --preview-surround token (styles/app.css). */
 }

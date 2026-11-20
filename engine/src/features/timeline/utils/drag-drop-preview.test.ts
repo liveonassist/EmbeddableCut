@@ -16,7 +16,7 @@ describe('drag-drop-preview', () => {
 
   it('returns the expected item classes for preview types', () => {
     expect(getGhostPreviewItemClasses('composition')).toBe('border-violet-400 bg-violet-600/20')
-    expect(getGhostPreviewItemClasses('external-file')).toBe('border-orange-500 bg-orange-500/15')
+    expect(getGhostPreviewItemClasses('external-file')).toBe('border-primary bg-primary/15')
     expect(getGhostPreviewItemClasses('image')).toBe('border-timeline-image bg-timeline-image/20')
   })
 

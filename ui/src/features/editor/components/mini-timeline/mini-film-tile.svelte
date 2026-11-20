@@ -48,7 +48,7 @@
   data-testid={testId}
   data-clip-id={dataClipId}
   class={`group grid shrink-0 grid-rows-[20px_1fr_16px] overflow-hidden rounded-[3px] border bg-[#17181d] text-left shadow-sm transition-colors ${
-    selected ? 'border-orange-500 shadow-[0_0_0_1px_rgba(249,115,22,0.65)]' : 'border-zinc-700 hover:border-zinc-500'
+    selected ? 'border-primary shadow-[0_0_0_1px_color-mix(in_oklab,var(--color-primary)_65%,transparent)]' : 'border-zinc-700 hover:border-zinc-500'
   }`}
   style:width="{MINI_FILM_TILE_WIDTH}px"
   style:height="{MINI_FILM_TILE_HEIGHT}px"
