@@ -4,6 +4,7 @@ import { setHotkeyScope } from '$lib/hotkeys.svelte'
 import { ThemeController, type Theme, type ThemeMode } from '../theme/theme'
 import appCss from '../styles/app.css?inline'
 import { ensureEditorFonts } from './fonts'
+import { ensurePropertyRules } from './property-rules'
 
 export interface EditorShell {
   /** Where the UI mounts: `.ec-root`. */
@@ -48,6 +49,7 @@ export function createEditorShell(
     const sheet = new CSSStyleSheet()
     sheet.replaceSync(appCss)
     shadow.adoptedStyleSheets = [sheet]
+    ensurePropertyRules(sheet)
     container = shadow
     ensureEditorFonts()
     setHotkeyScope(shadow)

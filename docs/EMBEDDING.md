@@ -38,7 +38,7 @@ await mounted.unmount()
 ```
 
 - **Size:** the editor fills its container, which needs a height. The shadow host has inline-size containment, so the editor's minimum width never widens a host's grid or flex track; the editor's layout is dense, and works best from about 1280px wide.
-- **Isolation:** in a shadow root, the editor's stylesheet stays inside and the host's styles stay out; dialogs, menus and tooltips portal inside the editor. Keyboard shortcuts only see keys typed inside it.
+- **Isolation:** in a shadow root, the editor's stylesheet stays inside and the host's styles stay out; dialogs, menus and tooltips portal inside the editor. Keyboard shortcuts only see keys typed inside it. Two things can't live in a shadow root and go on the host's document, once: the IBM Plex fonts and the stylesheet's `@property` rules (Tailwind's `--tw-*` defaults).
 - **Opening a project:** `document` (a project document) or `projectId` with a `workspace` in the options open one while mounting; `editor.loadDocument`, `openProject` and `createProject` do it any time.
 
 ## The editor in an iframe
