@@ -101,4 +101,38 @@ describe('waveformCache', () => {
     expect(waveform?.isComplete).toBe(false)
     expect(waveform?.duration).toBe(120)
   })
+
+  it('finishes released generations after visible ones, most recently released first', async () => {
+    getLevelMock.mockResolvedValue(null)
+    const { waveformCache } = await import('./waveform-cache')
+    const started: string[] = []
+    const finish = new Map<string, () => void>()
+    vi.spyOn(
+      waveformCache as unknown as { generateWaveform: (mediaId: string) => Promise<unknown> },
+      'generateWaveform',
+    ).mockImplementation(
+      (mediaId) =>
+        new Promise((resolve) => {
+          started.push(mediaId)
+          finish.set(mediaId, () => resolve({ isComplete: true }))
+        }),
+    )
+    const settle = () => new Promise((resolve) => setTimeout(resolve, 0))
+
+    const requests = ['running', 'passed-1', 'passed-2', 'visible'].map((mediaId) =>
+      waveformCache.getWaveform(mediaId, `blob:${mediaId}`),
+    )
+    await settle()
+    expect(started).toEqual(['running'])
+
+    // Scrolling past releases them; the running decode carries on.
+    for (const mediaId of ['running', 'passed-1', 'passed-2']) waveformCache.release(mediaId)
+
+    for (const mediaId of ['running', 'visible', 'passed-2', 'passed-1']) {
+      finish.get(mediaId)?.()
+      await settle()
+    }
+    expect(started).toEqual(['running', 'visible', 'passed-2', 'passed-1'])
+    await expect(Promise.all(requests)).resolves.toHaveLength(4)
+  })
 })

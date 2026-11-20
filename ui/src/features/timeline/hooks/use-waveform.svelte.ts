@@ -431,11 +431,17 @@ export function useWaveform(options: () => UseWaveformOptions): UseWaveformResul
     })
   })
 
-  // Cleanup on unmount
+  // Cleanup on unmount. A short clip's generation finishes in the background:
+  // a culled clip unmounts as soon as it scrolls a little way off, and
+  // aborting it there threw the decode away on every pass. Media long enough to
+  // render from visible ranges is still aborted, so it can't hold the queue.
   $effect(() => {
     const currentMediaId = mediaId
     return () => {
-      if (ownsGenerationRef.current) {
+      if (!ownsGenerationRef.current) return
+      if (untrack(() => deferDurationSec) < RANGE_FIRST_MIN_DURATION_SEC) {
+        waveformCache.release(currentMediaId)
+      } else {
         waveformCache.abort(currentMediaId)
       }
     }

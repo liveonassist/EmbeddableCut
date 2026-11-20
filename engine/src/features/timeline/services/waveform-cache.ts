@@ -54,6 +54,9 @@ const MAX_CACHE_SIZE_BYTES = 128 * 1024 * 1024 // 128MB
 // so the working set of visible clips stays tiny regardless of clip length.
 const MAX_LEVEL_CACHE_SIZE_BYTES = 64 * 1024 * 1024 // 64MB
 const MAX_CONCURRENT_WAVEFORM_GENERATIONS = 1
+// Generations a scrolled-away clip released, still queued behind visible clips.
+// Bounded so a long scroll can't queue decodes for every clip it passed.
+const MAX_BACKGROUND_WAVEFORM_GENERATIONS = 16
 const WAVEFORM_PROGRESS_NOTIFY_INTERVAL_MS = 120
 const WAVEFORM_PROGRESS_NOTIFY_STEP = 2
 const WAVEFORM_NOTIFY_INTERVAL_MS = 180
@@ -116,6 +119,8 @@ interface QueuedGeneration {
   onProgress?: (progress: number) => void
   resolve: (waveform: CachedWaveform) => void
   reject: (error: Error) => void
+  /** Released by its clip: runs after every visible clip's generation. */
+  background?: boolean
 }
 
 type WaveformUpdateCallback = (waveform: CachedWaveform) => void
@@ -200,7 +205,7 @@ class WaveformCacheService {
       this.activeGenerations.size < MAX_CONCURRENT_WAVEFORM_GENERATIONS &&
       this.generationQueue.length > 0
     ) {
-      const queued = this.generationQueue.shift()
+      const queued = this.takeNextQueuedGeneration()
       if (!queued) return
 
       const pending = this.pendingRequests.get(queued.mediaId)
@@ -213,6 +218,14 @@ class WaveformCacheService {
       this.activeGenerations.add(queued.mediaId)
       void this.startQueuedGeneration(queued)
     }
+  }
+
+  // Visible clips first, in request order; then released ones, most recently
+  // released first, since those are the clips the user just scrolled past.
+  private takeNextQueuedGeneration(): QueuedGeneration | undefined {
+    const foreground = this.generationQueue.findIndex((queued) => !queued.background)
+    const index = foreground >= 0 ? foreground : this.generationQueue.length - 1
+    return this.generationQueue.splice(index, 1)[0]
   }
 
   private async startQueuedGeneration(queued: QueuedGeneration): Promise<void> {
@@ -1220,6 +1233,7 @@ class WaveformCacheService {
     // Check for pending request
     const pending = this.pendingRequests.get(mediaId)
     if (pending) {
+      this.promote(mediaId, pending)
       return pending.promise
     }
 
@@ -1411,6 +1425,37 @@ class WaveformCacheService {
     this.loadFromStorage(mediaId).catch((error) => {
       logger.warn('Waveform storage load failed during prefetch:', error)
     })
+  }
+
+  /**
+   * Lets a generation whose clip left the view finish instead of throwing the
+   * work away, so scrolling back finds the waveform cached. A running one
+   * carries on; a queued one waits behind every visible clip's.
+   */
+  release(mediaId: string): void {
+    const pending = this.pendingRequests.get(mediaId)
+    if (pending?.status !== 'queued') return
+    const index = this.generationQueue.findIndex(
+      (queued) => queued.mediaId === mediaId && queued.requestId === pending.requestId,
+    )
+    if (index < 0) return
+
+    const [queued] = this.generationQueue.splice(index, 1)
+    queued!.background = true
+    this.generationQueue.push(queued!)
+
+    const background = this.generationQueue.filter((entry) => entry.background)
+    if (background.length > MAX_BACKGROUND_WAVEFORM_GENERATIONS) {
+      this.abort(background[0]!.mediaId)
+    }
+  }
+
+  private promote(mediaId: string, pending: PendingRequest): void {
+    if (pending.status !== 'queued') return
+    const queued = this.generationQueue.find(
+      (entry) => entry.mediaId === mediaId && entry.requestId === pending.requestId,
+    )
+    if (queued) queued.background = false
   }
 
   /**
