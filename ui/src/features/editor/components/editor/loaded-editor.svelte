@@ -46,6 +46,7 @@
   import { createLogger } from '@/shared/logging/logger'
   import { i18n } from '@/i18n'
   import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '@/components/ui/resizable'
+  import { cn } from '$lib/cn'
   import ErrorBoundary from '@/components/error-boundary.svelte'
   import Contribution from '@/components/contribution.svelte'
   import type { PanelContribution, ReplaceableSlot } from '../../../../extensions/contributions'
@@ -542,9 +543,13 @@
           </div>
         </ResizablePanel>
 
+        <!-- The kit's 4px grab zone sits under both panels; lift it above them and widen it. -->
         <ResizableHandle
           withHandle
-          class={isMaskEditingActive.current ? 'pointer-events-none opacity-60' : undefined}
+          class={cn(
+            'z-10 data-[direction=vertical]:after:h-3',
+            isMaskEditingActive.current && 'pointer-events-none opacity-60',
+          )}
         />
 
         <!-- Bottom - Timeline -->
