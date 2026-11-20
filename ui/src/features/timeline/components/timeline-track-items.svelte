@@ -6,28 +6,26 @@
   const MAX_IMMEDIATE_SELECTED_OVERVIEW_ITEMS = 128
   const EMPTY_SELECTED_ITEM_IDS: string[] = []
 
-  interface TimelineItemPresentation {
-    item: TimelineItemType
-    isDetailEligible: boolean
-    isCompactByWidth: boolean
-  }
+  const EMPTY_ITEMS: TimelineItemType[] = []
 
-  const EMPTY_ITEM_PRESENTATION: TimelineItemPresentation[] = []
-
-  function getTimelineItemPresentation(
+  function isItemDetailEligible(
     item: TimelineItemType,
     detailRange: { start: number; end: number },
+  ): boolean {
+    return item.from + item.durationInFrames > detailRange.start && item.from < detailRange.end
+  }
+
+  function isItemCompactByWidth(
+    item: TimelineItemType,
     allItemsCompact: boolean,
     noItemsCompact: boolean,
     fps: number,
     pixelsPerSecond: number,
-  ): TimelineItemPresentation {
-    const isDetailEligible =
-      item.from + item.durationInFrames > detailRange.start && item.from < detailRange.end
-    const isCompactByWidth =
+  ): boolean {
+    return (
       allItemsCompact ||
       (!noItemsCompact && isTimelineItemCompactAtZoom(item.durationInFrames, fps, pixelsPerSecond))
-    return { item, isDetailEligible, isCompactByWidth }
+    )
   }
 </script>
 
@@ -136,20 +134,6 @@
   )
   const allItemsCompact = $derived(compactCohortSignal.current.endsWith(':all'))
   const noItemsCompact = $derived(compactCohortSignal.current.endsWith(':none'))
-  const itemPresentation = $derived.by(() => {
-    if (usesDensityOverview) return EMPTY_ITEM_PRESENTATION
-    const range = detailRange
-    return trackItems.map((item) =>
-      getTimelineItemPresentation(
-        item,
-        range,
-        allItemsCompact,
-        noItemsCompact,
-        fps.current,
-        renderPixelsPerSecond,
-      ),
-    )
-  })
   const eligibleDetailIds = $derived.by(() => {
     if (allItemsCompact) return EMPTY_SELECTED_ITEM_IDS
     const range = detailRange
@@ -185,29 +169,20 @@
     return ids
   })
   const selectedItemIdSet = $derived(new Set(selectedItemIds.current))
-  const densityItemPresentation = $derived.by(() => {
-    if (!usesDensityOverview) return EMPTY_ITEM_PRESENTATION
-    const range = detailRange
-    const presentation: TimelineItemPresentation[] = []
+  // The each block iterates the store's own item objects, not per-render
+  // wrappers as React's map does: a new wrapper is a write to every row's
+  // source, and Svelte checks each write against the whole subtree's derived
+  // graph, which made scrolling a dense track spend seconds per frame.
+  const densityItems = $derived.by(() => {
+    if (!usesDensityOverview) return EMPTY_ITEMS
+    const items: TimelineItemType[] = []
     for (const id of renderedOverviewItemIds) {
       const item = visibleItemRangeIndex.itemById.get(id)
-      if (!item) continue
-      presentation.push(
-        getTimelineItemPresentation(
-          item,
-          range,
-          allItemsCompact,
-          noItemsCompact,
-          fps.current,
-          renderPixelsPerSecond,
-        ),
-      )
+      if (item) items.push(item)
     }
-    return presentation
+    return items
   })
-  const renderedItemPresentation = $derived(
-    usesDensityOverview ? densityItemPresentation : itemPresentation,
-  )
+  const renderedItems = $derived(usesDensityOverview ? densityItems : trackItems)
 </script>
 
 <TimelineJoinIndicatorsZoomGate>
@@ -219,7 +194,8 @@
       {trackHidden}
     />
   {/if}
-  {#each renderedItemPresentation as { item, isDetailEligible, isCompactByWidth } (item.id)}
+  {#each renderedItems as item (item.id)}
+    {@const isDetailEligible = isItemDetailEligible(item, detailRange)}
     <TimelineItem
       {item}
       timelineDuration={30}
@@ -227,7 +203,13 @@
       {trackHidden}
       {isDetailEligible}
       isCompactWidth={!isDetailEligible ||
-        isCompactByWidth ||
+        isItemCompactByWidth(
+          item,
+          allItemsCompact,
+          noItemsCompact,
+          fps.current,
+          renderPixelsPerSecond,
+        ) ||
         !promotedDetailIds.current.has(item.id)}
     />
   {/each}
