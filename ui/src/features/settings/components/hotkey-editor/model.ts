@@ -180,7 +180,7 @@ export const KEY_BASE_CLASSES =
   'flex h-[3.25rem] items-center justify-center rounded-lg border text-[11px] font-medium tracking-[0.06em] shadow-[inset_0_1px_0_rgba(255,255,255,0.06),0_8px_20px_rgba(0,0,0,0.22)] transition-[background-color,border-color,color,box-shadow] duration-150 ease-out motion-reduce:transition-none select-none'
 
 export const KEY_ACTIVE_CLASSES =
-  'border-primary/55 bg-primary/18 text-primary shadow-[inset_0_1px_0_rgba(255,255,255,0.12),0_0_20px_rgba(255,140,58,0.14)]'
+  'border-primary/55 bg-primary/18 text-primary shadow-[inset_0_1px_0_rgba(255,255,255,0.12),0_0_20px_color-mix(in_oklab,var(--color-primary)_14%,transparent)]'
 
 export const KEY_IDLE_CLASSES =
   'border-white/6 bg-[linear-gradient(180deg,rgba(255,255,255,0.05),rgba(255,255,255,0.02))] text-foreground/78'

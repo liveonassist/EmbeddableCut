@@ -506,7 +506,7 @@
 </script>
 
 <div
-  class="flex min-h-0 flex-1 flex-col bg-[radial-gradient(circle_at_top,rgba(255,140,58,0.14),transparent_32%),linear-gradient(180deg,rgba(255,255,255,0.03),rgba(255,255,255,0))]"
+  class="flex min-h-0 flex-1 flex-col bg-[radial-gradient(circle_at_top,color-mix(in_oklab,var(--color-primary)_14%,transparent),transparent_32%),linear-gradient(180deg,rgba(255,255,255,0.03),rgba(255,255,255,0))]"
 >
   <input
     bind:this={fileInput}

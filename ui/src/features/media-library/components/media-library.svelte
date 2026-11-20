@@ -956,7 +956,7 @@
     <div
       class="mx-4 mt-3 p-2.5 rounded text-xs animate-in slide-in-from-top-2 duration-200 {notificationTone(
         note.type,
-        'bg-orange-500/10 border border-orange-500/30',
+        'bg-primary/10 border border-primary/30',
         'bg-yellow-500/10 border border-yellow-500/30',
         'bg-green-500/10 border border-green-500/30',
         'bg-destructive/10 border border-destructive/50',
@@ -967,7 +967,7 @@
           <Info
             class="w-3.5 h-3.5 flex-shrink-0 {notificationTone(
               note.type,
-              'text-orange-500',
+              'text-primary',
               'text-yellow-500',
               'text-green-500',
               'text-destructive',
@@ -976,7 +976,7 @@
           <p
             class="leading-relaxed line-clamp-2 {notificationTone(
               note.type,
-              'text-orange-600 dark:text-orange-400',
+              'text-primary',
               'text-yellow-600 dark:text-yellow-400',
               'text-green-600 dark:text-green-400',
               'text-destructive',
