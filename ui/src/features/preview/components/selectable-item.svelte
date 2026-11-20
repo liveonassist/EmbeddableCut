@@ -86,7 +86,7 @@
   style:transform={`rotate(${transform.rotation}deg)`}
   style:transform-origin={transformOrigin}
   style:z-index="5"
-  style:border={showHover ? '3px solid rgba(249, 115, 22, 0.4)' : '2px solid transparent'}
+  style:border={showHover ? '3px solid color-mix(in oklab, var(--primary) 40%, transparent)' : '2px solid transparent'}
   data-gizmo="selectable-item"
   data-translate-blocked={translateBlocked || undefined}
   aria-label={translateBlocked ? translateBlockedLabel : undefined}

@@ -84,8 +84,8 @@
       ? '#0891b2'
       : '#06b6d4' // Cyan for masks
     : isInteracting
-      ? '#ea580c'
-      : '#f97316')
+      ? 'color-mix(in oklab, var(--primary) 85%, black)'
+      : 'var(--primary)')
 </script>
 
 <!-- Selection border -->
@@ -120,7 +120,7 @@
             rotate: 'Rotate element',
           }}
   <div
-    class="bg-white border border-orange-500"
+    class="bg-white border border-primary"
     style={cssStyle({ ...getHandleStyle(handle), zIndex: 102 })}
     role="button"
     aria-label={handleLabels[handle]}
@@ -131,7 +131,7 @@
 {/each}
 {#if cropRect && onCropStart}
   <div
-    class="pointer-events-none absolute border border-orange-400/80"
+    class="pointer-events-none absolute border border-primary/80"
     style:left="{cropRect.left}px"
     style:top="{cropRect.top}px"
     style:width="{cropRect.width}px"
@@ -155,7 +155,7 @@
                 : cropRect.top + cropRect.height - height / 2
               : cropRect.top + cropRect.height / 2 - height / 2}
     <div
-      class="absolute border border-white bg-orange-500 shadow-sm"
+      class="absolute border border-white bg-primary shadow-sm"
       style:left="{left}px"
       style:top="{top}px"
       style:width="{width}px"
@@ -175,7 +175,7 @@
 {/if}
 <!-- Rotation handle -->
 <div
-  class="absolute bg-white border border-orange-500 rounded-full cursor-crosshair"
+  class="absolute bg-white border border-primary rounded-full cursor-crosshair"
   style:width="10px"
   style:height="10px"
   style:left="50%"
@@ -190,7 +190,7 @@
 ></div>
 <!-- Rotation guide line -->
 <div
-  class="absolute border-l border-dashed border-orange-500 pointer-events-none"
+  class="absolute border-l border-dashed border-primary pointer-events-none"
   style:left="50%"
   style:top="{-ROTATION_HANDLE_OFFSET + 10}px"
   style:height="{ROTATION_HANDLE_OFFSET - 10}px"
