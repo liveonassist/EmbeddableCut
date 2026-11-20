@@ -69,8 +69,8 @@ describe('TimelineTrackItems stable DOM renderer', () => {
 
   it('ignores live zoom ticks and publishes compact width only at settle', async () => {
     useZoomStore.setState({
-      contentLevel: 0.3,
-      contentPixelsPerSecond: 30,
+      contentLevel: 0.15,
+      contentPixelsPerSecond: 15,
     })
     const view = render(TimelineTrackItems, { ...baseProps, trackItems: items })
     const firstItem = view.container.querySelector('[data-rich-item-id="item-1"]')

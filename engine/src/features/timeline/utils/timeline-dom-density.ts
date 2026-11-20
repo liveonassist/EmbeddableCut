@@ -13,7 +13,9 @@ export const DENSE_TIMELINE_MAX_OVERVIEW_BUCKETS_PER_TRACK = 1024
 
 export const DEFAULT_TIMELINE_ITEM_CULL_BUFFER_PX = 2000
 const DENSE_TIMELINE_ITEM_CULL_BUFFER_PX = 600
-const COMPACT_TIMELINE_ITEM_MAX_WIDTH_PX = 36
+// The UI's narrowest filmstrip (FILMSTRIP_MIN_WIDTH_PX): a wider clip has room
+// for a thumbnail and a waveform, so it keeps them, dense track or not.
+const COMPACT_TIMELINE_ITEM_MAX_WIDTH_PX = 20
 const MIXED_TIMELINE_COMPACT_ZOOM_STEP = 1.12
 
 export interface TimelineItemDurationBounds {

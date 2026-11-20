@@ -52,8 +52,8 @@ describe('timeline density overview', () => {
   it('classifies a 30,000 clip zoom cohort through the sorted duration index', () => {
     const durations = Array.from({ length: 30_000 }, (_, index) => index + 1)
 
-    expect(countCompactTimelineItemsAtZoom(durations, 30, 30)).toBe(36)
-    expect(countCompactTimelineItemsAtZoom(durations, 30, 300)).toBe(3)
+    expect(countCompactTimelineItemsAtZoom(durations, 30, 30)).toBe(20)
+    expect(countCompactTimelineItemsAtZoom(durations, 30, 300)).toBe(2)
   })
 
   it('classifies full-track compact cohorts from stable duration bounds', () => {
@@ -63,7 +63,7 @@ describe('timeline density overview', () => {
       maxDurationInFrames: 300,
     }
 
-    expect(getTimelineCompactCohortSignal(bounds, 30, 3, false)).toBe('settled:all')
+    expect(getTimelineCompactCohortSignal(bounds, 30, 2, false)).toBe('settled:all')
     expect(getTimelineCompactCohortSignal(bounds, 30, 2_000, false)).toBe('settled:none')
     expect(getTimelineCompactCohortSignal(bounds, 30, 30, true)).toMatch(
       /^interacting:mixed:/,
