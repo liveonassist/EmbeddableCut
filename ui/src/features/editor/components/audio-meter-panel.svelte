@@ -892,6 +892,7 @@
           {...props}
           class="h-5 w-5 shrink-0 flex items-center justify-center rounded text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
           aria-label={t('editor.audioMeters.panelMode')}
+          data-tooltip={t('editor.audioMeters.panelMode')}
         >
           <MoreHorizontal size={14} />
         </button>

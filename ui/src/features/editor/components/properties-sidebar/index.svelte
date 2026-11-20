@@ -356,6 +356,7 @@
           style="width: {EDITOR_LAYOUT_CSS_VALUES.sidebarHeaderButtonSize}; height: {EDITOR_LAYOUT_CSS_VALUES.sidebarHeaderButtonSize}"
           onclick={toggleRightSidebar}
           aria-label={t('editor.mediaSidebar.collapsePanel')}
+          data-tooltip={t('editor.mediaSidebar.collapsePanel')}
         >
           <ChevronRight class="w-3.5 h-3.5" />
         </Button>

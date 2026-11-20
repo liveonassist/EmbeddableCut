@@ -186,7 +186,7 @@
   <button
     type="button"
     aria-label="New sequence"
-    title="New sequence"
+    data-tooltip="New sequence"
     onclick={() => createSequence()}
     class="ml-0.5 flex items-center rounded-md p-1 text-muted-foreground hover:text-foreground hover:bg-accent/50 transition-colors cursor-pointer"
   >

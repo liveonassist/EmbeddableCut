@@ -964,7 +964,8 @@
                 variant="ghost"
                 size="icon"
                 class="h-6 w-6"
-                title={t('timeline.trackSize.label')}
+                aria-label={t('timeline.trackSize.label')}
+                data-tooltip={t('timeline.trackSize.label')}
               >
                 <ActiveTrackSizeIcon class="w-3 h-3" />
               </Button>
@@ -991,7 +992,8 @@
                   variant="ghost"
                   size="icon"
                   class="h-6 w-6"
-                  title={t('timeline.addTrack.label')}
+                  aria-label={t('timeline.addTrack.label')}
+                  data-tooltip={t('timeline.addTrack.label')}
                 >
                   <Plus class="w-3 h-3" />
                 </Button>
@@ -1015,7 +1017,8 @@
             class="h-6 w-6"
             onclick={handleRemoveTracks}
             disabled={tracks.length === 0 || (!activeTrackId && selectedTrackIds.length === 0)}
-            title={removeTracksTitle}
+            aria-label={removeTracksTitle}
+            data-tooltip={removeTracksTitle}
           >
             <Minus class="w-3 h-3" />
           </Button>
