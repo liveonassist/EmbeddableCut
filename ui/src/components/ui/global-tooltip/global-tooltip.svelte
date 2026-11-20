@@ -122,53 +122,40 @@
     if (!tooltip) return
     const root = tooltip.getRootNode() as Document | ShadowRoot
 
-    const handleMouseEnter = (e: Event) => {
-      const event = e as MouseEvent
-      // e.target might be a text node, so check for closest method
-      const eventTarget = event.target as Node
-      if (!eventTarget || typeof (eventTarget as Element).closest !== 'function') {
-        // If it's a text node, try parent element
-        const parent = eventTarget?.parentElement
-        if (!parent) return
-        const target = parent.closest('[data-tooltip]') as HTMLElement
-        if (!target) return
+    // FreeCut captures `mouseenter`/`mouseleave` on the document. Chrome doesn't
+    // reliably deliver those to a shadow root's listener (an embedded editor
+    // could go a whole session without a tooltip), so this delegates the
+    // bubbling `pointerover`/`pointerout` instead, which it always dispatches.
+    // Touch is skipped: a tap would flash the tooltip it then hides.
+    const triggerOf = (node: EventTarget | null): HTMLElement | null => {
+      const element =
+        node instanceof Element ? node : node instanceof Node ? node.parentElement : null
+      return element?.closest<HTMLElement>('[data-tooltip]') ?? null
+    }
 
-        clearPending()
-        scheduleShow(target)
-        return
-      }
-
-      const target = (eventTarget as Element).closest('[data-tooltip]') as HTMLElement
+    const handlePointerOver = (e: Event) => {
+      const event = e as PointerEvent
+      if (event.pointerType === 'touch') return
+      const target = triggerOf(event.target)
       if (!target) return
 
-      // `mouseenter` is captured for every descendant (for example, the SVG
-      // inside an icon button). Moving from the button surface onto that icon
-      // is still inside the same tooltip trigger and must not restart its
-      // delay or visible state.
+      // Moving from the button surface onto its icon is still inside the same
+      // trigger and must not restart its delay or visible state.
       if (event.relatedTarget instanceof Node && target.contains(event.relatedTarget)) return
 
-      // Clear any pending hide timeout
       clearPending()
       scheduleShow(target)
     }
 
-    const handleMouseLeave = (e: Event) => {
-      const event = e as MouseEvent
-      // e.target might be a text node, so check for closest method
-      const eventTarget = event.target as Node
-      const element =
-        eventTarget?.nodeType === Node.ELEMENT_NODE
-          ? (eventTarget as Element)
-          : eventTarget?.parentElement
-
-      const target = element?.closest('[data-tooltip]') as HTMLElement | null
+    const handlePointerOut = (e: Event) => {
+      const event = e as PointerEvent
+      if (event.pointerType === 'touch') return
+      const target = triggerOf(event.target)
       if (!target) return
 
-      // Ignore movement between descendants of the same trigger. Without this,
-      // leaving an SVG path for its button is interpreted as leaving the button.
+      // Ignore movement between descendants of the same trigger.
       if (event.relatedTarget instanceof Node && target.contains(event.relatedTarget)) return
 
-      // Clear show timeout if leaving before it fires
       clearPending()
       hideTooltip()
     }
@@ -188,14 +175,14 @@
       hideTooltip()
     }
 
-    // Use capture phase to catch events before they bubble
-    root.addEventListener('mouseenter', handleMouseEnter, true)
-    root.addEventListener('mouseleave', handleMouseLeave, true)
+    // Capture, so a handler that stops propagation can't hide the events.
+    root.addEventListener('pointerover', handlePointerOver, true)
+    root.addEventListener('pointerout', handlePointerOut, true)
     root.addEventListener('click', handleClick, true)
 
     return () => {
-      root.removeEventListener('mouseenter', handleMouseEnter, true)
-      root.removeEventListener('mouseleave', handleMouseLeave, true)
+      root.removeEventListener('pointerover', handlePointerOver, true)
+      root.removeEventListener('pointerout', handlePointerOut, true)
       root.removeEventListener('click', handleClick, true)
       clearPending()
     }

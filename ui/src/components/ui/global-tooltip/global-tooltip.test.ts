@@ -26,17 +26,17 @@ describe('GlobalTooltip', () => {
     const button = document.querySelector('button')!
     const icon = document.querySelector('[data-testid="icon"]')!
 
-    fireEvent.mouseEnter(button)
+    fireEvent.pointerOver(button)
     vi.advanceTimersByTime(200)
 
-    fireEvent.mouseEnter(icon, { relatedTarget: button })
+    fireEvent.pointerOver(icon, { relatedTarget: button })
     vi.advanceTimersByTime(100)
     flushSync()
 
     expect(tooltip).toHaveAttribute('data-visible', 'true')
     expect(tooltip).toHaveTextContent('Media')
 
-    fireEvent.mouseLeave(icon, { relatedTarget: button })
+    fireEvent.pointerOut(icon, { relatedTarget: button })
     flushSync()
     expect(tooltip).toHaveAttribute('data-visible', 'true')
   })
@@ -46,12 +46,12 @@ describe('GlobalTooltip', () => {
     const tooltip = renderWithTrigger('<button data-tooltip="Media"></button>')
     const button = document.querySelector('button')!
 
-    fireEvent.mouseEnter(button)
+    fireEvent.pointerOver(button)
     vi.advanceTimersByTime(300)
     flushSync()
     expect(tooltip).toHaveAttribute('data-visible', 'true')
 
-    fireEvent.mouseLeave(button)
+    fireEvent.pointerOut(button)
     flushSync()
     expect(tooltip).toHaveAttribute('data-visible', 'false')
   })
@@ -64,7 +64,7 @@ describe('GlobalTooltip', () => {
     shadow.innerHTML = '<button data-tooltip="Inside"></button><div id="target"></div>'
     render(GlobalTooltip, { target: shadow.getElementById('target')! })
 
-    fireEvent.mouseEnter(shadow.querySelector('button')!)
+    fireEvent.pointerOver(shadow.querySelector('button')!)
     vi.advanceTimersByTime(300)
     flushSync()
 
