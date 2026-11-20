@@ -3,6 +3,7 @@
   import { untrack, type Snippet } from 'svelte'
   import { useZoomStore } from '@/features/timeline/stores/zoom-store'
   import { applyTimelineLiveGeometry } from '@/features/timeline/utils/timeline-live-geometry'
+  import { forwardContextMenuToNearestTrack } from '@/features/timeline/utils/forward-track-context-menu'
   import type { TimelineTrack as TimelineTrackType } from '@/types/timeline'
   import TimelineTrack from '../timeline-track.svelte'
   import { TimelineMediaDropZone } from '../timeline-media-drop-zone'
@@ -135,7 +136,8 @@
     class="min-h-0 overflow-y-auto overflow-x-hidden"
     style:height="var(--timeline-{options.section}-pane-height, {options.height}px)"
   >
-    <div class="relative min-h-full">
+    <!-- svelte-ignore a11y_no_static_element_interactions -->
+    <div class="relative min-h-full" oncontextmenu={forwardContextMenuToNearestTrack}>
       {#if options.section === 'video' && options.anchorTrackId}
         <TimelineMediaDropZone
           height={options.zoneHeight}
