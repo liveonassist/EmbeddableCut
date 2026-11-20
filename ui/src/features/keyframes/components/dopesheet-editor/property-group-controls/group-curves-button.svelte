@@ -29,7 +29,7 @@
   class={cn(
     MINI_ICON_BUTTON_CLASS,
     'self-center text-muted-foreground hover:text-foreground',
-    curveVisible ? 'text-orange-500 hover:text-orange-400' : 'opacity-30 hover:opacity-60',
+    curveVisible ? 'text-primary hover:text-primary/80' : 'opacity-30 hover:opacity-60',
   )}
   onclick={(event) => {
     event.stopPropagation()

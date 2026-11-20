@@ -197,7 +197,7 @@
     />
   {/if}
   {#if visuals === 'visible'}
-    <!-- Playhead line — orange, matching the dopesheet body line and the
+    <!-- Playhead line — the accent, matching the dopesheet body line and the
          main timeline playhead; the flag handle is rendered once in the
          shared ruler. -->
     <!-- svelte-ignore a11y_no_static_element_interactions -->

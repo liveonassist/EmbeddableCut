@@ -501,18 +501,18 @@
           <!-- pos 0→1 spans the full dashed track (dot center hits each end);
                clamp keeps small spring overshoot inside the box instead of clipping. -->
           <div
-            class="absolute top-1/2 h-3.5 w-3.5 -translate-y-1/2 rounded-full bg-orange-400"
+            class="absolute top-1/2 h-3.5 w-3.5 -translate-y-1/2 rounded-full bg-primary"
             style:left="clamp(0px, calc(12px + (100% - 24px) * {pos} - 7px), calc(100% - 14px))"
           ></div>
         {:else if mode === 'rotate'}
           <!-- Rounded square + orientation pip so the spin is actually visible. -->
-          <div class="relative size-9 rounded-[5px] bg-orange-400" style:transform="rotate({pos * 180}deg)">
+          <div class="relative size-9 rounded-[5px] bg-primary" style:transform="rotate({pos * 180}deg)">
             <span class="absolute left-1/2 top-1 size-1.5 -translate-x-1/2 rounded-full bg-black/40"></span>
           </div>
         {:else if mode === 'scale'}
-          <div class="size-9 rounded-full bg-orange-400" style:transform="scale({Math.max(0, pos)})"></div>
+          <div class="size-9 rounded-full bg-primary" style:transform="scale({Math.max(0, pos)})"></div>
         {:else}
-          <div class="size-9 rounded-full bg-orange-400" style:opacity={Math.max(0, Math.min(1, pos))}></div>
+          <div class="size-9 rounded-full bg-primary" style:opacity={Math.max(0, Math.min(1, pos))}></div>
         {/if}
       </div>
     </div>

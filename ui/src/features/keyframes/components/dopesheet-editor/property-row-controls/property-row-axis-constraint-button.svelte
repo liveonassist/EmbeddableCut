@@ -19,7 +19,7 @@
     class={cn(
       MINI_ICON_BUTTON_CLASS,
       'ml-0.5 self-center text-muted-foreground hover:text-foreground',
-      axisConstraint.constrained && 'text-orange-400 hover:text-orange-300',
+      axisConstraint.constrained && 'text-primary hover:text-primary',
     )}
     onclick={(event) => {
       event.stopPropagation()

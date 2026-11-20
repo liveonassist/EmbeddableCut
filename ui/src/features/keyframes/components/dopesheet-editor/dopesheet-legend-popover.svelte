@@ -50,7 +50,7 @@
     </p>
     <ul class="mb-2 space-y-1 text-muted-foreground">
       <li class="flex items-start gap-1.5">
-        <LineChart class="mt-px h-3 w-3 flex-shrink-0 text-orange-500" />
+        <LineChart class="mt-px h-3 w-3 flex-shrink-0 text-primary" />
         <span>{t('timeline.keyframeEditor.legend.iconCurve')}</span>
       </li>
       <li class="flex items-start gap-1.5">

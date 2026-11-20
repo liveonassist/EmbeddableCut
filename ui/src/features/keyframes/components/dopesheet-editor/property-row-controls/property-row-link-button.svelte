@@ -65,7 +65,7 @@
             size="sm"
             class={cn(
               MINI_ICON_BUTTON_CLASS,
-              'self-center text-orange-400 hover:bg-orange-500/10 hover:text-orange-300',
+              'self-center text-primary hover:bg-primary/10 hover:text-primary',
             )}
             onpointerdown={beginLink}
             title={t('timeline.keyframeEditor.linkedExpression', {

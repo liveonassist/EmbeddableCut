@@ -45,8 +45,8 @@
     return points.join(' ')
   })
 
-  // Always use orange for curves (blue glow added when selected)
-  const color = $derived(strokeColor || '#f97316')
+  // Curves take the accent unless overlaid (blue glow added when selected)
+  const color = $derived(strokeColor || 'var(--primary)')
 </script>
 
 <g class="graph-curve" style:pointer-events="none">

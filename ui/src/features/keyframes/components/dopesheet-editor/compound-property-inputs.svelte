@@ -33,7 +33,7 @@
 <div
   class="flex shrink-0 items-center overflow-hidden rounded-sm border border-border/70 {spacious
     ? 'w-[192px]'
-    : 'w-[132px]'} {config.linked ? 'border-orange-500/50 text-orange-400' : ''}"
+    : 'w-[132px]'} {config.linked ? 'border-primary/50 text-primary' : ''}"
   data-testid="compound-property-inputs"
 >
   {#if config.axisLink}

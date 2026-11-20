@@ -89,7 +89,7 @@
     '[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none',
     isColor ? 'w-[68px]' : spacious ? 'w-[80px]' : 'w-[44px]',
     !isColor && 'cursor-ew-resize select-none',
-    hasPropertyLink && 'text-orange-400',
+    hasPropertyLink && 'text-primary',
   )}
   disabled={disabled ||
     rowLocked ||

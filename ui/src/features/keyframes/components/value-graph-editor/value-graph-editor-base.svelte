@@ -1124,7 +1124,7 @@
           y1={constraintGuide.y1}
           x2={constraintGuide.x2}
           y2={constraintGuide.y2}
-          stroke="#f97316"
+          stroke="var(--primary)"
           stroke-width={1.5}
           stroke-dasharray="6 3"
           opacity={0.8}
