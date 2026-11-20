@@ -68,7 +68,19 @@ Breaking changes are allowed when they make the format better; pre-1.0 they land
 
 ### Upstream's project schema
 
-Upstream owns the project schema, so its migrations come in with upstream merges, and EmbeddableCut doesn't add its own project migrations. What EmbeddableCut needs to store goes in the document envelope or in asset records, which it owns. If the project itself must change, the change goes upstream first.
+Upstream owns the project schema and its version, so its migrations come in with upstream merges, and EmbeddableCut doesn't add its own project migrations. What EmbeddableCut needs to store goes in the document envelope or in asset records, which it owns, where it can.
+
+EmbeddableCut forks the project schema where a feature can't live anywhere else. Its additions:
+
+- Are optional fields that older projects simply lack: nothing to migrate, and no bump to `project.schemaVersion`, whose numbering stays upstream's.
+- Are marked `EmbeddableCut:` in a comment beside the type and the zod field (`types/timeline.ts`, `features/project-bundle/schemas/project-schema.ts`), so a merge keeps them.
+- Are listed here:
+
+| Field | Type | Meaning |
+| --- | --- | --- |
+| `frameRate` on video items | number, `> 0` | The rate the clip's picture updates at, held on a grid from timeline frame 0 (`shared/timeline/clip-frame-rate.ts`). Unset, or at or above the timeline's fps, plays every frame. |
+
+An editor without a field reads a project that has it, since items pass unknown fields through, but plays it without the feature. Pre-1.0 that's accepted; from the first release a fork field takes a document version bump like any other change.
 
 ## Extensions and other clients
 

@@ -56,7 +56,7 @@ Don't break these without an architecture discussion in the PR description.
 - **Host guards run in `execute`**: it diffs the snapshots around each command, and an edit that removes an item `EditGuards.remove` refuses is restored with no undo step, then reported to `onEditRefused` (`stores/edit-guards.ts`). Trims, splits (the left half keeps its id) and moves into compound clips aren't removals.
 - A host's settings policy (`settings/stores/settings-policy.ts`) swaps the settings store's actions so locked keys refuse changes, and persists the user's own values while it holds.
 - `timeline-persistence.ts` is the only bridge between the stores and a saved `Project`: `buildTimelineFromStores()` out, `hydrateTimelineStoresFromProject()` in.
-- Persisted projects carry `schemaVersion`; `migrateProject()` runs every migration in `shared/projects/migrations/` on load, and throws `ProjectSchemaTooNewError` for a project from a newer editor. The project schema is upstream's: EmbeddableCut adds no project migrations of its own.
+- Persisted projects carry `schemaVersion`; `migrateProject()` runs every migration in `shared/projects/migrations/` on load, and throws `ProjectSchemaTooNewError` for a project from a newer editor. The project schema is upstream's: EmbeddableCut adds no project migrations of its own, only optional fields marked `EmbeddableCut:` and listed in `docs/SCHEMAS.md` (the fork).
 - A change to a format EmbeddableCut owns (`src/schema/`) bumps its version, adds a migration and regenerates `schemas/` (`npx vp test run src/schema -u`); `docs/SCHEMAS.md` is the checklist.
 
 ### URL media

@@ -46,7 +46,7 @@ Each project subdirectory owns an `AGENTS.md` describing its stack, commands, an
 
 - A _project_ holds media references and a root timeline; _compositions_ (pre-comps and sequences) nest timelines inside it. Items reference media by `mediaId`; `src` is a runtime URL and is never persisted for workspace media.
 - **Time is in frames** at the project's fps (`from`, `durationInFrames`, `sourceStart`). Seconds appear only at the edges: media probing, export settings, the render API.
-- **Persisted data is versioned and owned** ([`docs/SCHEMAS.md`](docs/SCHEMAS.md)): older versions migrate, newer ones are refused, unknown fields are errors. Upstream owns the project schema; EmbeddableCut owns the project document around it.
+- **Persisted data is versioned and owned** ([`docs/SCHEMAS.md`](docs/SCHEMAS.md)): older versions migrate, newer ones are refused, unknown fields are errors. Upstream owns the project schema; EmbeddableCut owns the project document around it, and forks the schema with optional fields listed in `docs/SCHEMAS.md`.
 - Undo is whole-timeline snapshots per editing context (`timeline-command-store.ts`), not inverse operations. Anything that edits the timeline goes through `execute(...)` in the timeline actions.
 - **Local-first.** Projects and media live in a workspace folder the user picks; nothing is uploaded unless a host wires it up.
 
