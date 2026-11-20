@@ -38,7 +38,7 @@ const page = {
             '**Transform**: position, size, rotation, and anchor point.',
             '**Crop**: crop each edge inward, with a softness control for the crop edge.',
             '**Opacity** and **Blend**: fade a clip and choose how it composites over the layers below.',
-            '**Video**: playback speed and related timing for video clips.',
+            '**Video**: playback speed, frame rate and related timing for video clips. Lower the frame rate to hold each picture longer, for a choppy, stop-motion look; audio keeps playing smoothly.',
           ],
         },
         {

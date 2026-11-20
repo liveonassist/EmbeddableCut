@@ -72,6 +72,7 @@ type ShapePreviewProperty =
 export interface ItemPropertiesPreview extends Partial<Pick<ShapeItem, ShapePreviewProperty>> {
   fadeIn?: number
   fadeOut?: number
+  frameRate?: number
   crop?: CropSettings
   // Audio properties
   volume?: number

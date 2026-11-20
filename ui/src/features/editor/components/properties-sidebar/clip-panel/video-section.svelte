@@ -14,6 +14,7 @@
 
   const MIN_SPEED = 0.1
   const MAX_SPEED = 10.0
+  const MIN_FRAME_RATE = 1
   const CROP_STEP = 1
   const CROP_TOLERANCE = 0.01
 
@@ -163,7 +164,7 @@
   import { demixValue, getMixedValue } from '../utils'
 
   /**
-   * Playback section - playback rate, video fades, and edge crop.
+   * Playback section - playback rate, frame rate, video fades, and edge crop.
    *
    * Speed changes affect clip duration (rate stretch behavior):
    * - Faster speed = shorter clip (same content plays faster)
@@ -222,7 +223,12 @@
     return map
   })
 
+  const projectFps = select(useTimelineSettingsStore, (s) => s.fps)
   const speed = $derived(getMixedValue(videoItems, (item) => item.speed, 1))
+  // An unset frame rate plays every frame, so it reads as the project's.
+  const frameRate = $derived(
+    getMixedValue(videoItems, (item) => item.frameRate, projectFps.current),
+  )
   const fadeIn = $derived(getMixedValue(videoItems, (item) => item.fadeIn, 0))
   const fadeOut = $derived(getMixedValue(videoItems, (item) => item.fadeOut, 0))
   const cropValue = (property: CropProperty) =>
@@ -307,6 +313,35 @@
 
   const commitPreviewClear = () => {
     queueMicrotask(() => useGizmoStore.getState().clearPreview())
+  }
+
+  /** At or above the project's rate every frame plays, so the field clears. */
+  const toFrameRate = (value: number): number | undefined =>
+    value >= projectFps.current ? undefined : Math.max(MIN_FRAME_RATE, value)
+
+  const handleFrameRateLiveChange = (value: number) => {
+    const previews: Record<string, { frameRate: number | undefined }> = {}
+    videoItemIds.forEach((id) => {
+      previews[id] = { frameRate: toFrameRate(value) }
+    })
+    setPropertiesPreviewNew(previews)
+  }
+
+  const handleFrameRateChange = (value: number) => {
+    const nextFrameRate = toFrameRate(value)
+    videoItemIds.forEach((id) => updateItem(id, { frameRate: nextFrameRate }))
+    commitPreviewClear()
+  }
+
+  const handleResetFrameRate = () => {
+    const heldIds = useItemsStore
+      .getState()
+      .items.filter(
+        (item: TimelineItem) =>
+          item.type === 'video' && videoItemIds.includes(item.id) && item.frameRate !== undefined,
+      )
+      .map((item: TimelineItem) => item.id)
+    heldIds.forEach((id) => updateItem(id, { frameRate: undefined }))
   }
 
   const handleFadeInLiveChange = (value: number) => {
@@ -528,6 +563,30 @@
             class="h-7 w-7 flex-shrink-0"
             onclick={handleResetSpeed}
             title={t('editor.videoSection.resetSpeed')}
+          >
+            <RotateCcw class="w-3.5 h-3.5" />
+          </Button>
+        </div>
+      </PropertyRow>
+
+      <PropertyRow label={t('editor.videoSection.frameRate')}>
+        <div class="flex items-center gap-1 w-full">
+          <SliderInput
+            value={frameRate}
+            onChange={handleFrameRateChange}
+            onLiveChange={handleFrameRateLiveChange}
+            min={MIN_FRAME_RATE}
+            max={projectFps.current}
+            step={1}
+            unit="fps"
+            class="flex-1 min-w-0"
+          />
+          <Button
+            variant="ghost"
+            size="icon"
+            class="h-7 w-7 flex-shrink-0"
+            onclick={handleResetFrameRate}
+            title={t('editor.videoSection.resetFrameRate')}
           >
             <RotateCcw class="w-3.5 h-3.5" />
           </Button>
