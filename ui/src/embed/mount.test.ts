@@ -58,7 +58,7 @@ describe('mountEditor', () => {
   })
 })
 
-describe('mountEditor actions', () => {
+describe('mountEditor actions', { timeout: 15_000 }, () => {
   async function mountHosting(actions: EditorActions): Promise<Editor> {
     const target = document.createElement('div')
     document.body.append(target)
@@ -116,7 +116,8 @@ describe('mountEditor actions', () => {
     expect(openDialog).toBeDefined()
     expect(screen.queryByRole('dialog')).toBeNull()
     await openDialog!()
-    expect(await screen.findByRole('dialog')).toBeInTheDocument()
+    // The dialog loads lazily; under a full parallel run, transforming it takes seconds.
+    expect(await screen.findByRole('dialog', {}, { timeout: 10_000 })).toBeInTheDocument()
   })
 
   it('offers help only when the host has some', async () => {
