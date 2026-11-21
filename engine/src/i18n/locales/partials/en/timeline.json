@@ -35,14 +35,14 @@
       "title": "Bento layout"
     },
     "captions": {
-      "addedFromTranscript": "Added From Transcript",
-      "addedWithModel": "Added With Model",
-      "failedGenerateSegment": "Failed Generate Segment",
-      "failedUpdateSegment": "Failed Update Segment",
-      "refreshedWithModel": "Refreshed With Model",
-      "removedFromSegment": "Removed From Segment",
-      "updatedFromTranscript": "Updated From Transcript",
-      "updatedWithModel": "Updated With Model"
+      "addedFromTranscript": "Captions added from the transcript",
+      "addedWithModel": "Captions added ({{model}})",
+      "failedGenerateSegment": "Couldn't generate captions",
+      "failedUpdateSegment": "Couldn't update captions",
+      "refreshedWithModel": "Captions refreshed ({{model}})",
+      "removedFromSegment": "No speech in this part of the clip, so its captions were removed",
+      "updatedFromTranscript": "Captions updated from the transcript",
+      "updatedWithModel": "Captions updated ({{model}})"
     },
     "clipIndicators": {
       "hasKeyframes": "Has Keyframes",
