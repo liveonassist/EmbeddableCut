@@ -18,3 +18,6 @@ export const importMediaLibraryService = () =>
   import('@/features/media-library/services/media-library-service')
 export const importThumbnailGenerator = () =>
   import('@/features/media-library/utils/thumbnail-generator')
+// EmbeddableCut: the inspector moves a clip's virtual captions onto a track.
+export const importMediaTranscriptionService = () =>
+  import('@/features/media-library/services/media-transcription-service')

@@ -298,7 +298,13 @@
       "searchLanguages": "Search Languages",
       "start": "Start",
       "stop": "Stop",
-      "whisperLanguageHint": "Choose the spoken language for better accuracy, or use auto detect."
+      "whisperLanguageHint": "Choose the spoken language for better accuracy, or use auto detect.",
+      "captions": "Captions",
+      "addCaptions": "Add captions to this media's clips on the timeline",
+      "captionStyleHint": "Captions go on a Captions track above your clips. Restyle them any time from the inspector.",
+      "matchProjectCaptions": "New captions match the ones already in this project. Pick a style to change it.",
+      "reuseTranscript": "Use the existing transcript",
+      "reuseTranscriptHint": "Captions are ready in moments. Turn this off to transcribe again with another model."
     },
     "type": {
       "audio": "Audio",

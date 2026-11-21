@@ -13,7 +13,6 @@ import {
   useTimelineItemOverlayStore,
 } from '@/features/timeline/stores/timeline-item-overlay-store'
 import { useCaptionDialogState, type CaptionDialogState } from './use-caption-dialog-state.svelte'
-import { useAutoTranscriptCaptions } from './use-auto-transcript-captions.svelte'
 
 /** Frozen selector fallbacks: a fresh array per read would thrash subscribers. */
 const EMPTY_SEGMENT_OVERLAYS = [] as const
@@ -125,12 +124,6 @@ export function useItemMetadata(item: () => TimelineItemType): ItemMetadata {
     item: item(),
     isBroken,
     linkedItemsForCaptionOwnership,
-  }))
-  useAutoTranscriptCaptions(() => ({
-    item: item(),
-    caption,
-    hasGeneratedCaptions,
-    isBroken,
   }))
   const reverseMenuShowsUnreverse = $derived.by(() => {
     const current = item()

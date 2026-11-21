@@ -739,8 +739,18 @@ class MediaTranscriptionService {
     )
   }
 
+  /** Whether the timeline has transcript captions, whose look new ones keep. */
+  hasTranscriptCaptions(): boolean {
+    return useItemsStore
+      .getState()
+      .items.some((item) => item.type === 'subtitle' && item.source.type === 'transcript')
+  }
+
   /** Captions for every clip of `mediaId` on the timeline that has none yet. */
-  async captionUncaptionedClips(mediaId: string): Promise<InsertTranscriptAsCaptionsResult> {
+  async captionUncaptionedClips(
+    mediaId: string,
+    stylePresetId?: string,
+  ): Promise<InsertTranscriptAsCaptionsResult> {
     const { items } = useItemsStore.getState()
     const clipIds = items
       .filter(
@@ -753,7 +763,11 @@ class MediaTranscriptionService {
       )
       .map((clip) => clip.id)
     if (clipIds.length === 0) return { insertedItemCount: 0, removedItemCount: 0 }
-    return this.insertTranscriptAsCaptions(mediaId, { clipIds, selectUpdatedClips: false })
+    return this.insertTranscriptAsCaptions(mediaId, {
+      clipIds,
+      selectUpdatedClips: false,
+      stylePresetId,
+    })
   }
 
   private placeTranscriptCaptions(

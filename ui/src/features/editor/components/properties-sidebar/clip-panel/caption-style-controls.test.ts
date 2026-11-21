@@ -43,12 +43,13 @@ describe('CaptionStyleControls selected styling', () => {
       canvasHeight: 1080,
     })
 
-    for (const control of [
-      screen.getByRole('button', { name: 'Netflix' }),
-      screen.getByRole('button', { name: 'On' }),
-    ]) {
-      expect(control).toHaveClass('border-border/70', 'bg-secondary/60', 'text-foreground')
-      expect(control).not.toHaveClass('border-primary', 'bg-primary/15')
-    }
+    const preset = screen.getByRole('radio', { name: 'Netflix' })
+    expect(preset).toHaveAttribute('aria-checked', 'true')
+    expect(preset).toHaveClass('border-foreground/70')
+    expect(preset).not.toHaveClass('border-primary')
+
+    const background = screen.getByRole('button', { name: 'On' })
+    expect(background).toHaveClass('border-border/70', 'bg-secondary/60', 'text-foreground')
+    expect(background).not.toHaveClass('border-primary', 'bg-primary/15')
   })
 })

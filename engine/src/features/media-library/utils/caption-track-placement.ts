@@ -10,10 +10,10 @@ import { getCaptionTextItemTemplate, type CaptionTextItemTemplate } from './capt
  * Premiere and Resolve, rather than in whatever video track has room.
  */
 
-export const CAPTIONS_TRACK_NAME = 'Captions'
+const CAPTIONS_TRACK_NAME = 'Captions'
 
 /** A track that holds only subtitle segments, or a still-empty one we named. */
-export function isCaptionsTrack(track: TimelineTrack, items: readonly TimelineItem[]): boolean {
+function isCaptionsTrack(track: TimelineTrack, items: readonly TimelineItem[]): boolean {
   if (track.isGroup) return false
   let hasCaption = false
   for (const item of items) {

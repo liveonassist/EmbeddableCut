@@ -7,6 +7,8 @@ const settingsStoreState = vi.hoisted(() => ({
   defaultWhisperModel: 'whisper-base',
   defaultWhisperQuantization: 'hybrid',
   defaultWhisperLanguage: '',
+  defaultCaptionStylePresetId: 'netflix',
+  setSetting: vi.fn(),
 }))
 
 const editorStoreState = vi.hoisted(() => ({
@@ -86,6 +88,7 @@ describe('TranscribeDialog', () => {
     settingsStoreState.defaultWhisperModel = 'whisper-base'
     settingsStoreState.defaultWhisperQuantization = 'hybrid'
     settingsStoreState.defaultWhisperLanguage = ''
+    settingsStoreState.defaultCaptionStylePresetId = 'netflix'
   })
 
   it('clears background skim and scrub previews when opened', () => {
@@ -192,5 +195,73 @@ describe('TranscribeDialog', () => {
     expect(screen.queryByLabelText('Language')).not.toBeInTheDocument()
     await fireEvent.change(screen.getByRole('combobox'), { target: { value: 'whisper-large' } })
     expect(screen.getByLabelText('Language')).toHaveValue('auto')
+  })
+
+  describe('captions', () => {
+    it('places captions from the stored transcript in the remembered style', async () => {
+      const onStart = vi.fn()
+      render(TranscribeDialog, {
+        ...baseProps,
+        hasTranscript: true,
+        captionMode: 'always',
+        onOpenChange: vi.fn(),
+        onStart,
+        onCancel: vi.fn(),
+      })
+
+      // Reusing the transcript leaves nothing to pick about transcription.
+      expect(screen.queryByText('Model')).not.toBeInTheDocument()
+      expect(screen.getByRole('radio', { name: 'Netflix' })).toHaveAttribute('aria-checked', 'true')
+
+      await fireEvent.click(screen.getByRole('radio', { name: 'Bold Yellow' }))
+      expect(settingsStoreState.setSetting).toHaveBeenCalledWith(
+        'defaultCaptionStylePresetId',
+        'bold-yellow',
+      )
+
+      await fireEvent.click(screen.getByRole('button', { name: 'Start' }))
+      expect(onStart).toHaveBeenCalledWith(
+        expect.objectContaining({
+          captions: { stylePresetId: 'bold-yellow' },
+          reuseTranscript: true,
+        }),
+      )
+    })
+
+    it("keeps the project's caption look unless a style is picked", async () => {
+      const onStart = vi.fn()
+      render(TranscribeDialog, {
+        ...baseProps,
+        captionMode: 'always',
+        hasProjectCaptions: () => true,
+        onOpenChange: vi.fn(),
+        onStart,
+        onCancel: vi.fn(),
+      })
+
+      expect(screen.queryByRole('radio', { checked: true })).not.toBeInTheDocument()
+      await fireEvent.click(screen.getByRole('button', { name: 'Start' }))
+      expect(onStart).toHaveBeenCalledWith(
+        expect.objectContaining({ captions: { stylePresetId: null } }),
+      )
+    })
+
+    it('lets the media library transcribe without placing captions', async () => {
+      const onStart = vi.fn()
+      render(TranscribeDialog, {
+        ...baseProps,
+        captionMode: 'optional',
+        onOpenChange: vi.fn(),
+        onStart,
+        onCancel: vi.fn(),
+      })
+
+      await fireEvent.click(
+        screen.getByRole('checkbox', { name: "Add captions to this media's clips on the timeline" }),
+      )
+      expect(screen.queryByRole('radiogroup')).not.toBeInTheDocument()
+      await fireEvent.click(screen.getByRole('button', { name: 'Start' }))
+      expect(onStart.mock.calls[0]![0]).not.toHaveProperty('captions')
+    })
   })
 })

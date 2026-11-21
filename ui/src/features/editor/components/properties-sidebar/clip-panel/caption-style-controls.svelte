@@ -6,9 +6,18 @@
   import { updateItem } from '@/features/editor/deps/timeline-store'
   import type { SubtitleSegmentItem, TextItem } from '@/types/timeline'
 
-  import { ColorPicker, PropertyRow, SliderInput } from '../components'
   import {
-    CAPTION_STYLE_PRESETS,
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+  } from '@/components/ui/select'
+  import CaptionStyleSwatches from '@/components/caption-style-swatches.svelte'
+  import { ColorPicker, PropertyRow, SliderInput } from '../components'
+  import FontPicker from './font-picker.svelte'
+  import { FONT_WEIGHT_OPTIONS } from './text-section-constants'
+  import {
     type CaptionStylePreset,
     detectActiveCaptionPreset,
     resolveCaptionStylePatch,
@@ -60,6 +69,9 @@
   const sample = $derived(items[0])
   const activePreset = $derived(sample ? detectActiveCaptionPreset(sample) : null)
 
+  const sampleCueText = $derived(
+    (sample?.type === 'subtitle' ? sample.cues[0]?.text : undefined) || undefined,
+  )
   const sampleColor = $derived(sample?.color ?? '#ffffff')
   const sampleFontSize = $derived(
     sample?.fontSize ?? Math.max(36, Math.round(canvasHeight * 0.045)),
@@ -92,26 +104,37 @@
       <p class="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground pb-1.5">
         {t('editor.captionStyleControls.stylePreset')}
       </p>
-      <div class="grid grid-cols-3 gap-1.5">
-        {#each CAPTION_STYLE_PRESETS as preset (preset.id)}
-          <button
-            type="button"
-            title={t(preset.hintKey)}
-            onclick={() => applyPreset(preset)}
-            class={cn(
-              'rounded border px-2 py-1.5 text-[11px] text-center transition-colors',
-              activePreset?.id === preset.id
-                ? 'border-border/70 bg-secondary/60 text-foreground'
-                : 'border-border hover:bg-secondary/40 text-muted-foreground',
-            )}
-          >
-            {preset.label}
-          </button>
-        {/each}
-      </div>
+      <CaptionStyleSwatches selectedId={activePreset?.id ?? null} onSelect={applyPreset} />
     </div>
 
     <Separator class="my-1" />
+
+    <PropertyRow label={t('editor.captionStyleControls.font')} class="items-start">
+      <FontPicker
+        value={sample.fontFamily ?? 'Inter'}
+        previewText={sampleCueText}
+        onValueChange={(fontFamily) => applyPatch({ fontFamily })}
+      />
+    </PropertyRow>
+
+    <PropertyRow label={t('editor.captionStyleControls.weight')}>
+      <Select
+        value={sample.fontWeight ?? 'normal'}
+        onValueChange={(value) =>
+          applyPatch({ fontWeight: value as CaptionStylableItem['fontWeight'] })}
+      >
+        <SelectTrigger class="h-7 text-xs flex-1 min-w-0">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          {#each FONT_WEIGHT_OPTIONS as weight (weight.value)}
+            <SelectItem value={weight.value} class="text-xs">
+              {t(`editor.textSection.fontWeights.${weight.labelKey}`)}
+            </SelectItem>
+          {/each}
+        </SelectContent>
+      </Select>
+    </PropertyRow>
 
     <ColorPicker
       label={t('editor.captionStyleControls.color')}

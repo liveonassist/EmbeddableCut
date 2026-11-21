@@ -586,7 +586,10 @@
       "bold": "Bold",
       "underline": "Underline",
       "cuePosition": "Cue position: {{vertical}} {{horizontal}}",
-      "showSubtitle": "Show subtitle"
+      "showSubtitle": "Show subtitle",
+      "moveToTrack": "Move to captions track",
+      "moveToTrackHint": "These captions are drawn from the clip. Put them on a track to see them on the timeline and select them on the canvas.",
+      "captions": "Captions"
     },
     "audioSection": {
       "audio": "Audio",
@@ -610,7 +613,9 @@
       "background": "Background",
       "on": "On",
       "off": "Off",
-      "padding": "Padding"
+      "padding": "Padding",
+      "font": "Font",
+      "weight": "Weight"
     },
     "captionPresets": {
       "netflixHint": "Inter on a rounded dark box, lower-third — broadcast-grade neutral.",

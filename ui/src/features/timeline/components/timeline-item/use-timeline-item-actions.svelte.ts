@@ -20,6 +20,7 @@ import {
   mediaTranscriptionService,
   runMediaTranscriptionJob,
 } from '@/features/timeline/deps/media-transcription-service'
+import type { TranscribeDialogValues } from '@/features/timeline/deps/transcribe-dialog'
 import { useTimelineSettingsStore } from '@/features/timeline/stores/timeline-settings-store'
 import {
   joinItems,
@@ -231,6 +232,9 @@ export function useTimelineItemActions(params: () => UseTimelineItemActionsParam
       replaceExisting?: boolean
       quantization?: MediaTranscriptQuantization
       language?: string
+      stylePresetId?: string
+      /** Place captions from the stored transcript, whatever model made it. */
+      reuseTranscript?: boolean
       onError?: (error: unknown) => void
     },
   ) => {
@@ -249,7 +253,9 @@ export function useTimelineItemActions(params: () => UseTimelineItemActionsParam
       try {
         const existingTranscript = await mediaTranscriptionService.getTranscript(mediaId)
         const needsTranscription =
-          forceTranscription || !existingTranscript || existingTranscript.model !== model
+          !existingTranscript ||
+          (!options?.reuseTranscript &&
+            (forceTranscription || existingTranscript.model !== model))
 
         if (needsTranscription) {
           const result = await runMediaTranscriptionJob(mediaId, {
@@ -264,14 +270,17 @@ export function useTimelineItemActions(params: () => UseTimelineItemActionsParam
           store.setTranscriptStatus(mediaId, 'ready')
           store.clearTranscriptProgress(mediaId)
         }
-        const result = await mediaTranscriptionService.enableTranscriptCaptions(mediaId, {
+        const result = await mediaTranscriptionService.insertTranscriptAsCaptions(mediaId, {
           clipIds: [clipId],
           replaceExisting,
+          stylePresetId: options?.stylePresetId,
         })
 
-        const modelLabel = getMediaTranscriptionModelLabel(model)
+        const modelLabel = getMediaTranscriptionModelLabel(
+          needsTranscription ? model : existingTranscript.model,
+        )
         const successMessage = replaceExisting
-          ? result.updatedClipCount > 0
+          ? result.insertedItemCount > 0
             ? result.removedItemCount > 0
               ? i18n.t('timeline.captions.updatedWithModel', { model: modelLabel })
               : i18n.t('timeline.captions.refreshedWithModel', { model: modelLabel })
@@ -303,21 +312,17 @@ export function useTimelineItemActions(params: () => UseTimelineItemActionsParam
   }
 
   const handleCaptionsFromDialog = (
-    values: {
-      model: MediaTranscriptModel
-      quantization: MediaTranscriptQuantization
-      language: string
-    },
+    values: TranscribeDialogValues,
     hasExistingCaptions: boolean,
     onError?: (error: unknown) => void,
   ) => {
     handleCaptionGeneration(values.model, {
-      // The dialog path is always "generate fresh captions". Existing
-      // transcripts are auto-enabled as virtual captions when clips load.
       forceTranscription: true,
+      reuseTranscript: values.reuseTranscript,
       replaceExisting: hasExistingCaptions,
       quantization: values.quantization,
       language: values.language,
+      stylePresetId: values.captions?.stylePresetId ?? undefined,
       onError,
     })
   }

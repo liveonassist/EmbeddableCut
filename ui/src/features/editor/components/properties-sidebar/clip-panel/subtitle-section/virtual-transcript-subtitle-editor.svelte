@@ -1,6 +1,10 @@
 <!-- SPDX-License-Identifier: MIT -->
 <script lang="ts">
   import Captions from 'lucide-svelte/icons/captions'
+  import ArrowUpToLine from 'lucide-svelte/icons/arrow-up-to-line'
+  import { toast } from 'svelte-sonner'
+  import { Button } from '@/components/ui/button'
+  import { importMediaTranscriptionService } from '@/features/editor/deps/media-library'
   import { select } from '$lib/store.svelte'
   import { i18n } from '@/i18n'
   import { Label } from '@/components/ui/label'
@@ -92,6 +96,26 @@
     } as Partial<TimelineItem>)
   }
 
+  let movingToTrack = $state(false)
+  const moveToTrack = async () => {
+    movingToTrack = true
+    try {
+      const { mediaTranscriptionService } = await importMediaTranscriptionService()
+      const clipIdsByMedia = new Map<string, string[]>()
+      for (const clip of clips) {
+        const mediaId = clip.transcriptCaptions.mediaId || clip.mediaId
+        if (mediaId) clipIdsByMedia.set(mediaId, [...(clipIdsByMedia.get(mediaId) ?? []), clip.id])
+      }
+      for (const [mediaId, clipIds] of clipIdsByMedia) {
+        await mediaTranscriptionService.insertTranscriptAsCaptions(mediaId, { clipIds })
+      }
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : String(error))
+    } finally {
+      movingToTrack = false
+    }
+  }
+
   const seekToCue = (startSeconds: number) => {
     const sourceFps = firstClip.sourceFps ?? fps.current
     const sourceStartSeconds = (firstClip.sourceStart ?? 0) / sourceFps
@@ -102,6 +126,18 @@
     )
   }
 </script>
+
+{#snippet moveToTrackPrompt()}
+  <div class="space-y-1.5 rounded border border-border bg-muted/20 px-2 py-2">
+    <p class="text-xs leading-relaxed text-muted-foreground">
+      {i18n.t('editor.subtitleSection.moveToTrackHint')}
+    </p>
+    <Button size="sm" class="h-7 w-full text-xs" disabled={movingToTrack} onclick={moveToTrack}>
+      <ArrowUpToLine class="mr-1.5 h-3.5 w-3.5" />
+      {i18n.t('editor.subtitleSection.moveToTrack')}
+    </Button>
+  </div>
+{/snippet}
 
 {#snippet visibilityToggle()}
   <div
@@ -123,6 +159,7 @@
 {#if clips.length > 1}
   <PropertySection title={i18n.t('editor.subtitleSection.title')} icon={Captions} defaultOpen={true}>
     <div class="space-y-3 px-1">
+      {@render moveToTrackPrompt()}
       {@render visibilityToggle()}
 
       <CaptionStyleControls
@@ -150,6 +187,7 @@
         - {i18n.t('editor.subtitleSection.transcript')}
       </p>
 
+      {@render moveToTrackPrompt()}
       {@render visibilityToggle()}
 
       <CaptionStyleControls

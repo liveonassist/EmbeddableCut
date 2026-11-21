@@ -1,6 +1,9 @@
 <!-- SPDX-License-Identifier: MIT -->
 <script lang="ts">
-  import { cancelMediaTranscriptionJob } from '@/features/timeline/deps/media-transcription-service'
+  import {
+    cancelMediaTranscriptionJob,
+    mediaTranscriptionService,
+  } from '@/features/timeline/deps/media-transcription-service'
   import {
     TranscribeDialog,
     type TranscribeDialogValues,
@@ -75,6 +78,8 @@
       : 'Transcribing...'}
     progressDetail={transcriptProgress ? getTranscriptionProgressDetail(transcriptProgress) : null}
     errorMessage={caption.dialogError}
+    captionMode="always"
+    hasProjectCaptions={() => mediaTranscriptionService.hasTranscriptCaptions()}
     onStart={handleStart}
     onCancel={() => {
       caption.markCaptionStopRequested()

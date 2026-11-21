@@ -609,6 +609,46 @@ describe('mediaTranscriptionService.insertTranscriptAsCaptions placement', () =>
     const [segment] = addItems.mock.calls[0]![0] as TimelineItem[]
     expect(segment).toMatchObject({ fontFamily: 'Roboto Slab', color: '#FFD400' })
   })
+  it('captions only the clips that have none, once per linked pair', async () => {
+    const captioned = makeClip('captioned', 0)
+    const fresh = makeClip('fresh', 200, { linkedGroupId: 'pair' })
+    const freshAudio: TimelineItem = {
+      ...makeClip('fresh-audio', 200, { linkedGroupId: 'pair' }),
+      type: 'audio',
+      trackId: 'track-audio',
+    } as TimelineItem
+    const existing: TimelineItem = {
+      id: 'existing',
+      type: 'subtitle',
+      trackId: 'track-captions',
+      from: 0,
+      durationInFrames: 60,
+      label: 'Captions',
+      mediaId: 'media-1',
+      source: { type: 'transcript', mediaId: 'media-1', clipId: 'captioned' },
+      cues: [{ id: 'x', startSeconds: 0, endSeconds: 2, text: 'Earlier' }],
+      color: '#ffffff',
+    }
+    const addItems = vi.fn()
+    timelineStateMock.mockReturnValue({
+      fps: 30,
+      tracks: [
+        { ...makeTrack('track-captions', 0), name: 'Captions' },
+        makeTrack('track-video', 1),
+        makeTrack('track-audio', 2),
+      ],
+      items: [captioned, existing, fresh, freshAudio],
+      setTracks: vi.fn(),
+      addItems,
+    })
+
+    await mediaTranscriptionService.captionUncaptionedClips('media-1')
+
+    const inserted = addItems.mock.calls[0]![0] as TimelineItem[]
+    expect(inserted.map((item) => item.type === 'subtitle' && item.source.clipId)).toEqual([
+      'fresh',
+    ])
+  })
 })
 
 describe('mediaTranscriptionService.enableTranscriptCaptions', () => {

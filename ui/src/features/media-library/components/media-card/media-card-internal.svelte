@@ -30,6 +30,7 @@
   import { upscaleService } from '@/features/media-library/services/upscale-service'
   import type { UpscaleVariant } from '@/infrastructure/upscale'
   import { mediaTranscriptionService } from '@/features/media-library/services/media-transcription-service'
+  import { createLogger } from '@/shared/logging/logger'
   import {
     cancelMediaTranscriptionJob,
     runMediaTranscriptionJob,
@@ -168,6 +169,7 @@
   const isTranscriptionDialogOpen = $derived(isTranscriptionDialogOpenSelection.current)
 
   const isAudio = $derived(mediaType === 'audio' && !isBroken && !isPreparingMedia)
+  const captionLogger = createLogger('MediaCard')
   let transcribeDialogOpen = $state(false)
   let transcribeErrorMessage = $state<string | null>(null)
   let isExtractingEmbeddedSubtitles = $state(false)
@@ -393,6 +395,14 @@
             continue
           }
           succeeded += 1
+          if (values.captions) {
+            // EmbeddableCut: the transcript's clips get captions on a track right away.
+            await mediaTranscriptionService
+              .captionUncaptionedClips(target.id, values.captions.stylePresetId ?? undefined)
+              .catch((error: unknown) => {
+                captionLogger.warn('Could not place captions after transcription', error)
+              })
+          }
         } catch (error) {
           const baseMessage =
             error instanceof Error ? error.message : i18n.t('media.card.transcribeFailed')
@@ -1022,6 +1032,8 @@
   progressLabel={transcriptProgressLabel}
   progressDetail={transcriptProgressDetail}
   errorMessage={transcribeErrorMessage}
+  captionMode="optional"
+  hasProjectCaptions={() => mediaTranscriptionService.hasTranscriptCaptions()}
   onStart={handleStartTranscription}
   onCancel={handleCancelTranscript}
 />
