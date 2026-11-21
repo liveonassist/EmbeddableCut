@@ -437,8 +437,9 @@ export function useMarqueeSelection(options: () => UseMarqueeSelectionOptions) {
       return
     }
 
-    // Don't start marquee if clicking on an interactive element
-    const target = e.target as HTMLElement
+    // Don't start marquee if clicking on an interactive element. Seen from the
+    // document, a shadow-root editor's target is its host: read the real one.
+    const target = (e.composedPath()[0] ?? e.target) as HTMLElement
     if (
       target.tagName === 'BUTTON' ||
       target.tagName === 'INPUT' ||

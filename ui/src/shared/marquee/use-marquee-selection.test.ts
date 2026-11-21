@@ -290,6 +290,31 @@ describe('useMarqueeSelection deferred commits', () => {
     expect(onSelectionChange).toHaveBeenCalledWith(['clip-2'])
   })
 
+  it('does not claim a drag that starts on a media card in a shadow-root editor', () => {
+    const host = document.body.appendChild(document.createElement('div'))
+    const target = host.attachShadow({ mode: 'open' }).appendChild(document.createElement('div'))
+    const onGestureEnd = vi.fn<(event: MouseEvent, wasActualDrag: boolean) => void>()
+    const { getByTestId } = render(MarqueeHarness, {
+      target,
+      props: {
+        onSelectionChange: vi.fn(),
+        onGestureEnd,
+        children: child('<div data-media-id="media-1" data-testid="media-card"></div>'),
+      },
+    })
+    sizeContainer(getByTestId('marquee-container'))
+
+    // The card's native drag swallows mouseup, so a marquee started here never ends.
+    fireEvent.mouseDown(getByTestId('media-card'), { button: 0, clientX: 5, clientY: 5 })
+    fireEvent.mouseMove(document, { clientX: 100, clientY: 100 })
+    flushAnimationFrames()
+
+    expect(getByTestId('marquee-container').dataset.marqueeActive).toBe('false')
+    fireEvent.mouseUp(document, { clientX: 100, clientY: 100 })
+    expect(onGestureEnd).not.toHaveBeenCalled()
+    host.remove()
+  })
+
   it('does not claim a drag that starts on a compact density clip', () => {
     const onSelectionChange = vi.fn<(ids: string[]) => void>()
     const onGestureEnd = vi.fn<(event: MouseEvent, wasActualDrag: boolean) => void>()
