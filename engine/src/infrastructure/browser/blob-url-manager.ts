@@ -175,12 +175,17 @@ class BlobUrlManager {
    * Consumers will re-acquire fresh URLs on next resolve.
    */
   invalidateAll(): void {
-    for (const entry of this.entries.values()) {
+    let changed = false
+    for (const [mediaId, entry] of this.entries) {
+      // External URLs don't go stale with the tab (remote-media renews them),
+      // and re-registering every one notifies every reader again.
+      if (entry.external) continue
       this.revokeEntry(entry)
+      this.entries.delete(mediaId)
+      this.mediaIdByUrl.delete(entry.url)
+      changed = true
     }
-    this.entries.clear()
-    this.mediaIdByUrl.clear()
-    this.notify()
+    if (changed) this.notify()
   }
 
   /**

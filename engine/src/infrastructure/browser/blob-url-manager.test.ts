@@ -155,6 +155,20 @@ describe('BlobUrlManager', () => {
     })
   })
 
+  describe('invalidateAll', () => {
+    it('revokes blob URLs but keeps external ones, which a wake-up does not stale', () => {
+      const blobUrl = blobUrlManager.acquire('media-1', new Blob(['a']))
+      blobUrlManager.registerUrl('media-2', 'https://cdn.test/clip.mp4')
+
+      blobUrlManager.invalidateAll()
+
+      expect(blobUrlManager.get('media-1')).toBeNull()
+      expect(revokedUrls.has(blobUrl)).toBe(true)
+      expect(blobUrlManager.get('media-2')).toBe('https://cdn.test/clip.mp4')
+      expect(blobUrlManager.getMediaIdByUrl('https://cdn.test/clip.mp4')).toBe('media-2')
+    })
+  })
+
   describe('getMediaIdByUrl', () => {
     it('resolves an acquired blob URL back to its media id', () => {
       const url = blobUrlManager.acquire('media-1', new Blob(['data']))
