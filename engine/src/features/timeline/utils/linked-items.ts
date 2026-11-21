@@ -67,9 +67,12 @@ export function getAttachedCaptionItemIds(items: TimelineItem[], itemId: string)
   return items
     .filter(
       (item) =>
-        item.type === 'text' &&
-        (item.textRole === 'caption' || item.captionSource !== undefined) &&
-        item.captionSource?.clipId === anchor.id,
+        (item.type === 'text' &&
+          (item.textRole === 'caption' || item.captionSource !== undefined) &&
+          item.captionSource?.clipId === anchor.id) ||
+        (item.type === 'subtitle' &&
+          item.source.type === 'transcript' &&
+          item.source.clipId === anchor.id),
     )
     .map((item) => item.id)
 }
@@ -393,7 +396,7 @@ export function buildAttachedCaptionBoundsPreviewUpdates(
 
     for (const captionId of getAttachedCaptionItemIds(items, clip.id)) {
       const caption = itemById.get(captionId)
-      if (!caption || caption.type !== 'text') continue
+      if (!caption || (caption.type !== 'text' && caption.type !== 'subtitle')) continue
 
       const captionStart = caption.from
       const captionEnd = caption.from + caption.durationInFrames

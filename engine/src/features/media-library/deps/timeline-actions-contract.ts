@@ -6,6 +6,7 @@ import { useKeyframesStore } from '@/features/timeline/stores/keyframes-store'
 import { getSynchronizedLinkedItems } from '@/features/timeline/utils/linked-items'
 import {
   addItems,
+  asOneUndoStep,
   deleteCompoundClips,
   getCompoundClipDeletionImpact,
   getMediaDeletionImpact,
@@ -53,6 +54,7 @@ function removeTimelineItemsExact(ids: string[]): void {
 
 export {
   addItems,
+  asOneUndoStep,
   deleteCompoundClips,
   getCompoundClipDeletionImpact,
   getMediaDeletionImpact,

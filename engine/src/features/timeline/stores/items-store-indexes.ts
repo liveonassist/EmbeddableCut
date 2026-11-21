@@ -553,8 +553,13 @@ function buildCaptionIdsByClipId(
 ): Record<string, string[]> {
   const grouped: Record<string, string[]> = {}
   for (const item of items) {
-    if (item.type !== 'text') continue
-    const clipId = item.captionSource?.clipId
+    // EmbeddableCut: transcript caption segments ride with their clip too.
+    const clipId =
+      item.type === 'text'
+        ? item.captionSource?.clipId
+        : item.type === 'subtitle' && item.source.type === 'transcript'
+          ? item.source.clipId
+          : undefined
     if (clipId) {
       ;(grouped[clipId] ??= []).push(item.id)
     }

@@ -11,6 +11,7 @@ export {
 } from './timeline-stores-contract'
 export {
   addItems,
+  asOneUndoStep,
   deleteCompoundClips,
   getCompoundClipDeletionImpact,
   getMediaDeletionImpact,

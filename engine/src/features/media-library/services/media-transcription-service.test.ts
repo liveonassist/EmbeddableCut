@@ -52,6 +52,7 @@ vi.mock('@/features/media-library/deps/timeline-stores', () => {
   // service invokes) in a single call.
   return {
     removeTimelineItemsExact: removeTimelineItemsExactMock,
+    asOneUndoStep: (_type: string, fn: () => unknown) => fn(),
     useItemsStore: {
       getState: timelineStateMock,
     },
@@ -194,7 +195,7 @@ describe('mediaTranscriptionService.insertTranscriptAsCaptions', () => {
     resolvePreviewAudioConformUrlMock.mockResolvedValue(null)
   })
 
-  it('creates a new captions track above the clip track when no compatible track exists', async () => {
+  it('creates a captions track above every other track when none has room', async () => {
     const clip: VideoItem = {
       id: 'clip-1',
       type: 'video',
@@ -259,8 +260,7 @@ describe('mediaTranscriptionService.insertTranscriptAsCaptions', () => {
     const captionTrack = updatedTracks.find(
       (track) => !initialTracks.some((existing) => existing.id === track.id),
     )
-    expect(captionTrack).toBeDefined()
-    expect(captionTrack?.order).toBe(0.5)
+    expect(captionTrack).toMatchObject({ name: 'Captions', order: -1 })
 
     expect(addItems).toHaveBeenCalledTimes(1)
     const insertedItems = addItems.mock.calls[0]![0] as TimelineItem[]
@@ -268,7 +268,7 @@ describe('mediaTranscriptionService.insertTranscriptAsCaptions', () => {
     expect(insertedItems[0]?.trackId).toBe(captionTrack?.id)
     expect(insertedItems[0]).toMatchObject({
       type: 'subtitle',
-      label: 'Transcript',
+      label: 'Captions',
       source: {
         type: 'transcript',
         mediaId: 'media-1',
@@ -468,7 +468,8 @@ describe('mediaTranscriptionService.insertTranscriptAsCaptions', () => {
     expect(insertedItems[0]).toMatchObject({
       type: 'subtitle',
       trackId: 'track-captions',
-      linkedGroupId: 'linked-av-1',
+      // Attached by source.clipId, so a linked split never has to cut it.
+      linkedGroupId: undefined,
       source: {
         type: 'transcript',
         mediaId: 'media-1',
@@ -478,6 +479,135 @@ describe('mediaTranscriptionService.insertTranscriptAsCaptions', () => {
     if (insertedItems[0]?.type === 'subtitle') {
       expect(insertedItems[0].cues.map((cue) => cue.text)).toEqual(['Fresh one', 'Fresh two'])
     }
+  })
+})
+
+describe('mediaTranscriptionService.insertTranscriptAsCaptions placement', () => {
+  const transcriptUpdatedAt = 1_700_000_000_000
+  const transcript: MediaTranscript = {
+    id: 'media-1',
+    mediaId: 'media-1',
+    model: 'whisper-tiny',
+    language: 'auto',
+    quantization: 'q8',
+    text: 'Hello there',
+    segments: [{ text: 'Hello there', start: 0, end: 2 }],
+    createdAt: transcriptUpdatedAt,
+    updatedAt: transcriptUpdatedAt,
+  }
+  const makeClip = (id: string, from: number, extra: Partial<VideoItem> = {}): VideoItem => ({
+    id,
+    type: 'video',
+    trackId: 'track-video',
+    from,
+    durationInFrames: 90,
+    label: id,
+    mediaId: 'media-1',
+    src: 'blob:test',
+    sourceStart: 0,
+    sourceEnd: 90,
+    sourceDuration: 90,
+    sourceFps: 30,
+    ...extra,
+  })
+
+  beforeEach(() => {
+    vi.clearAllMocks()
+    useSelectionStoreGetStateMock.mockReturnValue({ selectedItemIds: [], selectItems: vi.fn() })
+    usePlaybackStoreGetStateMock.mockReturnValue({ currentFrame: 0 })
+    useProjectStoreGetStateMock.mockReturnValue({
+      currentProject: { metadata: { width: 1920, height: 1080 } },
+    })
+    getTranscriptMock.mockResolvedValue(transcript)
+  })
+
+  it('takes over virtual captions with their edited cues and style', async () => {
+    const clip = makeClip('clip-1', 0, {
+      transcriptCaptions: {
+        type: 'transcript',
+        mediaId: 'media-1',
+        enabled: true,
+        updatedAt: transcriptUpdatedAt,
+        sourceTranscriptUpdatedAt: transcriptUpdatedAt,
+        cues: [{ id: 'cue-0', startSeconds: 0, endSeconds: 2, text: 'Hello, there!' }],
+        style: { fontFamily: 'Anton', color: '#ffd400' },
+      },
+    })
+    const addItems = vi.fn()
+    const updateItem = vi.fn()
+    timelineStateMock.mockReturnValue({
+      fps: 30,
+      tracks: [makeTrack('track-video', 0)],
+      items: [clip],
+      setTracks: vi.fn(),
+      addItems,
+      updateItem,
+    })
+
+    await mediaTranscriptionService.insertTranscriptAsCaptions('media-1', { clipIds: ['clip-1'] })
+
+    const [segment] = addItems.mock.calls[0]![0] as TimelineItem[]
+    expect(segment).toMatchObject({
+      type: 'subtitle',
+      fontFamily: 'Anton',
+      color: '#ffd400',
+      cues: [{ text: 'Hello, there!' }],
+    })
+    // The track now carries them, so the clip stops rendering its own.
+    expect(updateItem).toHaveBeenCalledWith('clip-1', { transcriptCaptions: undefined })
+  })
+
+  it("matches the project's captions and shares their track", async () => {
+    const styled: TimelineItem = {
+      id: 'captions-a',
+      type: 'subtitle',
+      trackId: 'track-captions',
+      from: 0,
+      durationInFrames: 60,
+      label: 'Captions',
+      mediaId: 'media-1',
+      source: { type: 'transcript', mediaId: 'media-1', clipId: 'clip-a' },
+      cues: [{ id: 'x', startSeconds: 0, endSeconds: 2, text: 'Earlier' }],
+      color: '#ffffff',
+      fontFamily: 'Roboto Slab',
+    }
+    const setTracks = vi.fn()
+    const addItems = vi.fn()
+    timelineStateMock.mockReturnValue({
+      fps: 30,
+      tracks: [
+        { ...makeTrack('track-captions', 0), name: 'Captions' },
+        makeTrack('track-video', 1),
+      ],
+      items: [makeClip('clip-a', 0), styled, makeClip('clip-b', 200)],
+      setTracks,
+      addItems,
+    })
+
+    await mediaTranscriptionService.insertTranscriptAsCaptions('media-1', { clipIds: ['clip-b'] })
+
+    expect(setTracks).not.toHaveBeenCalled()
+    const [segment] = addItems.mock.calls[0]![0] as TimelineItem[]
+    expect(segment).toMatchObject({ trackId: 'track-captions', fontFamily: 'Roboto Slab' })
+  })
+
+  it('lets an explicit preset override the project style', async () => {
+    const addItems = vi.fn()
+    timelineStateMock.mockReturnValue({
+      fps: 30,
+      tracks: [makeTrack('track-video', 0)],
+      items: [makeClip('clip-1', 0)],
+      setTracks: vi.fn(),
+      addItems,
+    })
+
+    await mediaTranscriptionService.insertTranscriptAsCaptions('media-1', {
+      clipIds: ['clip-1'],
+      stylePresetId: 'bold-yellow',
+    })
+
+    const [segment] = addItems.mock.calls[0]![0] as TimelineItem[]
+    expect(segment).toMatchObject({ fontFamily: 'Roboto Slab', color: '#FFD400' })
   })
 })
 

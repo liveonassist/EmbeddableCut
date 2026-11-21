@@ -19,6 +19,7 @@ import {
 } from '../../../utils/trim-edit-constraints'
 import { clampToAdjacentItems, clampTrimAmount } from '../../../utils/trim-utils'
 import { getTransitionLinkedIds } from '../../items-store-indexes'
+import { trimSubtitleCuesAtEnd, trimSubtitleCuesAtStart } from '../../items-store-normalize'
 import {
   clampSlideDeltaToPreserveTransitions,
   clampSlipDeltaToPreserveTransitions,
@@ -28,7 +29,7 @@ import {
   propagateRemovedIntervalsToSyncLockedTracks,
 } from '../sync-lock-ripple'
 import { isLinkedSelectionEnabled, requestPostEditWarmForItems } from './shared'
-import type { TimelineItem } from '@/types/timeline'
+import type { SubtitleSegmentItem, TimelineItem } from '@/types/timeline'
 
 function keepTightestDelta(requested: number, candidate: number): number {
   return requested < 0 ? Math.max(requested, candidate) : Math.min(requested, candidate)
@@ -123,10 +124,27 @@ function clampSlideParticipantDelta(
   return clamped
 }
 
+// EmbeddableCut: a transcript caption segment's cues are relative to its
+// `from`, so clamping it to its clip re-anchors them as a trim would.
+function clampSubtitleCues(
+  caption: SubtitleSegmentItem,
+  startTrim: number,
+  nextDuration: number,
+): SubtitleSegmentItem['cues'] {
+  const fps = useTimelineSettingsStore.getState().fps
+  const trimmedStart = trimSubtitleCuesAtStart(caption, startTrim, fps)?.cues ?? caption.cues
+  return trimSubtitleCuesAtEnd({ ...caption, cues: trimmedStart }, nextDuration, fps)?.cues ?? []
+}
+
 function trimAttachedCaptionsToClipBounds(clipIds: Iterable<string>): string[] {
   const store = useItemsStore.getState()
   const items = store.items
-  const captionUpdates: Array<{ id: string; from: number; durationInFrames: number }> = []
+  const captionUpdates: Array<{
+    id: string
+    from: number
+    durationInFrames: number
+    cues?: SubtitleSegmentItem['cues']
+  }> = []
   const captionIdsToRemove = new Set<string>()
 
   for (const clipId of clipIds) {
@@ -137,7 +155,7 @@ function trimAttachedCaptionsToClipBounds(clipIds: Iterable<string>): string[] {
     const clipEnd = clip.from + clip.durationInFrames
     for (const captionId of getAttachedCaptionItemIds(items, clipId)) {
       const caption = store.itemById[captionId]
-      if (!caption || caption.type !== 'text') continue
+      if (!caption || (caption.type !== 'text' && caption.type !== 'subtitle')) continue
 
       const captionStart = caption.from
       const captionEnd = caption.from + caption.durationInFrames
@@ -155,6 +173,9 @@ function trimAttachedCaptionsToClipBounds(clipIds: Iterable<string>): string[] {
           id: caption.id,
           from: nextStart,
           durationInFrames: nextDuration,
+          ...(caption.type === 'subtitle'
+            ? { cues: clampSubtitleCues(caption, nextStart - captionStart, nextDuration) }
+            : {}),
         })
       }
     }
@@ -171,6 +192,7 @@ function trimAttachedCaptionsToClipBounds(clipIds: Iterable<string>): string[] {
     store._updateItem(update.id, {
       from: update.from,
       durationInFrames: update.durationInFrames,
+      ...(update.cues ? { cues: update.cues } : {}),
     })
   }
 

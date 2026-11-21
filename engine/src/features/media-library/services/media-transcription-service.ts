@@ -27,17 +27,21 @@ import { importMediaLibraryService } from './media-library-service-loader'
 import {
   buildSubtitleSegmentForClip,
   getCaptionStyleTemplateFromPreset,
-  buildCaptionTrackAbove,
   type CaptionTextItemTemplate,
   findReplaceableCaptionItemsForClip,
-  findCompatibleCaptionTrackForRanges,
   isCaptionTrackCandidate,
   getCaptionTextItemTemplate,
   getCaptionRangeForClip,
 } from '../utils/caption-items'
+import {
+  buildCaptionsTrack,
+  findCaptionsTrackForRange,
+  resolveProjectCaptionStyle,
+} from '../utils/caption-track-placement'
 import { useProjectStore } from '@/features/media-library/deps/projects'
 import {
   addItems,
+  asOneUndoStep,
   removeTimelineItemsExact,
   setTracks,
   updateItem,
@@ -77,6 +81,23 @@ interface InsertTranscriptAsCaptionsOptions {
   clipIds?: readonly string[]
   replaceExisting?: boolean
   selectUpdatedClips?: boolean
+  /** A caption style preset to apply; otherwise new captions match the project's. */
+  stylePresetId?: string
+}
+
+/** An audio clip whose linked video carries the captions for both. */
+function isCaptionedByLinkedVideo(items: readonly TimelineItem[], clip: CaptionableClip): boolean {
+  return (
+    clip.type === 'audio' &&
+    clip.linkedGroupId !== undefined &&
+    items.some(
+      (item) =>
+        item.type === 'video' &&
+        item.id !== clip.id &&
+        item.linkedGroupId === clip.linkedGroupId &&
+        item.mediaId === clip.mediaId,
+    )
+  )
 }
 
 interface InsertTranscriptAsCaptionsResult {
@@ -697,6 +718,14 @@ class MediaTranscriptionService {
     return await response.blob()
   }
 
+  /**
+   * EmbeddableCut: place a clip's transcript as a caption segment on a
+   * captions track, where the timeline and the canvas can select, move and
+   * restyle it like any other item. The segment is attached to its clip
+   * (`source.clipId`), so it moves, trims and deletes with it. Clips that held
+   * upstream's virtual transcript captions hand them over, edits and style
+   * included. One undo step.
+   */
   async insertTranscriptAsCaptions(
     mediaId: string,
     options: InsertTranscriptAsCaptionsOptions = {},
@@ -705,7 +734,33 @@ class MediaTranscriptionService {
     if (!transcript) {
       throw new Error('No transcript found for this media item')
     }
+    return asOneUndoStep('ADD_CAPTIONS', () =>
+      this.placeTranscriptCaptions(mediaId, transcript, options),
+    )
+  }
 
+  /** Captions for every clip of `mediaId` on the timeline that has none yet. */
+  async captionUncaptionedClips(mediaId: string): Promise<InsertTranscriptAsCaptionsResult> {
+    const { items } = useItemsStore.getState()
+    const clipIds = items
+      .filter(
+        (item): item is CaptionableClip =>
+          (item.type === 'video' || item.type === 'audio') &&
+          item.mediaId === mediaId &&
+          item.isReversed !== true &&
+          !isCaptionedByLinkedVideo(items, item) &&
+          findReplaceableCaptionItemsForClip(items, item, 'transcript').length === 0,
+      )
+      .map((clip) => clip.id)
+    if (clipIds.length === 0) return { insertedItemCount: 0, removedItemCount: 0 }
+    return this.insertTranscriptAsCaptions(mediaId, { clipIds, selectUpdatedClips: false })
+  }
+
+  private placeTranscriptCaptions(
+    mediaId: string,
+    transcript: MediaTranscript,
+    options: InsertTranscriptAsCaptionsOptions,
+  ): InsertTranscriptAsCaptionsResult {
     const { items, tracks } = useItemsStore.getState()
     const { fps } = useTimelineSettingsStore.getState()
     const project = useProjectStore.getState().currentProject
@@ -716,104 +771,118 @@ class MediaTranscriptionService {
 
     const canvasWidth = project?.metadata.width ?? DEFAULT_PROJECT_WIDTH
     const canvasHeight = project?.metadata.height ?? DEFAULT_PROJECT_HEIGHT
-    const defaultCaptionTemplate = getCaptionStyleTemplateFromPreset(
-      useSettingsStore.getState().defaultCaptionStylePresetId,
-      canvasWidth,
-      canvasHeight,
-    )
+    const presetTemplate = options.stylePresetId
+      ? getCaptionStyleTemplateFromPreset(options.stylePresetId, canvasWidth, canvasHeight)
+      : undefined
+    const defaultTemplate =
+      resolveProjectCaptionStyle(items) ??
+      getCaptionStyleTemplateFromPreset(
+        useSettingsStore.getState().defaultCaptionStylePresetId,
+        canvasWidth,
+        canvasHeight,
+      )
+    const transcriptCues = buildTimelineTranscriptCaptionCues(mediaId, transcript.segments)
     const newTracks: TimelineTrack[] = [...tracks]
-    const generatedCaptionIdsToRemove = options.replaceExisting
-      ? new Set(
-          targetClips.flatMap((clip) =>
-            findReplaceableCaptionItemsForClip(items, clip, 'transcript').map(
-              (item) => item.id,
-            ),
-          ),
-        )
-      : new Set<string>()
-    const plannedItems = items.filter((item) => !generatedCaptionIdsToRemove.has(item.id))
+    const idsToRemove = new Set<string>()
+    const plannedItems = [...items]
     const insertedItems: SubtitleSegmentItem[] = []
+    const handedOverClipIds: string[] = []
+    let alreadyCaptioned = 0
 
     for (const clip of targetClips) {
-      const clipRange = getCaptionRangeForClip(clip, transcript.segments, fps)
-      if (!clipRange) {
+      const existing = findReplaceableCaptionItemsForClip(items, clip, 'transcript')
+      if (existing.length > 0 && !options.replaceExisting) {
+        alreadyCaptioned += 1
         continue
       }
+      for (const item of existing) idsToRemove.add(item.id)
 
-      const existingGeneratedCaptions = options.replaceExisting
-        ? findReplaceableCaptionItemsForClip(items, clip, 'transcript')
-        : []
+      const virtual = clip.transcriptCaptions
+      // Virtual cues the user may have edited stand until the transcript changes.
+      const keepVirtualCues =
+        virtual?.type === 'transcript' &&
+        virtual.mediaId === mediaId &&
+        virtual.cues.length > 0 &&
+        virtual.sourceTranscriptUpdatedAt === transcript.updatedAt &&
+        !options.replaceExisting
+      const cues = keepVirtualCues ? virtual.cues : transcriptCues
+
+      const clipRange = getCaptionRangeForClip(clip, transcript.segments, fps)
+      if (!clipRange) continue
+
+      const remaining = plannedItems.filter((item) => !idsToRemove.has(item.id))
       const preferredTrackId = this.resolvePreferredCaptionTrackId(
         newTracks,
-        plannedItems,
-        existingGeneratedCaptions,
+        remaining,
+        existing,
         clipRange,
       )
-
-      let targetTrack = preferredTrackId
-        ? (newTracks.find((track) => track.id === preferredTrackId) ?? null)
-        : findCompatibleCaptionTrackForRanges(newTracks, plannedItems, [
-            { startFrame: clipRange.startFrame, endFrame: clipRange.endFrame },
-          ])
-
+      let targetTrack =
+        (preferredTrackId ? newTracks.find((track) => track.id === preferredTrackId) : null) ??
+        findCaptionsTrackForRange(newTracks, remaining, clipRange)
       if (!targetTrack) {
-        const clipTrack = newTracks.find((track) => track.id === clip.trackId)
-        targetTrack = clipTrack
-          ? buildCaptionTrackAbove(newTracks, clipTrack.order)
-          : buildCaptionTrackAbove(newTracks, 0)
+        targetTrack = buildCaptionsTrack(newTracks)
         newTracks.push(targetTrack)
         newTracks.sort((a, b) => a.order - b.order)
       }
 
-      const clipCaptionItem = buildSubtitleSegmentForClip({
+      const styleTemplate =
+        presetTemplate ??
+        (existing[0] ? getCaptionTextItemTemplate(existing[0]) : undefined) ??
+        (virtual?.style
+          ? ({
+              ...definedCaptionStyleFields(defaultTemplate),
+              ...definedCaptionStyleFields(virtual.style),
+            } as CaptionTextItemTemplate)
+          : defaultTemplate)
+
+      const segment = buildSubtitleSegmentForClip({
         trackId: targetTrack.id,
-        cues: buildTimelineTranscriptCaptionCues(clip.id, transcript.segments),
+        cues,
         clip,
         timelineFps: fps,
         canvasWidth,
         canvasHeight,
-        label: 'Transcript',
-        source: {
-          type: 'transcript',
-          mediaId,
-          clipId: clip.id,
-        },
-        styleTemplate: existingGeneratedCaptions[0]
-          ? getCaptionTextItemTemplate(existingGeneratedCaptions[0])
-          : defaultCaptionTemplate,
+        label: 'Captions',
+        source: { type: 'transcript', mediaId, clipId: clip.id },
+        styleTemplate,
       })
+      if (!segment) continue
 
-      if (!clipCaptionItem) {
-        continue
-      }
-
-      insertedItems.push(clipCaptionItem)
-      plannedItems.push(clipCaptionItem)
+      // Attached through `source.clipId`, not the clip's link group: a linked
+      // split refuses when any member doesn't span the cut, and captions rarely
+      // start where their clip does.
+      const placed: SubtitleSegmentItem = { ...segment, linkedGroupId: undefined }
+      if (virtual) handedOverClipIds.push(clip.id)
+      insertedItems.push(placed)
+      plannedItems.push(placed)
     }
 
-    if (insertedItems.length === 0 && generatedCaptionIdsToRemove.size === 0) {
+    if (insertedItems.length === 0 && idsToRemove.size === 0) {
+      if (alreadyCaptioned === targetClips.length) {
+        return { insertedItemCount: 0, removedItemCount: 0 }
+      }
       throw new Error('Transcript does not overlap the selected clip source range')
     }
 
     const tracksChanged =
       newTracks.length !== tracks.length ||
       newTracks.some((track, index) => track.id !== tracks[index]?.id)
-    if (tracksChanged) {
-      setTracks(newTracks)
+    if (tracksChanged) setTracks(newTracks)
+    if (idsToRemove.size > 0) removeTimelineItemsExact([...idsToRemove])
+    for (const clipId of handedOverClipIds) {
+      updateItem(clipId, { transcriptCaptions: undefined } as Partial<TimelineItem>)
     }
-
-    if (generatedCaptionIdsToRemove.size > 0) {
-      removeTimelineItemsExact([...generatedCaptionIdsToRemove])
-    }
-
     if (insertedItems.length > 0) {
       addItems(insertedItems)
-      useSelectionStore.getState().selectItems(insertedItems.map((item) => item.id))
+      if (options.selectUpdatedClips !== false) {
+        useSelectionStore.getState().selectItems(insertedItems.map((item) => item.id))
+      }
     }
 
     return {
       insertedItemCount: insertedItems.length,
-      removedItemCount: generatedCaptionIdsToRemove.size,
+      removedItemCount: idsToRemove.size,
     }
   }
 
