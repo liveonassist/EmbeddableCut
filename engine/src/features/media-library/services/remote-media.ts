@@ -147,7 +147,13 @@ function renewRemoteMedia(media: MediaMetadata, reason: 'expiring' | 'refused'):
  */
 export function resolveRemoteMediaUrl(media: MediaMetadata): Promise<string> {
   const entry = active.get(media.id)
-  if (entry && !needsRenewal(entry)) return Promise.resolve(entry.url)
+  if (entry && !needsRenewal(entry)) {
+    // The preview re-resolves any URL the manager doesn't hold (a <video>
+    // retrying a load error invalidates it there): answering without
+    // registering again would loop that check forever.
+    if (!blobUrlManager.has(media.id)) blobUrlManager.registerUrl(media.id, entry.url)
+    return Promise.resolve(entry.url)
+  }
   const inFlight = pending.get(media.id)
   if (inFlight) return inFlight
   const request = resolve(media, entry ? 'expiring' : 'open').finally(() =>

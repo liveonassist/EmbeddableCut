@@ -72,6 +72,17 @@ describe('remote media', () => {
     )
   })
 
+  it('registers its URL again when a reader drops it from the manager', async () => {
+    seed({ url: 'https://cdn.test/clip.mp4' })
+    await resolveMediaUrl('remote-1')
+
+    // As a preview <video> does to retry a load error.
+    blobUrlManager.invalidate('remote-1')
+
+    expect(await resolveMediaUrl('remote-1')).toBe('https://cdn.test/clip.mp4')
+    expect(blobUrlManager.get('remote-1')).toBe('https://cdn.test/clip.mp4')
+  })
+
   it('renews a URL about to expire, and moves readers onto the new one', async () => {
     seed({ url: 'https://cdn.test/clip.mp4', key: 'acme:clip' })
     let signature = 0
