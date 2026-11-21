@@ -208,7 +208,9 @@ export function useTrackDrag(getTrack: () => TimelineTrack): UseTrackDragReturn 
    * Handle mouse move and mouse up during drag
    */
   $effect(() => {
-    if (!dragStateRef.current || !isDragging) return
+    // isDragging first: dragStateRef is no signal, so an effect that read it
+    // first at mount would never subscribe to isDragging and never run again.
+    if (!isDragging || !dragStateRef.current) return
 
     const cleanup = () => {
       setIsDragging(false)

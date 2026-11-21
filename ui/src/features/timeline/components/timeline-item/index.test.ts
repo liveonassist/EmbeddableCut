@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 
 import { flushSync } from 'svelte'
-import { cleanup, render, screen } from '@testing-library/svelte'
+import { cleanup, fireEvent, render, screen } from '@testing-library/svelte'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vite-plus/test'
 import { useSelectionStore } from '@/shared/state/selection'
 import { useSettingsStore } from '@/features/timeline/deps/settings'
@@ -129,5 +129,24 @@ describe('TimelineItem shells', () => {
     const shell = getShell(view.container)
     expect(shell.style.transform).toBe('translate(12px, -4px)')
     expect(shell.style.pointerEvents).toBe('none')
+  })
+
+  it('lets go of a dragged clip on mouseup', async () => {
+    const view = render(TimelineItem, {
+      props: { item: VIDEO_ITEM, isCompactWidth: false, isDetailEligible: true },
+    })
+    const shell = getShell(view.container)
+
+    await fireEvent.mouseDown(shell, { button: 0, clientX: 10, clientY: 10 })
+    await fireEvent.mouseMove(window, { clientX: 40, clientY: 10 })
+    flushSync()
+    expect(useSelectionStore.getState().dragState?.isDragging).toBe(true)
+
+    await fireEvent.mouseUp(window, { clientX: 40, clientY: 10 })
+    await Promise.resolve()
+    flushSync()
+
+    expect(useSelectionStore.getState().dragState).toBeNull()
+    expect(document.body.className).not.toContain('timeline-item-drag-cursor')
   })
 })
