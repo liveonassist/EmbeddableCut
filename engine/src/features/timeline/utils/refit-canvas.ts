@@ -69,6 +69,10 @@ function coverSize(source: CanvasSize, canvas: CanvasSize): CanvasSize {
   return { width: source.width * scale, height: source.height * scale }
 }
 
+function mapSize(size: CanvasSize, round: (length: number) => number): CanvasSize {
+  return { width: round(size.width), height: round(size.height) }
+}
+
 function sameSize(a: CanvasSize, b: CanvasSize, canvas: CanvasSize): boolean {
   const slack = (length: number) => Math.max(1, length * TOLERANCE)
   return (
@@ -346,10 +350,11 @@ function reframe(
   const { width: _w, height: _h, anchorX: _x, anchorY: _y, ...rest } = item.transform ?? {}
   const transform: TransformProperties = { ...rest }
   if (rest.cornerRadius !== undefined) transform.cornerRadius = rest.cornerRadius * cornerScale
-  if (framing === 'fill') Object.assign(transform, coverSize(source, canvas))
+  // Whole pixels, as imported clips get (computeInitialTransform); rounded up, a fill leaves no edge.
+  if (framing === 'fill') Object.assign(transform, mapSize(coverSize(source, canvas), Math.ceil))
   else if (item.transform?.width !== undefined || item.transform?.height !== undefined) {
     // A clip whose size was pinned stays pinned; others take the default fit.
-    Object.assign(transform, containSize(source, canvas))
+    Object.assign(transform, mapSize(containSize(source, canvas), Math.round))
   }
   return Object.keys(transform).length === 0 && item.transform === undefined
     ? item

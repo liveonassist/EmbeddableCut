@@ -34,10 +34,9 @@ function refit(target: TimelineItem, from: CanvasSize, to: CanvasSize, framing: 
 describe('refitCanvas', () => {
   it('letterboxes a full-canvas clip, or covers the canvas with it', () => {
     const pinned = item('video', { transform: { x: 0, y: 0, width: 1920, height: 1080 } })
-    expect(refit(pinned, HD, TALL, 'fit').transform).toMatchObject({ width: 1080, height: 607.5 })
+    expect(refit(pinned, HD, TALL, 'fit').transform).toMatchObject({ width: 1080, height: 608 })
     const filled = refit(pinned, HD, TALL, 'fill')
-    expect(filled.transform!.height).toBe(1920)
-    expect(filled.transform!.width).toBeCloseTo(3413.33, 1)
+    expect(filled.transform).toMatchObject({ width: 3414, height: 1920 })
     // Back to a canvas of the clip's shape, where filling it is fitting it.
     expect(refit(filled, TALL, HD, 'fill').transform).toMatchObject({ width: 1920, height: 1080 })
   })
