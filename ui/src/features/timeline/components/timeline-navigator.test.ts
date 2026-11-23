@@ -67,7 +67,7 @@ describe('timeline navigator resize math', () => {
       dragStartThumbWidth: 40,
       trackWidth: 300,
       viewportWidth: 1200,
-      contentDuration: 6000,
+      contentDuration: 60000,
     }
 
     const atMinimum = getNavigatorResizeDragResult({ ...input, deltaX: 20 })
@@ -206,7 +206,7 @@ describe('timeline navigator interaction', () => {
     const scrollContainer = document.createElement('div')
     scrollContainer.scrollLeft = 2000
 
-    const { getByTestId } = render(TimelineNavigator, { actualDuration: 1000, scrollContainer })
+    const { getByTestId } = render(TimelineNavigator, { actualDuration: 10000, scrollContainer })
 
     const thumb = getByTestId('timeline-navigator-thumb')
     act(() => fireEvent.mouseDown(getByTestId('timeline-navigator-right-handle'), { clientX: 200 }))

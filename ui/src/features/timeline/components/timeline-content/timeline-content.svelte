@@ -117,6 +117,10 @@
   import { getFilteredItemSnapEdges } from '@/features/timeline/utils/timeline-snap-utils'
   import { expandSelectionWithLinkedItems } from '@/features/timeline/utils/linked-items'
   import { getTimelineWidth, getZoomToFitLevel } from '@/features/timeline/utils/timeline-layout'
+  import {
+    registerZoomToFit,
+    runPendingZoomToFit,
+  } from '@/features/timeline/stores/zoom-to-fit-request'
   import { DENSE_TIMELINE_TRACK_ITEM_THRESHOLD } from '@/features/timeline/utils/timeline-dom-density'
   import {
     getAnchoredZoomScrollLeft,
@@ -1136,6 +1140,19 @@
   $effect(() => {
     registerZoomTo100(handleZoomTo100)
     return () => registerZoomTo100(null)
+  })
+
+  // A host may ask for the whole timeline before it's on screen: answer once it has a width.
+  $effect(() => {
+    registerZoomToFit(() => {
+      if ((containerEl?.clientWidth ?? 0) <= 0) return false
+      untrack(handleZoomToFit)
+      return true
+    })
+    return () => registerZoomToFit(null)
+  })
+  $effect(() => {
+    if (containerWidth > 0) untrack(runPendingZoomToFit)
   })
 
   // Expose zoom handlers to parent component (only once on mount)

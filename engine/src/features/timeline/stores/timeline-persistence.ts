@@ -815,7 +815,8 @@ function buildTimelineFromPersistenceSnapshot(
     ...(snapshot.busAudioEq && { busAudioEq: snapshot.busAudioEq }),
     masterBusDb: snapshot.masterBusDb,
     currentFrame: snapshot.currentFrame,
-    zoomLevel: snapshot.zoomLevel,
+    // EmbeddableCut: the project schema's floor, which the timeline can zoom out past.
+    zoomLevel: Math.max(0.01, snapshot.zoomLevel),
     scrollPosition: snapshot.scrollPosition,
     ...(snapshot.inPoint !== null && { inPoint: snapshot.inPoint }),
     ...(snapshot.outPoint !== null && { outPoint: snapshot.outPoint }),

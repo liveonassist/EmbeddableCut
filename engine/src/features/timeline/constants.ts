@@ -59,7 +59,7 @@ export const FILMSTRIP_EXTRACT_WIDTH = Math.round(FILMSTRIP_EXTRACT_HEIGHT * (16
 // TIMELINE LAYOUT
 // =============================================================================
 
-const MIN_ZOOM_LEVEL = 0.01
+const MIN_ZOOM_LEVEL = 0.001
 const MAX_ZOOM_LEVEL = 2 // Capped at 2x for UI performance
 
 export const BASE_SNAP_THRESHOLD_PIXELS = 8 // Base threshold at 1x zoom

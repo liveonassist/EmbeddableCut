@@ -317,15 +317,15 @@ describe('TimelineContent playback selection behavior', () => {
     expect(frameCallbacks).toHaveLength(1)
     act(() => frameCallbacks.shift()?.(performance.now()))
 
-    expect(useZoomStore.getState().level).toBeCloseTo(0.011)
+    expect(useZoomStore.getState().level).toBeCloseTo(ZOOM_MIN * 1.1, 6)
     expect(useZoomStore.getState().level).not.toBeCloseTo(0.11)
-    expect(scrollContainer.scrollLeft).toBeCloseTo(2.5)
+    expect(scrollContainer.scrollLeft).toBeCloseTo(2 + 5 * (ZOOM_MIN * 1.1 - ZOOM_MIN) * 100)
 
     act(() => zoomHandlers?.handleZoomOut())
     expect(frameCallbacks).toHaveLength(1)
     act(() => frameCallbacks.shift()?.(performance.now()))
 
-    expect(useZoomStore.getState().level).toBeCloseTo(ZOOM_MIN)
+    expect(useZoomStore.getState().level).toBeCloseTo(ZOOM_MIN, 6)
     expect(scrollContainer.scrollLeft).toBeCloseTo(2)
   })
 

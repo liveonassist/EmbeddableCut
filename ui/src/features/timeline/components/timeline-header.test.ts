@@ -65,7 +65,7 @@ describe('TimelineHeader zoom slider', () => {
     expect(animationFrameSpy).not.toHaveBeenCalled()
 
     act(() => useZoomStore.getState().setZoomLevelImmediate(targetZoom))
-    expect(screen.getByRole('slider')).toHaveAttribute('aria-valuenow', '0.75')
+    expect(Number(screen.getByRole('slider').getAttribute('aria-valuenow'))).toBeCloseTo(0.75)
     expect(micRenders.count).toBe(1)
 
     animationFrameSpy.mockRestore()

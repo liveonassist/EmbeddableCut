@@ -1,5 +1,6 @@
 import { create } from '@/shared/state/bound-store'
 
+import { ZOOM_MIN } from '../constants'
 import { getZoomToFitLevel } from '../utils/timeline-layout'
 import { usePlaybackStore } from '@/shared/state/playback'
 
@@ -300,7 +301,7 @@ export const useZoomStore = create<ZoomState & ZoomActions>((set, get) => ({
     applySynchronizedZoom(set, newLevel)
   },
   zoomOut: () => {
-    const newLevel = Math.max(get().level / 1.1, 0.01)
+    const newLevel = Math.max(get().level / 1.1, ZOOM_MIN)
     applySynchronizedZoom(set, newLevel)
   },
   zoomToFit: (containerWidth, contentDurationSeconds) => {
