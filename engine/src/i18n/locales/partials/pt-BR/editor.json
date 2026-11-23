@@ -398,7 +398,15 @@
       "switchToFrames": "Alternar para quadros",
       "timecode": "Código de tempo",
       "frameRate": "Taxa de quadros",
-      "totalFrames": "Total de quadros"
+      "totalFrames": "Total de quadros",
+      "aspectRatio": "Proporção",
+      "resolution": "Resolução",
+      "custom": "Personalizada",
+      "framing": "Clipes",
+      "framingFit": "Ajustar",
+      "framingFill": "Preencher",
+      "framingFitHint": "Mostra a imagem inteira, com barras se o formato for diferente",
+      "framingFillHint": "Cobre a tela, cortando o que sobra"
     },
     "clipPanel": {
       "tabVideo": "Vídeo",

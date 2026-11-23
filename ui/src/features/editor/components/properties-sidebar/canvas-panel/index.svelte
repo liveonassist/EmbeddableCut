@@ -11,12 +11,15 @@
   import { useProjectStore } from '@/features/editor/deps/projects'
   import { DEFAULT_PROJECT_HEIGHT, DEFAULT_PROJECT_WIDTH } from '@/shared/projects/defaults'
   import {
+    changeProjectSettings,
+    getCanvasFraming,
     markDirty,
     setCompositionCanvasSettings,
     setCompositionDuration,
     useCompositionNavigationStore,
     useCompositionsStore,
     useItemsStore,
+    useKeyframesStore,
     useMarkersStore,
     useTimelineSettingsStore,
   } from '@/features/editor/deps/timeline-store'
@@ -27,6 +30,9 @@
   import { commitProjectMetadataChange } from '@/features/editor/utils/project-metadata-history'
   import CompositionControlsAuthoringSection from './composition-controls-authoring-section.svelte'
   import ColorPicker from './color-picker.svelte'
+  import CanvasFramingControl from './canvas-framing.svelte'
+  import CanvasPresets from './canvas-presets.svelte'
+  import FrameRateSelect from './frame-rate-select.svelte'
   import Feature from '@/components/feature.svelte'
 
   /**
@@ -95,64 +101,42 @@
     }
   }
 
-  const handleWidthChange = (newWidth: number) => {
-    const normalizedWidth = Math.round(newWidth / 2) * 2
+  // EmbeddableCut: a new size takes the timeline's clips along, as one undo step.
+  const applySize = (size: { width: number; height: number }) => {
     const compositionId = activeCompositionId.current
     if (isLayerComposition && compositionId) {
-      setCompositionCanvasSettings(compositionId, { width: normalizedWidth })
+      setCompositionCanvasSettings(compositionId, size)
       return
     }
-    void applyProjectMetadataChange(
-      { width: normalizedWidth },
-      { type: 'UPDATE_PROJECT_METADATA', payload: { fields: ['width'] } },
-    )
+    changeProjectSettings(size)
+  }
+
+  const handleWidthChange = (newWidth: number) => {
+    applySize({ width: Math.round(newWidth / 2) * 2, height })
   }
 
   const handleHeightChange = (newHeight: number) => {
-    const normalizedHeight = Math.round(newHeight / 2) * 2
-    const compositionId = activeCompositionId.current
-    if (isLayerComposition && compositionId) {
-      setCompositionCanvasSettings(compositionId, { height: normalizedHeight })
-      return
-    }
-    void applyProjectMetadataChange(
-      { height: normalizedHeight },
-      { type: 'UPDATE_PROJECT_METADATA', payload: { fields: ['height'] } },
-    )
+    applySize({ width, height: Math.round(newHeight / 2) * 2 })
   }
 
   const handleSwapDimensions = () => {
-    const compositionId = activeCompositionId.current
-    if (isLayerComposition && compositionId) {
-      setCompositionCanvasSettings(compositionId, { width: height, height: width })
-      return
-    }
-    void applyProjectMetadataChange(
-      { width: height, height: width },
-      {
-        type: 'UPDATE_PROJECT_METADATA',
-        payload: { fields: ['width', 'height'], operation: 'swap' },
-      },
-    )
+    applySize({ width: height, height: width })
   }
 
   const handleResetDimensions = () => {
-    const compositionId = activeCompositionId.current
-    if (isLayerComposition && compositionId) {
-      setCompositionCanvasSettings(compositionId, {
-        width: projectWidth,
-        height: projectHeight,
-      })
-      return
-    }
-    void applyProjectMetadataChange(
-      { width: 1920, height: 1080 },
-      {
-        type: 'UPDATE_PROJECT_METADATA',
-        payload: { fields: ['width', 'height'], operation: 'reset' },
-      },
+    applySize(
+      isLayerComposition
+        ? { width: projectWidth, height: projectHeight }
+        : { width: DEFAULT_PROJECT_WIDTH, height: DEFAULT_PROJECT_HEIGHT },
     )
   }
+
+  const items = select(useItemsStore, (s) => s.items)
+  const keyframes = select(useKeyframesStore, (s) => s.keyframes)
+  const framing = $derived.by(() => {
+    void [items.current, keyframes.current, projectWidth, projectHeight]
+    return activeCompositionId.current === null ? getCanvasFraming() : null
+  })
 
   // Commit background color to store on release
   const handleBackgroundColorChange = (color: string) => {
@@ -215,6 +199,8 @@
       defaultOpen={true}
     >
       <Feature id="project.size">
+      <CanvasPresets {width} {height} onSizeChange={applySize} />
+      <div class="h-2"></div>
       <LinkedDimensions
         {width}
         {height}
@@ -244,6 +230,12 @@
             : t('common.reset')}
         </Button>
       </div>
+      {#if framing}
+        <CanvasFramingControl
+          {framing}
+          onFramingChange={(next) => changeProjectSettings({ framing: next })}
+        />
+      {/if}
       </Feature>
 
       <!-- Background Color -->
@@ -335,9 +327,10 @@
         </PropertyRow>
 
         <PropertyRow label={t('editor.canvasPanel.frameRate')}>
-          <span class="text-xs text-muted-foreground tabular-nums">
-            {project.metadata.fps} fps
-          </span>
+          <FrameRateSelect
+            fps={project.metadata.fps}
+            onFpsChange={(next) => changeProjectSettings({ fps: next })}
+          />
         </PropertyRow>
 
         <PropertyRow label={t('editor.canvasPanel.totalFrames')}>

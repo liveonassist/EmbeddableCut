@@ -32,9 +32,9 @@ export const FEATURE_IDS = [
 
   // The project's canvas, wherever the editor offers to change it
   'project',
-  /** Width and height: the canvas panel's, and matching them to the first clip added. */
+  /** Width, height, shape and framing: the canvas panel's, and matching the size to the first clip added. */
   'project.size',
-  /** Matching the frame rate to the first clip added. */
+  /** The canvas panel's frame rate (read-only when off), and matching it to the first clip added. */
   'project.frame-rate',
   /** The canvas panel's background color. */
   'project.background',

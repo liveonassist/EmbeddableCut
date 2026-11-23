@@ -6,34 +6,7 @@ import { flushSync } from 'svelte'
 import type { MediaMetadata } from '@/types/storage'
 import { useProjectMediaMatchDialogStore } from '@/shared/state/project-media-match-dialog'
 
-const mocks = vi.hoisted(() => ({
-  updateProject: vi.fn(),
-  markDirty: vi.fn(),
-  setFps: vi.fn(),
-  addUndoEntry: vi.fn(),
-  captureSnapshot: vi.fn(() => ({
-    items: [],
-    tracks: [],
-    transitions: [],
-    keyframes: [],
-    markers: [],
-    compositions: [],
-    inPoint: null,
-    outPoint: null,
-    fps: 30,
-    scrollPosition: 0,
-    snapEnabled: true,
-    currentFrame: 0,
-    projectId: 'project-1',
-    projectMetadata: {
-      width: 1280,
-      height: 720,
-      fps: 30,
-      backgroundColor: '#000000',
-    },
-  })),
-  toastError: vi.fn(),
-}))
+const mocks = vi.hoisted(() => ({ changeProjectSettings: vi.fn() }))
 
 const stores = vi.hoisted(
   () =>
@@ -44,7 +17,6 @@ const stores = vi.hoisted(
           id: string
           metadata: { width: number; height: number; fps: number }
         } | null
-        updateProject: (...args: unknown[]) => unknown
       }>
     },
 )
@@ -59,7 +31,6 @@ vi.mock('@/features/editor/deps/projects', async () => {
   const { createStore } = await import('zustand/vanilla')
   stores.project = createStore(() => ({
     currentProject: null,
-    updateProject: (...args: unknown[]) => mocks.updateProject(...args),
   }))
   return {
     useProjectStore: stores.project,
@@ -84,16 +55,7 @@ vi.mock('@/features/editor/deps/projects', async () => {
 })
 
 vi.mock('@/features/editor/deps/timeline-store', () => ({
-  markDirty: mocks.markDirty,
-  useTimelineSettingsStore: { getState: () => ({ setFps: mocks.setFps }) },
-  useTimelineCommandStore: { getState: () => ({ addUndoEntry: mocks.addUndoEntry }) },
-  captureSnapshot: mocks.captureSnapshot,
-}))
-
-vi.mock('svelte-sonner', () => ({
-  toast: {
-    error: mocks.toastError,
-  },
+  changeProjectSettings: mocks.changeProjectSettings,
 }))
 
 import ProjectMediaMatchDialog from './project-media-match-dialog.svelte'
@@ -141,11 +103,6 @@ describe('ProjectMediaMatchDialog', () => {
         },
       },
     })
-
-    mocks.updateProject.mockImplementation(async (_id: string, data: Record<string, unknown>) => {
-      const current = stores.project.getState().currentProject!
-      return { ...current, metadata: { ...current.metadata, ...data } }
-    })
   })
 
   it('prompts on the first imported video and can match both size and fps', async () => {
@@ -161,14 +118,12 @@ describe('ProjectMediaMatchDialog', () => {
     await fireEvent.click(screen.getByRole('button', { name: 'Match Both' }))
 
     await waitFor(() =>
-      expect(mocks.updateProject).toHaveBeenCalledWith('project-1', {
+      expect(mocks.changeProjectSettings).toHaveBeenCalledExactlyOnceWith({
         width: 1920,
         height: 1080,
         fps: 60,
       }),
     )
-    expect(mocks.setFps).toHaveBeenCalledWith(60)
-    expect(mocks.markDirty).toHaveBeenCalledTimes(1)
   })
 
   it('does not prompt again once the project already had a video', async () => {
@@ -184,7 +139,7 @@ describe('ProjectMediaMatchDialog', () => {
     await waitFor(() =>
       expect(screen.queryByText('Match Project To First Video?')).not.toBeInTheDocument(),
     )
-    expect(mocks.updateProject).not.toHaveBeenCalled()
+    expect(mocks.changeProjectSettings).not.toHaveBeenCalled()
   })
 
   it('can be requested imperatively before import flows continue', async () => {
@@ -206,7 +161,6 @@ describe('ProjectMediaMatchDialog', () => {
     await fireEvent.click(screen.getByRole('button', { name: 'FPS Only' }))
 
     await expect(pendingChoice).resolves.toBe('fps-only')
-    expect(mocks.updateProject).toHaveBeenCalledWith('project-1', { fps: 60 })
-    expect(mocks.setFps).toHaveBeenCalledWith(60)
+    expect(mocks.changeProjectSettings).toHaveBeenCalledExactlyOnceWith({ fps: 60 })
   })
 })

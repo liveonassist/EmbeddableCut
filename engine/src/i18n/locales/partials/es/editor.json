@@ -398,7 +398,15 @@
       "switchToFrames": "Cambiar a fotogramas",
       "timecode": "Código de tiempo",
       "frameRate": "Velocidad de fotogramas",
-      "totalFrames": "Fotogramas totales"
+      "totalFrames": "Fotogramas totales",
+      "aspectRatio": "Relación de aspecto",
+      "resolution": "Resolución",
+      "custom": "Personalizada",
+      "framing": "Clips",
+      "framingFit": "Ajustar",
+      "framingFill": "Rellenar",
+      "framingFitHint": "Muestra la imagen completa, con barras si el formato difiere",
+      "framingFillHint": "Cubre el lienzo y recorta lo que sobra"
     },
     "clipPanel": {
       "tabVideo": "Vídeo",

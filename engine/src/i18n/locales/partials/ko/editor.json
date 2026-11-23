@@ -398,7 +398,15 @@
       "switchToFrames": "프레임 단위로 전환",
       "timecode": "타임코드",
       "frameRate": "프레임 레이트",
-      "totalFrames": "총 프레임 수"
+      "totalFrames": "총 프레임 수",
+      "aspectRatio": "화면 비율",
+      "resolution": "해상도",
+      "custom": "사용자 지정",
+      "framing": "클립",
+      "framingFit": "맞춤",
+      "framingFill": "채우기",
+      "framingFitHint": "전체 화면을 표시하고 비율이 다르면 여백을 둡니다",
+      "framingFillHint": "캔버스를 채우고 넘치는 부분을 잘라냅니다"
     },
     "clipPanel": {
       "tabVideo": "비디오",

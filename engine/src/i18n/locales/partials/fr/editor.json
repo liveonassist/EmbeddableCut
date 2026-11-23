@@ -398,7 +398,15 @@
       "switchToFrames": "Passer aux images",
       "timecode": "Code temporel",
       "frameRate": "Fréquence d'images",
-      "totalFrames": "Images totales"
+      "totalFrames": "Images totales",
+      "aspectRatio": "Format d'image",
+      "resolution": "Résolution",
+      "custom": "Personnalisée",
+      "framing": "Clips",
+      "framingFit": "Ajuster",
+      "framingFill": "Remplir",
+      "framingFitHint": "Affiche l'image entière, avec des bandes si le format diffère",
+      "framingFillHint": "Couvre le canevas en rognant ce qui dépasse"
     },
     "clipPanel": {
       "tabVideo": "Vidéo",

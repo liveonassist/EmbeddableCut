@@ -30,6 +30,11 @@ export {
   setCompositionDuration,
   trimCompositionToActiveRegion,
 } from '@/features/timeline/stores/actions/composition-editor-actions'
+export {
+  changeProjectSettings,
+  getCanvasFraming,
+  type CanvasFraming,
+} from '@/features/timeline/stores/actions/project-settings-actions'
 export { setInOutPointsWithoutHistory } from '@/features/timeline/stores/actions/marker-actions'
 export { applyAnimationPreset } from '@/features/timeline/stores/actions/preset-actions'
 export {

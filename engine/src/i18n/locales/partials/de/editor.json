@@ -398,7 +398,15 @@
       "switchToFrames": "Auf Frames umschalten",
       "timecode": "Timecode",
       "frameRate": "Bildrate",
-      "totalFrames": "Frames gesamt"
+      "totalFrames": "Frames gesamt",
+      "aspectRatio": "Seitenverhältnis",
+      "resolution": "Auflösung",
+      "custom": "Benutzerdefiniert",
+      "framing": "Clips",
+      "framingFit": "Einpassen",
+      "framingFill": "Füllen",
+      "framingFitHint": "Das ganze Bild zeigen, mit Balken bei abweichendem Format",
+      "framingFillHint": "Die Leinwand ausfüllen und Überstehendes abschneiden"
     },
     "clipPanel": {
       "tabVideo": "Video",

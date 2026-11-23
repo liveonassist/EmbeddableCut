@@ -398,7 +398,15 @@
       "switchToFrames": "切换为帧",
       "timecode": "时间码",
       "frameRate": "帧率",
-      "totalFrames": "总帧数"
+      "totalFrames": "总帧数",
+      "aspectRatio": "宽高比",
+      "resolution": "分辨率",
+      "custom": "自定义",
+      "framing": "片段",
+      "framingFit": "适应",
+      "framingFill": "填充",
+      "framingFitHint": "显示完整画面，比例不同时留黑边",
+      "framingFillHint": "铺满画布，裁掉超出的部分"
     },
     "clipPanel": {
       "tabVideo": "视频",

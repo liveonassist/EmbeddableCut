@@ -398,7 +398,15 @@
       "switchToFrames": "フレームに切り替え",
       "timecode": "タイムコード",
       "frameRate": "フレームレート",
-      "totalFrames": "総フレーム数"
+      "totalFrames": "総フレーム数",
+      "aspectRatio": "アスペクト比",
+      "resolution": "解像度",
+      "custom": "カスタム",
+      "framing": "クリップ",
+      "framingFit": "全体表示",
+      "framingFill": "塗りつぶし",
+      "framingFitHint": "画像全体を表示し、比率が異なる部分に帯を入れます",
+      "framingFillHint": "キャンバス全体を覆い、はみ出た部分を切り取ります"
     },
     "clipPanel": {
       "tabVideo": "ビデオ",

@@ -398,7 +398,15 @@
       "switchToFrames": "Kareye geç",
       "timecode": "Zaman Kodu",
       "frameRate": "Kare Hızı",
-      "totalFrames": "Toplam Kare"
+      "totalFrames": "Toplam Kare",
+      "aspectRatio": "En Boy Oranı",
+      "resolution": "Çözünürlük",
+      "custom": "Özel",
+      "framing": "Klipler",
+      "framingFit": "Sığdır",
+      "framingFill": "Doldur",
+      "framingFitHint": "Görüntünün tamamını gösterir, oran farklıysa bant ekler",
+      "framingFillHint": "Tuvali kaplar, taşan kısmı kırpar"
     },
     "clipPanel": {
       "tabVideo": "Video",

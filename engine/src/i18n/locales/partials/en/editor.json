@@ -398,7 +398,15 @@
       "switchToFrames": "Switch to frames",
       "timecode": "Timecode",
       "frameRate": "Frame Rate",
-      "totalFrames": "Total Frames"
+      "totalFrames": "Total Frames",
+      "aspectRatio": "Aspect Ratio",
+      "resolution": "Resolution",
+      "custom": "Custom",
+      "framing": "Clips",
+      "framingFit": "Fit",
+      "framingFill": "Fill",
+      "framingFitHint": "Show the whole picture, with bars where the shapes differ",
+      "framingFillHint": "Cover the canvas, cropping what doesn't fit"
     },
     "clipPanel": {
       "tabVideo": "Video",

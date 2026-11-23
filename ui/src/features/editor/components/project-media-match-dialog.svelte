@@ -1,6 +1,5 @@
 <!-- SPDX-License-Identifier: MIT -->
 <script lang="ts">
-  import { toast } from 'svelte-sonner'
   import { select } from '$lib/store.svelte'
   import { t } from '$lib/i18n.svelte'
   import { Button } from '@/components/ui/button'
@@ -14,13 +13,12 @@
   } from '@/components/ui/dialog'
   import { useMediaLibraryStore } from '@/features/editor/deps/media-library'
   import { useProjectStore } from '@/features/editor/deps/projects'
-  import { markDirty, useTimelineSettingsStore } from '@/features/editor/deps/timeline-store'
+  import { changeProjectSettings } from '@/features/editor/deps/timeline-store'
   import { useProjectMediaMatchDialogStore } from '@/shared/state/project-media-match-dialog'
   import {
     getProjectMediaMatchSuggestion,
     isProjectMatchableVideo,
   } from '@/features/editor/utils/project-media-match'
-  import { commitProjectMetadataChange } from '@/features/editor/utils/project-metadata-history'
 
   interface ProjectMediaMatchDialogProps {
     projectId: string
@@ -35,7 +33,6 @@
   const pendingProjectId = select(useProjectMediaMatchDialogStore, (state) => state.projectId)
   const pendingCandidate = select(useProjectMediaMatchDialogStore, (state) => state.candidate)
 
-  let isApplying = $state(false)
   let initialized = false
   let seenVideoIds = new Set<string>()
   let awaitingAutoPrompt = false
@@ -45,7 +42,6 @@
     initialized = false
     awaitingAutoPrompt = false
     seenVideoIds = new Set()
-    isApplying = false
   })
 
   $effect(() => {
@@ -126,14 +122,10 @@
   })
 
   function handleKeepCurrent() {
-    if (isApplying) {
-      return
-    }
-
     useProjectMediaMatchDialogStore.getState().resolveProjectMediaMatch('keep-current')
   }
 
-  async function applyMatch(
+  function applyMatch(
     choice: 'match-both' | 'fps-only' | 'size-only',
     options: { matchSize: boolean; matchFps: boolean },
   ) {
@@ -164,35 +156,9 @@
       return
     }
 
-    isApplying = true
-
-    try {
-      await commitProjectMetadataChange({
-        project,
-        updates,
-        command: {
-          type: 'UPDATE_PROJECT_METADATA',
-          payload: {
-            fields: Object.keys(updates),
-            operation: choice,
-          },
-        },
-        updateProject: useProjectStore.getState().updateProject,
-        markDirty,
-        onApplied: (updatedProject) => {
-          if (updates.fps !== undefined) {
-            useTimelineSettingsStore.getState().setFps(updatedProject.metadata.fps)
-          }
-        },
-      })
-      resolveProjectMediaMatch(choice)
-    } catch (error) {
-      toast.error(t('editor.projectMediaMatch.updateFailed'), {
-        description: error instanceof Error ? error.message : t('editor.projectMediaMatch.tryAgain'),
-      })
-    } finally {
-      isApplying = false
-    }
+    // EmbeddableCut: what's on the timeline keeps its times and its place on the canvas.
+    changeProjectSettings(updates)
+    resolveProjectMediaMatch(choice)
   }
 
   const dialogOpen = $derived(
@@ -255,44 +221,44 @@
     {/if}
 
     <DialogFooter class="gap-2 sm:justify-between">
-      <Button variant="ghost" onclick={handleKeepCurrent} disabled={isApplying}>
+      <Button variant="ghost" onclick={handleKeepCurrent}>
         {t('editor.projectMediaMatch.keepCurrent')}
       </Button>
       <div class="flex flex-col-reverse gap-2 sm:flex-row">
         {#if suggestion?.sizeDiffers && suggestion?.fpsDiffers}
           <Button
             variant="outline"
-            onclick={() => void applyMatch('fps-only', { matchSize: false, matchFps: true })}
-            disabled={isApplying}
+            onclick={() => applyMatch('fps-only', { matchSize: false, matchFps: true })}
+           
           >
             {t('editor.projectMediaMatch.fpsOnly')}
           </Button>
           <Button
             variant="outline"
-            onclick={() => void applyMatch('size-only', { matchSize: true, matchFps: false })}
-            disabled={isApplying}
+            onclick={() => applyMatch('size-only', { matchSize: true, matchFps: false })}
+           
           >
             {t('editor.projectMediaMatch.sizeOnly')}
           </Button>
           <Button
-            onclick={() => void applyMatch('match-both', { matchSize: true, matchFps: true })}
-            disabled={isApplying}
+            onclick={() => applyMatch('match-both', { matchSize: true, matchFps: true })}
+           
           >
             {t('editor.projectMediaMatch.matchBoth')}
           </Button>
         {/if}
         {#if !suggestion?.sizeDiffers && suggestion?.fpsDiffers}
           <Button
-            onclick={() => void applyMatch('fps-only', { matchSize: false, matchFps: true })}
-            disabled={isApplying}
+            onclick={() => applyMatch('fps-only', { matchSize: false, matchFps: true })}
+           
           >
             {t('editor.projectMediaMatch.matchFps')}
           </Button>
         {/if}
         {#if suggestion?.sizeDiffers && !suggestion?.fpsDiffers}
           <Button
-            onclick={() => void applyMatch('size-only', { matchSize: true, matchFps: false })}
-            disabled={isApplying}
+            onclick={() => applyMatch('size-only', { matchSize: true, matchFps: false })}
+           
           >
             {t('editor.projectMediaMatch.matchSize')}
           </Button>
