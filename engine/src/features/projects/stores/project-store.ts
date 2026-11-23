@@ -18,6 +18,7 @@ import { createProjectObject, duplicateProject } from '../utils/project-helpers'
 // v3: Lazy-load media service for cascade operations
 import { importMediaLibraryService } from '@/features/projects/deps/media-library-contract'
 import { createLogger } from '@/shared/logging/logger'
+import { isDetachedProject } from '@/shared/projects/detached-project'
 
 const logger = createLogger('ProjectStore')
 
@@ -205,6 +206,9 @@ export const useProjectStore = create<ProjectState & ProjectActions>()(
         if (currentProject?.id === id) {
           set({ currentProject: updatedProject })
         }
+
+        // EmbeddableCut: a document's project is its host's to store.
+        if (isDetachedProject(id)) return updatedProject
 
         try {
           const updated = await updateProjectDB(id, updatedProject)

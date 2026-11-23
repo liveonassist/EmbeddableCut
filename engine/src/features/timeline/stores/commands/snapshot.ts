@@ -10,6 +10,7 @@ import { usePlaybackStore } from '@/shared/state/playback'
 import { useProjectStore } from '@/features/timeline/deps/projects'
 import { updateProject } from '@/infrastructure/storage'
 import { createLogger } from '@/shared/logging/logger'
+import { isDetachedProject } from '@/shared/projects/detached-project'
 import { sanitizeInOutPoints } from '../../utils/in-out-points'
 import { getActiveInOutMaxFrame } from '../in-out-bound'
 
@@ -71,6 +72,8 @@ function restoreProjectMetadata(snapshot: TimelineSnapshot): void {
         : project,
     ),
   }))
+
+  if (isDetachedProject(snapshot.projectId)) return
 
   void Promise.resolve(
     updateProject(snapshot.projectId, {

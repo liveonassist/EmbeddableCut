@@ -23,6 +23,15 @@ interface HistoryStacks {
   redoStack: CommandEntry[]
 }
 
+/** EmbeddableCut: undoing or redoing a frame rate change drops other contexts' history, as making it does. */
+function parkedAfterRestore(
+  state: Pick<CommandStoreState, 'stacksByContext'>,
+  from: TimelineSnapshot,
+  to: TimelineSnapshot,
+): Pick<CommandStoreState, 'stacksByContext'> {
+  return { stacksByContext: from.fps === to.fps ? state.stacksByContext : {} }
+}
+
 /**
  * Command store state.
  * Maintains undo/redo stacks and provides atomic history management.
@@ -112,6 +121,12 @@ interface CommandStoreActions {
    * reused. If it happens to be the active context, its live stacks are cleared.
    */
   removeContext: (compositionId: string) => void
+
+  /**
+   * EmbeddableCut: drop every other context's history. Called when the frame
+   * rate changes, whose effect on those contexts' snapshots no undo there knows.
+   */
+  dropInactiveContexts: () => void
 }
 
 export const useTimelineCommandStore = create<CommandStoreState & CommandStoreActions>()(
@@ -180,6 +195,7 @@ export const useTimelineCommandStore = create<CommandStoreState & CommandStoreAc
         ],
         canUndo: state.undoStack.length > 1,
         canRedo: true,
+        ...parkedAfterRestore(state, currentSnapshot, entry.beforeSnapshot),
       }))
     },
 
@@ -204,6 +220,7 @@ export const useTimelineCommandStore = create<CommandStoreState & CommandStoreAc
         ],
         canUndo: true,
         canRedo: state.redoStack.length > 1,
+        ...parkedAfterRestore(state, currentSnapshot, entry.beforeSnapshot),
       }))
     },
 
@@ -258,6 +275,8 @@ export const useTimelineCommandStore = create<CommandStoreState & CommandStoreAc
         }))
       }
     },
+
+    dropInactiveContexts: () => set({ stacksByContext: {} }),
 
     setActiveContext: (compositionId) => {
       const key = historyContextKey(compositionId)
