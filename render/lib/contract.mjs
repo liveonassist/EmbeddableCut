@@ -279,6 +279,8 @@ const opSchemas = [
       from: frame.optional(),
       trackId: id.optional(),
       durationInFrames: positiveFrames.optional(),
+      // Moves everything at or after `from` later by the clip's length.
+      insert: z.boolean().optional(),
     })
     .strict(),
   z

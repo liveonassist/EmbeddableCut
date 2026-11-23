@@ -38,6 +38,7 @@ import {
   addEffect,
   removeEffect,
   updateItemTransform,
+  insertSpace,
 } from '@/features/timeline/stores/timeline-actions'
 import {
   type EditOp,
@@ -316,6 +317,22 @@ function placeVideoClip(
   return created
 }
 
+/** EmbeddableCut: `insert` makes room for the clip where the placements below will put it. */
+function openInsertGap(op: EditOp, { media, from, projectFps }: ClipPlacement): void {
+  const isAudio = media.mimeType.startsWith('audio/')
+  const isImage = media.mimeType.startsWith('image/')
+  const length =
+    asNumber(op.durationInFrames) ??
+    (isImage ? 150 : Math.max(1, Math.round((media.duration ?? 0) * projectFps)))
+  const targets = [resolveOrCreateTrack(op.trackId, isAudio ? 'audio' : 'video')]
+  if (isVideoMimeType(media.mimeType) && media.audioCodec) targets.push(getOrCreateTrack('audio'))
+  if (!insertSpace(from, length, targets)) {
+    throw new Error(
+      `addClip: can't insert at frame ${from}: its track is locked, or the clip there can't be split`,
+    )
+  }
+}
+
 function applyAddClip(op: EditOp): unknown {
   const mediaId = asString(op.mediaId)
   if (!mediaId) throw new Error('addClip requires `mediaId`')
@@ -329,6 +346,7 @@ function applyAddClip(op: EditOp): unknown {
     from: asNumber(op.from, 0)!,
     projectFps: useTimelineSettingsStore.getState().fps || 30,
   }
+  if (op.insert === true) openInsertGap(op, placement)
   if (media.mimeType.startsWith('image/')) return { created: placeImageClip(op, placement) }
   if (media.mimeType.startsWith('audio/')) return { created: placeAudioClip(op, placement) }
   if (isVideoMimeType(media.mimeType)) return { created: placeVideoClip(op, placement) }

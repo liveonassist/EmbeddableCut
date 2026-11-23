@@ -214,6 +214,78 @@ describe('editProject', () => {
     expect(audioTrack.kind).toBe('audio')
   })
 
+  it('addClip insert splits what it lands in and moves every rippling track along', async () => {
+    const track = (id: string, kind: 'video' | 'audio', order: number, extra = {}) => ({
+      ...baseProject().timeline!.tracks[0]!,
+      id,
+      kind,
+      order,
+      ...extra,
+    })
+    const media = { mediaId: 'm-vid', sourceStart: 0, sourceEnd: 120, sourceFps: 30 }
+    const clip = (id: string, type: string, trackId: string, from: number, group: string) => ({
+      ...media,
+      id,
+      type,
+      trackId,
+      from,
+      durationInFrames: 100,
+      label: id,
+      linkedGroupId: group,
+    })
+    const text = (id: string, trackId: string, from: number, durationInFrames: number) => ({
+      id,
+      type: 'text',
+      trackId,
+      from,
+      durationInFrames,
+      label: id,
+      text: id,
+      color: '#fff',
+    })
+    const result = await editProject({
+      project: baseProject({
+        tracks: [
+          track('titles', 'video', -1),
+          track('t_v', 'video', 0),
+          track('t_a', 'audio', 1),
+          track('kept', 'video', 2, { locked: true }),
+        ],
+        items: [
+          clip('v1', 'video', 't_v', 0, 'one'),
+          clip('a1', 'audio', 't_a', 0, 'one'),
+          clip('v2', 'video', 't_v', 100, 'two'),
+          clip('a2', 'audio', 't_a', 100, 'two'),
+          text('bed', 'titles', 0, 90),
+          text('title', 'titles', 100, 30),
+          text('locked', 'kept', 100, 30),
+        ],
+      } as Partial<ProjectTimeline>),
+      ops: [
+        { op: 'addClip', mediaId: 'm-vid', trackId: 't_v', from: 60, insert: true } as EditOp,
+      ],
+      media: [{ mediaId: 'm-vid', metadata: videoMedia }],
+    })
+    const on = (trackId: string) =>
+      result.project
+        .timeline!.items.filter((i) => i.trackId === trackId)
+        .sort((a, b) => a.from - b.from)
+        .map((i) => [i.from, i.durationInFrames])
+    const cut = [
+      [0, 60],
+      [60, 100],
+      [160, 40],
+      [200, 100],
+    ]
+    expect(on('t_v')).toEqual(cut)
+    expect(on('t_a')).toEqual(cut)
+    expect(on('titles')).toEqual([
+      [0, 90],
+      [200, 30],
+    ])
+    expect(on('kept')).toEqual([[100, 30]])
+  })
+
   it('addClip image defaults to a 150-frame still', async () => {
     const result = await editProject({
       project: baseProject(),
