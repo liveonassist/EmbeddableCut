@@ -28,6 +28,12 @@ export type EditorErrorCode =
   | 'OPERATION_FAILED'
   /** An edit operation would remove items the host's guards protect; nothing after it ran. */
   | 'EDIT_REFUSED'
+  /** A project setting has a value no project can have; nothing changed. */
+  | 'SETTING_INVALID'
+  /** The file isn't a project bundle or document, or is damaged. */
+  | 'BUNDLE_INVALID'
+  /** The project and its media don't fit one file. */
+  | 'BUNDLE_TOO_LARGE'
 
 export class EditorError extends Error {
   readonly code: EditorErrorCode

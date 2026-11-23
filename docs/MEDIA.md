@@ -98,6 +98,8 @@ const editor = await createEditor({
 ```
 
 - **Signed URLs** are renewed five minutes before `expiresAt`, and again whenever a server refuses one. Readers move to the new URL without reloading, and the saved document carries the newest URL.
+- **A URL fresh from the host isn't resolved again.** `addUrl` asks the resolver once, and not at all for a URL whose `expiresAt` is over five minutes away, or with `fetchable: true`. Say `fetchable: false` when the resolver adds headers or credentials the URL needs.
+- **A document's URLs are never read before the resolver is asked** where there is one, since they may have expired. One it can't resolve shows as missing; `media.findMissing()` checks them all.
 - **Headers** (`{ headers: { Authorization } }`) are sent with every request the engine makes: probing, decoding, export. A preview `<video>` can't send headers, so an asset that needs them to play should use a signed URL, or cookies with `credentials: 'include'`.
 - **Routing:** an asset whose `key` starts with a media provider's id and a colon (`acme:clip-42`) is resolved by that provider.
 

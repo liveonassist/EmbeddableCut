@@ -517,6 +517,16 @@
           "parentName": "Editor",
           "memberName": "setGuards",
           "kind": "class_method"
+        },
+        {
+          "parentName": "Editor",
+          "memberName": "framing",
+          "kind": "class_method"
+        },
+        {
+          "parentName": "Editor",
+          "memberName": "loadBundle",
+          "kind": "class_method"
         }
       ]
     },
@@ -526,17 +536,22 @@
       "members": [
         {
           "parentName": "MediaApi",
-          "memberName": "get",
-          "kind": "class_method"
-        },
-        {
-          "parentName": "MediaApi",
           "memberName": "importFiles",
           "kind": "class_method"
         },
         {
           "parentName": "MediaApi",
           "memberName": "remove",
+          "kind": "class_method"
+        },
+        {
+          "parentName": "MediaApi",
+          "memberName": "addUrls",
+          "kind": "class_method"
+        },
+        {
+          "parentName": "MediaApi",
+          "memberName": "findMissing",
           "kind": "class_method"
         }
       ]

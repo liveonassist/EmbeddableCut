@@ -117,6 +117,17 @@ export function serveBridge(
     'project.open': ({ projectId, allowUpgrade }) =>
       editor.openProject(projectId, { allowUpgrade }),
     'project.toDocument': () => editor.toDocument(),
+    'project.update': (params) => editor.updateProject(params),
+    'project.toBundle': async () => binary(await editor.toBundle()),
+    'project.isDirty': () => editor.dirty,
+    'project.markSaved': () => {
+      editor.markSaved()
+      return null
+    },
+    'timeline.zoomToFit': () => {
+      editor.zoomToFit()
+      return null
+    },
     'project.save': async () => {
       await editor.save()
       return null
@@ -254,6 +265,8 @@ export function serveBridge(
       if ('method' in message) void handle(message)
     }),
     editor.on('project', (payload) => emit('project', payload)),
+    editor.on('projectChange', (payload) => emit('projectChange', payload)),
+    editor.on('dirty', (payload) => emit('dirty', payload)),
     editor.on('change', () => emit('change')),
     editor.on('playback', (payload) => emit('playback', payload)),
     editor.on('notification', (payload) => emit('notification', payload)),

@@ -26,17 +26,24 @@ editor.dispose()
 - `createProject({ name, width, height, fps })` starts an empty project.
 - `loadDocument(json)` opens a project document. Older documents are migrated; newer or invalid ones are refused with a `SchemaError`, never read partially.
 - `toDocument()` returns the project with every media asset it references, and the custom extensions it needs.
+- `updateProject({ name?, width?, height?, fps?, backgroundColor?, framing? })` changes the loaded project, its timeline with it, as one undo step. Times survive a new frame rate, and clips that met still meet. Clips that fill the canvas meet its new shape letterboxed (`framing: 'fit'`), cropped (`'fill'`) or untouched (`'keep'`), as they do now when omitted; text, shapes and placed clips scale with it. `editor.framing` reads it back. `projectChange` fires with the new `ProjectInfo`, whoever changed it.
+- `toBundle()` is the project as one file, with the bytes of the local media it uses; `loadBundle(file)` opens one, or a bare document's JSON. URL assets stay URLs, resolved again by their keys.
+
+### Saving
+
+`editor.dirty` says whether there are unsaved changes and the `dirty` event when that changes, for a `beforeunload` warning or a save button; `markSaved()` clears it. A document's URL assets may have expired by the time it's opened: give each a `key`, and `media.resolve` is asked by it before anything is read. `media.findMissing()` checks the lot and returns those that are gone, which then show as missing in the editor. A document's local assets open only where they were added; `toBundle()` carries them.
 
 ## Media
 
 - `media.addUrl({ url, key })` adds a remote file, read in place with range requests; `media.resolve` in the options signs and renews URLs ([`docs/MEDIA.md`](../docs/MEDIA.md)).
+- `media.addUrls(list, { concurrency, onProgress })` adds many, several probed at once, in order; one that fails is reported in its result. A URL with a comfortable `expiresAt`, or `fetchable: true`, isn't resolved until it's expiring or refused.
 - `media.addFiles(files)` adds `File`s: into the workspace (OPFS unless the host names another), or held in memory with `workspace: 'none'`. `media.accept` in the options refuses files by type, length or size (`MEDIA_REFUSED`).
 - `media.pending()`, `media.read(id)` and `media.replaceWithUrl(id, { url, key })` upload what the timeline uses when the user saves, swapping each asset to its URL in place ([deferred uploads](../docs/MEDIA.md#deferred-uploads)).
 - `media.list()`, `media.get(id)` and `media.remove(ids)` read and remove the project's media, as asset records.
 
 ## Editing
 
-`apply(op | ops)` runs edit operations as one undo step: `addTrack`, `addText`, `addItem`, `addClip`, `updateItem`, `moveItem`, `removeItems`, `split`, `trimStart`, `trimEnd`, the transition, keyframe, effect and transform ops, and any an extension adds (`editor.operations` lists them). An op can refer to an earlier op's result with `{ "$ref": "<callerId>#/detail/<field>" }`. `undo()`, `redo()`, `canUndo` and `canRedo` work as in the editor.
+`apply(op | ops)` runs edit operations as one undo step: `addTrack`, `addText`, `addItem`, `addClip`, `updateItem`, `moveItem`, `removeItems`, `split`, `trimStart`, `trimEnd`, the transition, keyframe, effect and transform ops, and any an extension adds (`editor.operations` lists them). `addClip` with `insert: true` makes room first: the clip at `from` is split, and everything after moves later on every track that ripples (unlocked, sync lock on). An op can refer to an earlier op's result with `{ "$ref": "<callerId>#/detail/<field>" }`. `undo()`, `redo()`, `canUndo` and `canRedo` work as in the editor.
 
 ## Settings and guards
 

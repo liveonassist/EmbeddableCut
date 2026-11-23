@@ -39,6 +39,7 @@ await mounted.unmount()
 
 - **Size:** the editor fills its container, which needs a height. The shadow host has inline-size containment, so the editor's minimum width never widens a host's grid or flex track; the editor's layout is dense, and works best from about 1280px wide.
 - **Isolation:** in a shadow root, the editor's stylesheet stays inside and the host's styles stay out; dialogs, menus and tooltips portal inside the editor. Keyboard shortcuts only see keys typed inside it. Two things can't live in a shadow root and go on the host's document, once: the IBM Plex fonts and the stylesheet's `@property` rules (Tailwind's `--tw-*` defaults).
+- **Showing it all:** `editor.zoomToFit()` zooms the timeline until all of it shows. Asked while the editor is hidden (a host laying out a project first), it happens once it has a size.
 - **Opening a project:** `document` (a project document) or `projectId` with a `workspace` in the options open one while mounting; `editor.loadDocument`, `openProject` and `createProject` do it any time.
 
 ## The editor in an iframe
@@ -144,6 +145,7 @@ mounted.setActions({ help: () => openHelpPanel() })   // replaces every handler 
 
 - **Saving marks the project clean** once the handler resolves, unless the timeline changed while it ran; a handler that throws leaves it dirty, and the user sees the save fail. Other handlers' errors are shown to the user too.
 - **Auto-save** runs `save` every `autoSaveInterval` minutes while there are unsaved changes. To save on every edit instead, listen to `editor.on('change')` and save from there.
+- **Saving to disk:** with no backend, write `await editor.toBundle()` (or `JSON.stringify(editor.toDocument())` when all media is at URLs) to a file the user picks, and open it with `editor.loadBundle(file)`. `editor.dirty`, its event and `editor.markSaved()` are for the host's own save UI ([`sdk/README.md`](../sdk/README.md#saving)).
 - A project zip is built from the workspace's copy, so a `save` handler wanting the zip to have the latest edits calls `runDefault()` when `trigger` is `'export'`.
 - In an iframe, `mountEditorFrame(target, { src, actions })` and `framed.setActions(...)` take the same handlers, given `{ editor: RemoteEditor, runDefault }`; `deliver.icon` is a Lucide name. Over the bridge they're `ui.setActions` and the `action` event ([BRIDGE.md](BRIDGE.md#actions)).
 
@@ -175,7 +177,7 @@ mounted.setFeatures({ export: 'locked' })       // replaces every switch given b
 | --- | --- |
 | `toolbar.project`, `.workspaces`, `.docs`, `.whats-new`, `.settings`, `.shortcuts`, `.language`, `.save`, `.render-queue` | The top bar's built-in pieces: the back button and project name, the Edit/Color/Animate switcher, help, What's New, the settings and shortcuts dialogs, the language picker, Save, the render queue |
 | `export`, `export.video`, `export.bundle` | The Export menu, and its video and project-zip entries |
-| `project.size`, `project.frame-rate`, `project.background` | Changing the canvas: the canvas panel's size and background, and the offer to match the project to the first clip added |
+| `project.size`, `project.frame-rate`, `project.background` | Changing the project: the canvas panel's size, shape and framing, its frame rate (shown read-only when off), its background, and the offer to match the project to the first clip added |
 | `sidebar.media`, `.text`, `.shapes`, `.effects`, `.transitions`, `.stickers`, `.transcript`, `.ai` | The left sidebar's tabs; `sidebar` is the whole sidebar |
 | `media.relink`, `media.proxy`, `media.delete` | A media item's menu entries, and deleting from the library |
 | `inspector.canvas`, `inspector.video`, `.audio`, `.effects`, `.animation` | The properties sidebar's canvas panel and clip tabs; `inspector` is the whole sidebar |

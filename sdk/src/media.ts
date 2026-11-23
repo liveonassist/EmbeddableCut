@@ -5,12 +5,18 @@ import type { AssetRecord } from '@embeddablecut/engine/schema/index'
 import { assetRecordFromMedia } from '@embeddablecut/engine/schema/index'
 import { useMediaLibraryStore } from '@embeddablecut/engine/features/media-library/stores/media-library-store'
 import { mediaLibraryService } from '@embeddablecut/engine/features/media-library/services/media-library-service'
-import type { RemoteMediaResolver } from '@embeddablecut/engine/features/media-library/services/remote-media'
+import {
+  adoptRemoteMedia,
+  isRemoteUrlFresh,
+  resolveRemoteMediaUrl,
+  type RemoteMediaResolver,
+} from '@embeddablecut/engine/features/media-library/services/remote-media'
 import {
   MediaRefusedError,
   type MediaAcceptPolicy,
 } from '@embeddablecut/engine/features/media-library/services/media-accept-policy'
 import { relocateMediaToUrl } from '@embeddablecut/engine/features/media-library/services/media-relocation'
+import { getObjectUrlSourceMetadata } from '@embeddablecut/engine/infrastructure/browser/object-url-registry'
 import { EditorError } from './errors'
 
 export type {
@@ -20,6 +26,7 @@ export type {
 
 import {
   cacheKeyForUrl,
+  createRemoteFetch,
   seedRemoteMediaCache,
 } from '@embeddablecut/engine/infrastructure/remote-media/remote-fetch'
 
@@ -78,7 +85,28 @@ export interface UrlMedia {
   key?: string
   /** Epoch milliseconds the URL stops working at, for signed URLs. */
   expiresAt?: number
+  /**
+   * The URL can be fetched as it is, so the resolver isn't asked for it until
+   * it's about to expire or a server refuses it. A URL whose `expiresAt` is
+   * comfortably ahead is taken as fetchable unless this says `false`, which a
+   * host whose resolver adds headers or credentials sets.
+   */
+  fetchable?: boolean
 }
+
+export interface AddUrlsOptions {
+  /** How many are probed at once; 6 by default, as many as a browser opens to one server. */
+  concurrency?: number
+  /** Called as each is added or fails, with how many are done. */
+  onProgress?: (done: number, total: number) => void
+}
+
+/** One of `addUrls`: the asset it became, or why it couldn't be added. */
+export type AddUrlResult =
+  | { asset: AssetRecord; error?: undefined }
+  | { asset?: undefined; error: Error }
+
+const DEFAULT_ADD_CONCURRENCY = 6
 
 /** Which kinds of media the host lets the editor use. Both are on by default. */
 export interface MediaSourcePolicy {
@@ -116,6 +144,26 @@ export function createRemoteResolver(
     const key = media.remote?.key
     const provider = key ? providers().find((p) => key.startsWith(`${p.id}:`)) : undefined
     return provider ? provider.resolve(asset, reason) : null
+  }
+}
+
+interface ProbedUrl {
+  media: MediaMetadata
+  resolved: ResolvedMediaSource | null
+}
+
+/** Whether a URL asset's server still serves it: one byte, past every cache. */
+async function isReadable(media: MediaMetadata): Promise<boolean> {
+  try {
+    const url = await resolveRemoteMediaUrl(media)
+    const remote = getObjectUrlSourceMetadata(url)?.remote ?? { cacheKey: cacheKeyForUrl(url) }
+    const response = await createRemoteFetch({ ...remote, noCache: true })(url, {
+      headers: { Range: 'bytes=0-0' },
+    })
+    await response.body?.cancel()
+    return response.ok
+  } catch {
+    return false
   }
 }
 
@@ -251,10 +299,97 @@ export class MediaApi {
    * @throws {EditorError} `MEDIA_SOURCE_DISABLED` or `NO_PROJECT`.
    */
   async addUrl(media: UrlMedia): Promise<AssetRecord> {
+    const probed = await this.probeUrl(media)
+    this.register([probed])
+    return assetRecordFromMedia(probed.media)
+  }
+
+  /**
+   * Adds many URLs, several probed at once, in the order given: the first is
+   * the first in the media library. One that can't be read doesn't stop the
+   * others; its result carries the error.
+   *
+   * @throws {EditorError} `MEDIA_SOURCE_DISABLED` or `NO_PROJECT`.
+   */
+  async addUrls(media: UrlMedia[], options: AddUrlsOptions = {}): Promise<AddUrlResult[]> {
+    const project = this.requireUrlProject()
+    const concurrency = Math.max(1, options.concurrency ?? DEFAULT_ADD_CONCURRENCY)
+    const probes: Array<ProbedUrl | Error> = []
+    let next = 0
+    let done = 0
+    const probeRest = async () => {
+      while (next < media.length) {
+        const index = next++
+        try {
+          probes[index] = await this.probeUrl(media[index]!)
+        } catch (error) {
+          probes[index] = error instanceof Error ? error : new Error(String(error))
+        }
+        options.onProgress?.(++done, media.length)
+      }
+    }
+    await Promise.all(Array.from({ length: Math.min(concurrency, media.length) }, probeRest))
+    if (this.requireProject().id !== project.id) {
+      throw new EditorError('NO_PROJECT', 'The project was closed while its media was being added')
+    }
+
+    // The library lists the newest first.
+    const addedAt = Date.now()
+    this.register(
+      probes
+        .map((probe, index) =>
+          probe instanceof Error
+            ? null
+            : { ...probe, media: { ...probe.media, createdAt: addedAt - index } },
+        )
+        .filter((probe) => probe !== null),
+    )
+    return probes.map((probe) =>
+      probe instanceof Error ? { error: probe } : { asset: this.get(probe.media.id)! },
+    )
+  }
+
+  /**
+   * Checks that the project's URL assets can be read, asking the resolver for
+   * those it hasn't been asked about, and returns the ones that can't. They
+   * show as missing in the editor; the rest stop doing so. For a project
+   * opened long after it was saved, whose media may be gone.
+   */
+  async findMissing(): Promise<AssetRecord[]> {
+    this.requireProject()
+    const library = useMediaLibraryStore.getState()
+    const missing: AssetRecord[] = []
+    const queue = library.mediaItems.filter((item) => item.storageType === 'url')
+    const checkRest = async () => {
+      for (let item = queue.shift(); item; item = queue.shift()) {
+        if (await isReadable(item)) {
+          library.markMediaHealthy(item.id)
+          continue
+        }
+        library.markMediaBroken(item.id, {
+          mediaId: item.id,
+          fileName: item.fileName,
+          errorType: 'file_missing',
+        })
+        missing.push(assetRecordFromMedia(item))
+      }
+    }
+    await Promise.all(Array.from({ length: DEFAULT_ADD_CONCURRENCY }, checkRest))
+    return missing
+  }
+
+  private requireUrlProject(): { id: string } {
     if (!this.policy.url) {
       throw new EditorError('MEDIA_SOURCE_DISABLED', 'This editor does not accept URL media')
     }
-    const project = this.requireProject()
+    return this.requireProject()
+  }
+
+  /** Probes a URL into media, without putting it in the library. */
+  private async probeUrl(media: UrlMedia): Promise<ProbedUrl> {
+    const project = this.requireUrlProject()
+    const { fetchable, ...source } = media
+    const fresh = fetchable ?? (media.expiresAt !== undefined && isRemoteUrlFresh(media.expiresAt))
     // Probe with what the host's resolver would hand a reader: its URL and headers.
     const draft = {
       id: 'probe',
@@ -263,10 +398,10 @@ export class MediaApi {
       fileName: media.fileName ?? media.url,
       mimeType: media.mimeType ?? '',
     } as MediaMetadata
-    const resolved = await this.resolver(draft, 'open')
+    const resolved = fresh ? null : await this.resolver(draft, 'open')
     const imported = await mediaLibraryService.importMediaByReference(
       {
-        ...media,
+        ...source,
         url: resolved?.url ?? media.url,
         ...(resolved?.expiresAt === undefined ? {} : { expiresAt: resolved.expiresAt }),
         request: {
@@ -276,8 +411,14 @@ export class MediaApi {
       },
       project.id,
     )
-    useMediaLibraryStore.getState().prependMediaItem(imported)
-    return assetRecordFromMedia(imported)
+    return { media: imported, resolved }
+  }
+
+  /** Puts probed media in the library, first first, on the sources it was probed with. */
+  private register(probed: ProbedUrl[]): void {
+    const added = probed.map((probe) => probe.media)
+    useMediaLibraryStore.setState((state) => ({ mediaItems: [...added, ...state.mediaItems] }))
+    for (const probe of probed) adoptRemoteMedia(probe.media, probe.resolved)
   }
 
   private requireLocal(): void {

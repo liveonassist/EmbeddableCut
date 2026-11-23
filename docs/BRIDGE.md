@@ -38,19 +38,24 @@ Every message carries `"protocol": "embeddablecut.bridge"` and `"version": 1`.
 | Method | Params | Result |
 | --- | --- | --- |
 | `editor.describe` | — | `sdkVersion`, `bridgeVersion`, `schemaVersions`, `operations` |
-| `project.create` | `name`, `width?`, `height?`, `fps?`, `backgroundColor?` | the project's `id`, `name`, `width`, `height`, `fps` |
+| `project.create` | `name`, `width?`, `height?`, `fps?`, `backgroundColor?` | the project's `id`, `name`, `width`, `height`, `fps`, `backgroundColor` |
+| `project.update` | `name?`, `width?`, `height?`, `fps?`, `backgroundColor?`, `framing?`: `"fit"`, `"fill"` or `"keep"` | the project |
 | `project.load` | `document`: a project document | `project`, `migrated`, `warnings` |
 | `project.open` | `projectId`, `allowUpgrade?` | the project (a workspace project) |
 | `project.toDocument` | — | the project document |
+| `project.toBundle` | — | a binary result: the project and its local media in one file |
+| `project.isDirty` | — | whether there are unsaved changes |
+| `project.markSaved` | — | `null` |
 | `project.save`, `project.close` | — | `null` |
 | `timeline.apply` | `operations`: edit operations ([`schemas/edit-operation.v1.schema.json`](../schemas/edit-operation.v1.schema.json)) | each op's `op`, `callerId`, `detail` |
 | `timeline.undo`, `timeline.redo` | — | `null` |
 | `timeline.get` | — | the timeline as it would be saved |
+| `timeline.zoomToFit` | — | `null` |
 | `playback.play`, `playback.pause` | — | `null` |
 | `playback.seek` | `frame` | `null` |
 | `playback.state` | — | `frame`, `playing` |
 | `media.list` | — | asset records |
-| `media.addUrl` | `url`, `fileName?`, `mimeType?`, `key?`, `expiresAt?` | the new asset record |
+| `media.addUrl` | `url`, `fileName?`, `mimeType?`, `key?`, `expiresAt?`, `fetchable?` | the new asset record |
 | `render.frame` | `frame?`, `atSeconds?`, `width?`, `height?`, `format?`, `quality?` | a binary result |
 | `render.export` | `settings?`, `inFrame?`, `outFrame?` | a binary result with `durationSeconds`, `settings`, `warnings` |
 | `settings.setPolicy` | `policy`: `{ "values"?, "locked"?, "hidden"? }` (setting keys), or `null` | `null` |
@@ -67,8 +72,10 @@ A **binary result** is `{ "mimeType", "fileName"?, "data", "encoding"? }`. Over 
 | Event | Payload |
 | --- | --- |
 | `ready` | — |
-| `project` | the project's `id`, `name`, `width`, `height`, `fps`, after a create, load or open |
-| `change` | — (the timeline changed: an edit, undo or redo) |
+| `project` | the project's `id`, `name`, `width`, `height`, `fps`, `backgroundColor`, after a create, load or open |
+| `projectChange` | the project, after its name, canvas, frame rate or background changed |
+| `change` | — (anything in the project changed: an edit, its settings, undo or redo) |
+| `dirty` | whether there are unsaved changes, when that changes |
 | `playback` | `frame`, `playing` |
 | `notification` | `level` (`info`, `success`, `warning`, `error`), `message`, for a host showing no editor UI |
 | `action` | `id`, `action`, and `trigger` for a save or `file` for a delivery: an action the host took over ([Actions](#actions)) |

@@ -42,6 +42,23 @@ export interface BridgeMethods {
   }
   'project.open': { params: { projectId: string; allowUpgrade?: boolean }; result: ProjectSummary }
   'project.toDocument': { params: undefined; result: unknown }
+  /** `Editor.updateProject`: the project's name, canvas, frame rate and background. */
+  'project.update': {
+    params: {
+      name?: string
+      width?: number
+      height?: number
+      fps?: number
+      backgroundColor?: string
+      framing?: 'fit' | 'fill' | 'keep'
+    }
+    result: ProjectSummary
+  }
+  /** The project and its local media as one file (`Editor.toBundle`). */
+  'project.toBundle': { params: undefined; result: BinaryResult }
+  'project.isDirty': { params: undefined; result: boolean }
+  'project.markSaved': { params: undefined; result: null }
+  'timeline.zoomToFit': { params: undefined; result: null }
   'project.save': { params: undefined; result: null }
   'project.close': { params: undefined; result: null }
   'timeline.apply': {
@@ -57,7 +74,14 @@ export interface BridgeMethods {
   'playback.state': { params: undefined; result: { frame: number; playing: boolean } }
   'media.list': { params: undefined; result: unknown[] }
   'media.addUrl': {
-    params: { url: string; fileName?: string; mimeType?: string; key?: string; expiresAt?: number }
+    params: {
+      url: string
+      fileName?: string
+      mimeType?: string
+      key?: string
+      expiresAt?: number
+      fetchable?: boolean
+    }
     result: unknown
   }
   'render.frame': {
@@ -129,6 +153,7 @@ export interface ProjectSummary {
   width: number
   height: number
   fps: number
+  backgroundColor: string
 }
 
 /**
@@ -146,7 +171,15 @@ export interface BinaryResult {
  * Events the guest sends unasked: the editor's own, `ready` once it can take
  * calls, and `action` for an action the host took over.
  */
-export type BridgeEvent = 'ready' | 'project' | 'change' | 'playback' | 'notification' | 'action'
+export type BridgeEvent =
+  | 'ready'
+  | 'project'
+  | 'projectChange'
+  | 'change'
+  | 'dirty'
+  | 'playback'
+  | 'notification'
+  | 'action'
 
 interface Envelope {
   protocol: typeof BRIDGE_PROTOCOL

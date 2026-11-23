@@ -20,6 +20,7 @@ export {
   type LoadResult,
   type NewProject,
   type ProjectInfo,
+  type ProjectUpdate,
 } from './editor'
 export { EditorError, type EditorErrorCode } from './errors'
 export {
@@ -38,6 +39,8 @@ export {
   MediaApi,
   clearUrlMediaCache,
   setUrlMediaCacheBudget,
+  type AddUrlResult,
+  type AddUrlsOptions,
   type MediaAcceptOptions,
   type MediaAcceptPolicy,
   type MediaCandidate,
@@ -48,6 +51,8 @@ export {
   type ResolvedMediaSource,
   type UrlMedia,
 } from './media'
+export { BUNDLE_MIME_TYPE } from './bundle'
+export type { CanvasFraming } from '@embeddablecut/engine/features/timeline/stores/actions/project-settings-actions'
 export { SDK_VERSION } from './version'
 export type {
   EditGuards,

@@ -36,6 +36,17 @@ import {
 } from '@embeddablecut/engine/features/timeline/stores/timeline-persistence'
 import { CURRENT_SCHEMA_VERSION } from '@embeddablecut/engine/shared/projects/migrations/index'
 import { getProject } from '@embeddablecut/engine/infrastructure/storage/workspace-fs/projects'
+import {
+  changeProjectSettings,
+  getCanvasFraming,
+  type CanvasFraming,
+} from '@embeddablecut/engine/features/timeline/stores/actions/project-settings-actions'
+import { useTimelineSettingsStore } from '@embeddablecut/engine/features/timeline/stores/timeline-settings-store'
+import {
+  cancelZoomToFit,
+  requestZoomToFit,
+} from '@embeddablecut/engine/features/timeline/stores/zoom-to-fit-request'
+import { setDetachedProject } from '@embeddablecut/engine/shared/projects/detached-project'
 import { clearPreviewAudioCache } from '@embeddablecut/engine/runtime/composition-runtime/utils/audio-decode-cache'
 import { resolveMediaUrl } from '@embeddablecut/engine/features/media-library/utils/media-resolver'
 import { blobUrlManager } from '@embeddablecut/engine/infrastructure/browser/blob-url-manager'
@@ -54,6 +65,7 @@ import {
   type HeadlessMediaSource,
   type HeadlessRenderWarning,
 } from '@embeddablecut/engine/headless/main'
+import { readBundle, writeBundle } from './bundle'
 import { EditorError } from './errors'
 import { Emitter } from './events'
 import { ExtensionHost, requirementsOf, type Extension } from './extensions'
@@ -68,6 +80,7 @@ import { setMediaAcceptPolicy } from '@embeddablecut/engine/features/media-libra
 import {
   clearSessionMedia,
   getSessionMediaBlob,
+  holdSessionMedia,
 } from '@embeddablecut/engine/features/media-library/services/session-media'
 import {
   resetRemoteMedia,
@@ -133,6 +146,24 @@ export interface ProjectInfo {
   width: number
   height: number
   fps: number
+  backgroundColor: string
+}
+
+/** What {@link Editor.updateProject} changes; anything left out stays as it is. */
+export interface ProjectUpdate {
+  name?: string
+  /** Pixels, from 16 to 8192, rounded to even. */
+  width?: number
+  height?: number
+  /** From 1 to 240. Times on the timeline don't change, only how finely they're cut. */
+  fps?: number
+  backgroundColor?: string
+  /**
+   * How clips that fill the canvas meet its new shape: letterboxed (`'fit'`),
+   * cropped (`'fill'`), or left where they are (`'keep'`). They keep the
+   * framing they have when omitted. Without a new size, reframes them now.
+   */
+  framing?: CanvasFraming | 'keep'
 }
 
 export interface NewProject {
@@ -177,8 +208,12 @@ export interface ExportResult {
 export interface EditorEvents extends Record<string, unknown> {
   /** A project was created or loaded. */
   project: ProjectInfo
-  /** Anything on the timeline changed: an edit, undo or redo. */
+  /** The loaded project's name, canvas, frame rate or background changed, by anyone. */
+  projectChange: ProjectInfo
+  /** Anything in the project changed: an edit on the timeline, its settings, undo or redo. */
   change: void
+  /** The project gained unsaved changes, or was saved. */
+  dirty: boolean
   /** The playhead moved or playback started or stopped. */
   playback: { frame: number; playing: boolean }
   /** A notice for the user, which a host without the editor UI shows itself. */
@@ -210,6 +245,7 @@ export class Editor {
   private readonly events = new Emitter<EditorEvents>()
   private readonly teardown: Array<() => void> = []
   private readonly policy: MediaSourcePolicy
+  private readonly hostResolves: boolean
   private removeSettingsPolicy: (() => void) | null = null
   /** Set while `apply` runs, which reports a refusal as an error instead of a notice. */
   private applying = false
@@ -221,6 +257,7 @@ export class Editor {
   /** @internal Use {@link createEditor}. */
   constructor(options: EditorOptions) {
     this.policy = { local: options.media?.local ?? true, url: options.media?.url ?? true }
+    this.hostResolves = options.media?.resolve !== undefined
     const resolver = createRemoteResolver(options.media?.resolve, () =>
       this.extensions.mediaProviders(),
     )
@@ -259,6 +296,22 @@ export class Editor {
       }),
     )
     const emitChange = () => this.events.emit('change', undefined)
+    this.teardown.push(
+      useProjectStore.subscribe((state, previous) => {
+        const [project, before] = [state.currentProject, previous.currentProject]
+        if (!project || before?.id !== project.id) return
+        const info = infoOf(project)
+        if (JSON.stringify(info) === JSON.stringify(infoOf(before))) return
+        setEditCanvas({ width: info.width, height: info.height, fps: info.fps })
+        this.events.emit('projectChange', info)
+        emitChange()
+      }),
+      useTimelineSettingsStore.subscribe((state, previous) => {
+        if (state.isDirty !== previous.isDirty) this.events.emit('dirty', state.isDirty)
+      }),
+      () => setDetachedProject(null),
+      cancelZoomToFit,
+    )
     for (const store of [
       useItemsStore,
       useTransitionsStore,
@@ -358,7 +411,10 @@ export class Editor {
 
     usePlaybackStore.getState().pause()
     this.workspaceProjectId = null
+    // What an earlier document's assets resolved to isn't what this one's do.
+    resetRemoteMedia()
     const project = document.project as unknown as Project
+    setDetachedProject(project.id)
     const media = document.assets.map((asset) => mediaFromAssetRecord(asset))
     useProjectStore.getState().setCurrentProject(project)
     useMediaLibraryStore.getState().setCurrentProject(project.id)
@@ -368,8 +424,12 @@ export class Editor {
       isLoading: false,
     })
     for (const item of media) {
-      if (item.storageType === 'url' && item.remote)
-        blobUrlManager.registerUrl(item.id, item.remote.url)
+      if (item.storageType === 'url' && item.remote) {
+        // A URL from when the document was saved may have expired: where there's a
+        // resolver to ask, nothing reads it before the resolver has been.
+        if (this.resolvesUrl(item.remote.key)) blobUrlManager.invalidate(item.id)
+        else blobUrlManager.registerUrl(item.id, item.remote.url)
+      }
       // Memory assets from another editor's page have no bytes here.
       if (item.storageType === 'memory' && !getSessionMediaBlob(item.id)) {
         useMediaLibraryStore.getState().markMediaBroken(item.id, {
@@ -422,6 +482,7 @@ export class Editor {
     usePlaybackStore.getState().pause()
     usePlaybackStore.getState().setPreviewFrame(null)
     resetRemoteMedia()
+    setDetachedProject(null)
     const media = useMediaLibraryStore.getState()
     media.setCurrentProject(projectId)
     await media.loadMediaItems()
@@ -469,6 +530,129 @@ export class Editor {
     resetRemoteMedia()
     clearSessionMedia()
     this.workspaceProjectId = null
+    setDetachedProject(null)
+    cancelZoomToFit()
+  }
+
+  /**
+   * Changes the loaded project's name, canvas, frame rate or background. Its
+   * timeline comes along, in one undo step with the change: a new frame rate
+   * keeps every time (cuts round to its nearest frame, and clips that met
+   * still meet), and a new canvas refits the clips that filled the old one
+   * and scales everything else with it. Renaming isn't undoable.
+   *
+   * @throws {EditorError} `NO_PROJECT`, or `SETTING_INVALID` before anything changes.
+   */
+  updateProject(update: ProjectUpdate): ProjectInfo {
+    const project = this.requireProject()
+    for (const [field, min, max] of [
+      ['width', 16, 8192],
+      ['height', 16, 8192],
+      ['fps', 1, 240],
+    ] as const) {
+      const value = update[field]
+      if (value === undefined) continue
+      if (!Number.isFinite(value) || value < min || value > max) {
+        throw new EditorError('SETTING_INVALID', `${field} must be from ${min} to ${max}`, {
+          field,
+          value,
+        })
+      }
+    }
+    if (update.name !== undefined && update.name.trim() === '') {
+      throw new EditorError('SETTING_INVALID', 'name must not be empty', { field: 'name' })
+    }
+
+    const { name, ...settings } = update
+    if (name !== undefined && name !== project.name) {
+      void useProjectStore
+        .getState()
+        .updateProject(project.id, { name })
+        .catch((error: unknown) => {
+          toast.error(error instanceof Error ? error.message : String(error))
+        })
+      useTimelineSettingsStore.getState().markDirty()
+    }
+    changeProjectSettings(settings)
+    return infoOf(this.requireProject())
+  }
+
+  /**
+   * How the clips that fill the canvas meet it: letterboxed, cropped, or some
+   * of each. `null` when none is of another shape than the canvas.
+   */
+  get framing(): CanvasFraming | 'mixed' | null {
+    this.requireProject()
+    return getCanvasFraming()
+  }
+
+  /** Whether the project has changes since it was loaded, created or saved. */
+  get dirty(): boolean {
+    return useTimelineSettingsStore.getState().isDirty
+  }
+
+  /**
+   * Says the host has saved the project as it is now. The editor's own save,
+   * and a `save` action, do so themselves.
+   */
+  markSaved(): void {
+    this.requireProject()
+    useTimelineSettingsStore.getState().markClean()
+  }
+
+  /**
+   * The loaded project as one file: its document and the bytes of the local
+   * media its timeline uses, so it opens anywhere. URL assets stay URLs,
+   * resolved again by their keys when it's opened.
+   *
+   * @throws {EditorError} `NO_PROJECT`, `MEDIA_NOT_FOUND` when a local asset's
+   *   bytes are gone (with the asset as `details`), or `BUNDLE_TOO_LARGE`.
+   */
+  async toBundle(): Promise<Blob> {
+    const document = this.toDocument()
+    const media = new Map<string, Blob>()
+    for (const asset of document.assets) {
+      if (asset.source.type === 'url') continue
+      try {
+        media.set(asset.id, await this.media.read(asset.id))
+      } catch {
+        throw new EditorError('MEDIA_NOT_FOUND', `${asset.fileName} can't be read`, asset)
+      }
+    }
+    return writeBundle({
+      document: {
+        ...document,
+        // Wherever they were kept, opened they're held by the editor that opened them.
+        assets: document.assets.map((asset) =>
+          media.has(asset.id) ? { ...asset, source: { type: 'memory' } } : asset,
+        ),
+      },
+      media,
+    })
+  }
+
+  /**
+   * Opens a file {@link toBundle} made, or a project document's JSON, as
+   * {@link loadDocument} does. The media in it is held in memory until the
+   * project is closed.
+   *
+   * @throws {EditorError} `BUNDLE_INVALID`, and as `loadDocument` does.
+   */
+  async loadBundle(file: Blob): Promise<LoadResult> {
+    this.assertLive()
+    const { document, media } = await readBundle(file)
+    const { document: read } = readProjectDocument(document)
+    const held = read.assets.filter((asset) => asset.source.type === 'memory')
+    if (held.length > 0 && !this.policy.local) {
+      throw new EditorError('MEDIA_SOURCE_DISABLED', 'This editor does not accept local files')
+    }
+    for (const asset of held) {
+      const bytes = media.get(asset.id)
+      if (bytes) {
+        holdSessionMedia(mediaFromAssetRecord(asset), bytes.slice(0, bytes.size, asset.mimeType))
+      }
+    }
+    return this.loadDocument(document)
   }
 
   /** The loaded project as a portable document: its timeline now, and every asset it references. */
@@ -587,6 +771,14 @@ export class Editor {
     usePlaybackStore.getState().setCurrentFrame(Math.max(0, Math.round(frame)))
   }
 
+  /**
+   * Zooms the timeline out (or in) until all of it shows. Asked before the
+   * editor is on screen, it happens once it is.
+   */
+  zoomToFit(): void {
+    requestZoomToFit()
+  }
+
   // --- rendering -------------------------------------------------------------
 
   /**
@@ -656,7 +848,8 @@ export class Editor {
     const sources = await Promise.all(
       media.map(async (metadata: MediaMetadata) => {
         try {
-          return { mediaId: metadata.id, url: await resolveMediaUrl(metadata.id), metadata }
+          const url = await resolveMediaUrl(metadata.id)
+          return url ? { mediaId: metadata.id, url, metadata } : null
         } catch {
           return null
         }
@@ -682,6 +875,15 @@ export class Editor {
     blobUrlManager.releaseAll()
     resetBoundStores()
     if (activeEditor === this) activeEditor = null
+  }
+
+  /** Whether the host, or a media provider, resolves assets with this key. */
+  private resolvesUrl(key: string | undefined): boolean {
+    if (this.hostResolves) return true
+    return (
+      key !== undefined &&
+      this.extensions.mediaProviders().some((provider) => key.startsWith(`${provider.id}:`))
+    )
   }
 
   private assertLive(): void {
@@ -719,8 +921,8 @@ function refusalMessage(refusal: RefusedEdit): string {
 }
 
 function infoOf(project: Project): ProjectInfo {
-  const { width, height, fps } = project.metadata
-  return { id: project.id, name: project.name, width, height, fps }
+  const { width, height, fps, backgroundColor = '#000000' } = project.metadata
+  return { id: project.id, name: project.name, width, height, fps, backgroundColor }
 }
 
 function referencedMediaIds(timeline: ProjectTimeline): Set<string> {
