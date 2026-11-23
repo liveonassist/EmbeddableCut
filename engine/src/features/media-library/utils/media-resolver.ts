@@ -4,11 +4,33 @@ import { getSharedProxyKey } from '@/features/media-library/utils/proxy-key'
 import { pendingMediaRequests as pendingRequests } from '@/features/media-library/utils/media-resolver-requests'
 import { blobUrlManager } from '@/infrastructure/browser/blob-url-manager'
 import { registerKeyframeIndex } from '@/shared/utils/keyframe-index-registry'
+import type { MediaMetadata } from '@/types/storage'
 import type { TimelineTrack } from '@/types/timeline'
 import { createLogger } from '@/shared/logging/logger'
 import { resolveRemoteMediaUrl } from '@/features/media-library/services/remote-media'
 
 const logger = createLogger('MediaResolver')
+
+/**
+ * EmbeddableCut: a URL asset whose resolver fails is offline, as a local file
+ * that's gone is, rather than failing everything resolved beside it.
+ */
+async function resolveRemoteMediaOrReport(media: MediaMetadata): Promise<string> {
+  try {
+    const url = await resolveRemoteMediaUrl(media)
+    const library = useMediaLibraryStore.getState()
+    if (library.brokenMediaIds.includes(media.id)) library.markMediaHealthy(media.id)
+    return url
+  } catch (error) {
+    logger.error(`Failed to resolve media ${media.id}:`, error)
+    useMediaLibraryStore.getState().markMediaBroken(media.id, {
+      mediaId: media.id,
+      fileName: media.fileName,
+      errorType: 'file_missing',
+    })
+    return ''
+  }
+}
 
 /**
  * Resolves a mediaId to a blob URL for use in Composition Player
@@ -20,7 +42,7 @@ export async function resolveMediaUrl(mediaId: string): Promise<string> {
   // URL media is read where it lives; the remote service renews expiring URLs.
   const remoteMedia = useMediaLibraryStore.getState().mediaById[mediaId]
   if (remoteMedia?.storageType === 'url' && remoteMedia.remote) {
-    return resolveRemoteMediaUrl(remoteMedia)
+    return resolveRemoteMediaOrReport(remoteMedia)
   }
 
   // Check centralized manager first - URLs persist until explicit release

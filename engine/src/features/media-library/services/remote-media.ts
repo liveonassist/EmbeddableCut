@@ -71,15 +71,29 @@ function needsRenewal(entry: ActiveRemote | undefined): boolean {
   return Boolean(entry?.expiresAt && entry.expiresAt - Date.now() < RENEW_MARGIN_MS)
 }
 
+/** Whether a URL good until `expiresAt` can be read without renewing it first. */
+export function isRemoteUrlFresh(expiresAt: number): boolean {
+  return expiresAt - Date.now() >= RENEW_MARGIN_MS
+}
+
 async function resolve(
   media: MediaMetadata,
   reason: 'open' | 'expiring' | 'refused',
 ): Promise<string> {
   if (!media.remote) throw new Error(`Media ${media.id} has no remote source`)
-  const previous = active.get(media.id)
   const resolution = resolver ? await resolver(media, reason) : null
-  const url = resolution?.url ?? media.remote.url
-  const expiresAt = resolution ? resolution.expiresAt : media.remote.expiresAt
+  return activate(media, media.remote, resolution)
+}
+
+/** Makes what a resolver gave (or the asset's own URL) what every reader reads. */
+function activate(
+  media: MediaMetadata,
+  source: NonNullable<MediaMetadata['remote']>,
+  resolution: RemoteMediaResolution | null,
+): string {
+  const previous = active.get(media.id)
+  const url = resolution?.url ?? source.url
+  const expiresAt = resolution ? resolution.expiresAt : source.expiresAt
   const cacheKey = remoteCacheKeyOf(media)
   const request: RemoteRequestMetadata = {
     cacheKey,
@@ -112,8 +126,8 @@ async function resolve(
     // Readers holding the old URL re-resolve on the version bump.
     if (previous) blobUrlManager.invalidate(media.id)
     blobUrlManager.registerUrl(media.id, url)
-    if (url !== media.remote.url || expiresAt !== media.remote.expiresAt) {
-      const remote = { ...media.remote, url, ...(expiresAt === undefined ? {} : { expiresAt }) }
+    if (url !== source.url || expiresAt !== source.expiresAt) {
+      const remote = { ...source, url, ...(expiresAt === undefined ? {} : { expiresAt }) }
       useMediaLibraryStore.setState((state) => {
         const current = state.mediaById[media.id]
         if (!current) return state
@@ -139,6 +153,18 @@ function renewRemoteMedia(media: MediaMetadata, reason: 'expiring' | 'refused'):
     .finally(() => pending.delete(media.id))
   pending.set(media.id, request)
   return request
+}
+
+/**
+ * Takes a URL asset's source as already resolved, so opening it doesn't ask
+ * the resolver for what the caller just had from it. It's still asked when
+ * the URL is about to expire or a server refuses it.
+ */
+export function adoptRemoteMedia(
+  media: MediaMetadata,
+  resolution: RemoteMediaResolution | null,
+): void {
+  if (media.remote) activate(media, media.remote, resolution)
 }
 
 /**
