@@ -27,6 +27,7 @@
     sceneDetectionActions,
     captionActions,
     compositionActions,
+    item,
   }: ItemContextMenuProps = $props()
 
   let hasActivated = $state(false)
@@ -59,6 +60,7 @@
     {sceneDetectionActions}
     {captionActions}
     {compositionActions}
+    {item}
     {pendingActivation}
     onPendingActivationHandled={() => (pendingActivation = null)}
     {children}

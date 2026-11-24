@@ -2,6 +2,7 @@
 
 import type { Snippet } from 'svelte'
 import type { AnimatableProperty, PropertyKeyframes } from '@/types/keyframe'
+import type { TimelineItem } from '@/types/timeline'
 import type { SceneDetectionMethod, VerificationModel } from '@/features/timeline/deps/analysis'
 
 export interface JoinActionsConfig {
@@ -90,4 +91,6 @@ export interface ItemContextMenuProps {
   sceneDetectionActions?: SceneDetectionActionsConfig
   captionActions?: CaptionActionsConfig
   compositionActions?: CompositionActionsConfig
+  /** The clip, for what hosts add to its menu. */
+  item?: TimelineItem
 }

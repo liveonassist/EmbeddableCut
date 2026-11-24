@@ -103,7 +103,7 @@ await mountEditor(target, {
 | `toolbar` | The top bar's left, center or right group: a button (`onSelect`) or your own control (`content`) |
 | `panels` | `media`: a tab in the left sidebar; `inspector`: beside the properties sidebar; `bottom`: beside the timeline |
 | `inspector` | A section in the clip inspector, for the items `when` accepts |
-| `menus` | The context menu of a clip, track, media item or the timeline |
+| `menus` | The context menu of a `clip` or `media` item. `track` and `timeline` entries are accepted but not shown yet |
 | `components` | Replaces a built-in region: `toolbar`, `media-sidebar`, `properties-sidebar`, `preview`, `timeline`, `project-menu` |
 
 Icons are Lucide names (`'upload'`) or components. `order` places a contribution among the built-ins, which sit at multiples of 100.

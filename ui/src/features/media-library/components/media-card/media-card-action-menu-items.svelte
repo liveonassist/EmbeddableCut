@@ -21,6 +21,7 @@
   import { UPSCALE_VARIANTS } from '@/infrastructure/upscale'
   import { t } from '$lib/i18n.svelte'
   import { resolveMenuVisibility, type MediaCardActionMenuProps } from './media-card-helpers'
+  import ContributedMenuItems from '@/components/contributed-menu-items.svelte'
   import Feature from '@/components/feature.svelte'
   import { useFeatures } from '../../../../extensions/feature-gate.svelte'
   import type { FeatureId } from '../../../../extensions/features'
@@ -66,6 +67,7 @@
   })
 </script>
 
+{#if props.media}<ContributedMenuItems menu="media" target={{ media: props.media }} />{/if}
 {#each groups as group, index (group)}
   {#if index > 0}
     <ContextMenuSeparator />

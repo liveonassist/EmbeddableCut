@@ -124,6 +124,8 @@ export function getSubtitleExtractionErrorMessage(error: unknown, media: MediaMe
 }
 
 export interface MediaCardActionMenuProps {
+  /** The media, for what hosts add to its menu. */
+  media?: MediaMetadata
   isBroken: boolean
   onRelink?: () => void
   canGenerateProxy: boolean

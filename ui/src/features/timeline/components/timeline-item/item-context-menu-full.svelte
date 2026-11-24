@@ -21,6 +21,7 @@
   import { getSceneVerificationModelOptions } from '@/features/timeline/deps/analysis'
   import { formatHotkeyBinding } from '@/config/hotkeys'
   import { useResolvedHotkeys } from '@/features/timeline/deps/settings-ui'
+  import ContributedMenuItems from '@/components/contributed-menu-items.svelte'
   import GradeActions from './item-context-menu-grade-actions.svelte'
   import { useFeatures } from '../../../../extensions/feature-gate.svelte'
   import type { FeatureId } from '../../../../extensions/features'
@@ -53,6 +54,7 @@
     sceneDetectionActions,
     captionActions,
     compositionActions,
+    item,
     pendingActivation,
     onPendingActivationHandled,
   }: ItemContextMenuFullProps = $props()
@@ -368,6 +370,7 @@
     {#if captionActions}{@render captionSection(captionActions)}{/if}
     <GradeActions />
     {#if compositionActions}{@render compositionSection(compositionActions)}{/if}
+    {#if item}<ContributedMenuItems menu="clip" target={{ item }} />{/if}
     {@render destructiveSection(destructiveActions)}
   </ContextMenuContent>
 </ContextMenu>

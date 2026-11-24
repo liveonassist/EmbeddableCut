@@ -977,6 +977,7 @@
 
 {#snippet actionMenuItems()}
   <MediaCardActionMenuItems
+    {media}
     {isBroken}
     {onRelink}
     {canGenerateProxy}

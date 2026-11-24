@@ -531,7 +531,7 @@
 </script>
 
 {#if !editPreviewShifts.isHiddenByLinkedEditPreview}
-  <ItemContextMenu {...contextMenuProps}>
+  <ItemContextMenu {...contextMenuProps} {item}>
     <TimelineItemShell
       bind:transform
       itemId={item.id}
