@@ -379,6 +379,10 @@ try {
   assert.equal(completedStatus.lastOperation.kind, 'render')
   assert.equal(completedStatus.lastOperation.state, 'succeeded')
   assert.equal(completedStatus.lastOperation.id, observedOperation.id)
+} catch (error) {
+  // The service draining what failed can fail the checks below, which would hide this.
+  console.error(error, `\nservice log:\n${serviceLog}`)
+  throw error
 } finally {
   const exited = new Promise((resolve) => service.once('exit', () => resolve(true)))
   service.kill('SIGTERM')
@@ -386,7 +390,7 @@ try {
     exited,
     new Promise((resolve) => setTimeout(() => resolve(false), 10_000)),
   ])
-  assert.equal(didExit, true, 'service did not exit after SIGTERM')
+  assert.equal(didExit, true, `service did not exit after SIGTERM\n${serviceLog}`)
   // Windows TerminateProcess does not run Node exit hooks. The test owns this
   // workspace and has confirmed the writer PID exited, so its lock is stale.
   const lockPath = path.join(workspace, '.embeddablecut-render', 'writer.lock')
