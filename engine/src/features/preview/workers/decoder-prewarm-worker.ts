@@ -60,6 +60,25 @@ interface WorkerSourceOptions {
   activePreview?: boolean
 }
 
+/**
+ * How to decode what's being previewed: in hardware where this computer can. Preferring it where
+ * it can't is an error on every decode, not a fallback to software.
+ */
+async function activePreviewDecoding(videoTrack: {
+  getDecoderConfig?: () => Promise<VideoDecoderConfig | null>
+}): Promise<{ hardwareAcceleration?: HardwareAcceleration; optimizeForLatency: boolean }> {
+  const preferred = { hardwareAcceleration: 'prefer-hardware', optimizeForLatency: true } as const
+  try {
+    const config = await videoTrack.getDecoderConfig?.()
+    if (config && (await VideoDecoder.isConfigSupported({ ...config, ...preferred })).supported) {
+      return preferred
+    }
+  } catch {
+    // Not a config WebCodecs knows, as for codecs with a decoder of their own.
+  }
+  return { optimizeForLatency: true }
+}
+
 async function getExtractor(
   src: string,
   options?: WorkerSourceOptions,
@@ -137,12 +156,7 @@ async function getExtractor(
 
       const sink = new mediabunny.VideoSampleSink(
         videoTrack,
-        options?.activePreview
-          ? {
-              hardwareAcceleration: 'prefer-hardware',
-              optimizeForLatency: true,
-            }
-          : undefined,
+        options?.activePreview ? await activePreviewDecoding(videoTrack) : undefined,
       )
       const canvas = new OffscreenCanvas(1, 1)
       const ctx = canvas.getContext('2d')
