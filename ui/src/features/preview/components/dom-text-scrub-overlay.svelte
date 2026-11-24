@@ -84,12 +84,17 @@
   })
 </script>
 
+<!--
+  Hidden by opacity too: a visible track inside sets its own visibility, and would show through
+  this one's at whatever frame it was last left on.
+-->
 <div
   aria-hidden="true"
   data-dom-text-scrub-overlay
   class="absolute inset-0 pointer-events-none"
   style:z-index="6"
   style:visibility={visible ? 'visible' : 'hidden'}
+  style:opacity={visible ? undefined : '0'}
   style:contain="layout paint style"
 >
   <HeadlessPlayer
