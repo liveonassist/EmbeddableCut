@@ -7,7 +7,7 @@ import type { Editor, UiContributions } from '@embeddablecut/sdk'
 import { ContributionRegistry } from '@/extensions/registry.svelte'
 import { ThemeController } from '@/theme/theme'
 import type { TimelineItem, VideoItem } from '@/types/timeline'
-import Harness from './contributed-menu-items.harness.svelte'
+import Harness from './item-context-menu-contributions.harness.svelte'
 
 vi.mock('@/features/timeline/deps/analysis', () => ({
   getSceneVerificationModelOptions: () => [],
@@ -57,7 +57,7 @@ async function openMenu(item: TimelineItem, host: UiContributions) {
   return editor
 }
 
-describe('ContributedMenuItems', () => {
+describe('ItemContextMenu contributions', () => {
   it('gives a clip its menu entries, and an entry the clip', async () => {
     const onSelect = vi.fn()
     const item = clip('mine')
