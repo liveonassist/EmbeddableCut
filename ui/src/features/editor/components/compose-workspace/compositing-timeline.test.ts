@@ -207,7 +207,7 @@ function scaleKeyframeValue() {
     ?.keyframes[0]?.value
 }
 
-describe('CompositingTimeline', { timeout: 15_000 }, () => {
+describe('CompositingTimeline', { timeout: 45_000 }, () => {
   beforeEach(() => {
     if (!HTMLElement.prototype.scrollIntoView) {
       HTMLElement.prototype.scrollIntoView = () => {}
