@@ -644,9 +644,8 @@ describe('mediaTranscriptionService.insertTranscriptAsCaptions placement', () =>
 
     await mediaTranscriptionService.captionUncaptionedClips('media-1')
 
-    const inserted = addItems.mock.calls[0]![0] as TimelineItem[]
-    expect(inserted.map((item) => item.type === 'subtitle' && item.source.clipId)).toEqual([
-      'fresh',
+    expect(addItems.mock.calls[0]![0]).toMatchObject([
+      { type: 'subtitle', source: { clipId: 'fresh' } },
     ])
   })
 })
