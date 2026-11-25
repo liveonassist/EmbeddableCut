@@ -294,6 +294,17 @@ export function usePreviewRendererController(params: () => UsePreviewRendererCon
     current: null,
   }
   const liveScopeCaptureStructureKeyRef: { current: string | null } = { current: null }
+  /**
+   * Renders a frame from an effect. Deferred to a microtask, after the render pump's effect has
+   * re-assigned resumeScrubLoopRef: an edit re-runs that too, and its teardown, which runs first,
+   * leaves a no-op there that would silently drop the render.
+   */
+  const resumeScrubLoopAfterEffects = (targetFrame: number) => {
+    queueMicrotask(() => {
+      scrubRequestedFrameRef.current = targetFrame
+      void resumeScrubLoopRef.current()
+    })
+  }
   const invalidateCommittedPreviewSnapshot = () => {
     const snapshot = committedPreviewSnapshotRef.current
     snapshot.frame = null
@@ -802,14 +813,7 @@ export function usePreviewRendererController(params: () => UsePreviewRendererCon
       showFastScrubOverlayRef.current ||
       showPlaybackTransitionOverlayRef.current
     ) {
-      // Defer the kick to a microtask so it fires after the render-pump
-      // useEffect has re-assigned resumeScrubLoopRef to the new closure.
-      // Without this, the cleanup order (pump cleanup sets ref to no-op
-      // before the new pump effect runs) silently drops the resume.
-      queueMicrotask(() => {
-        scrubRequestedFrameRef.current = targetFrame
-        void resumeScrubLoopRef.current()
-      })
+      resumeScrubLoopAfterEffects(targetFrame)
     }
   })
 
@@ -884,8 +888,7 @@ export function usePreviewRendererController(params: () => UsePreviewRendererCon
         showFastScrubOverlayRef.current ||
         showPlaybackTransitionOverlayRef.current)
     ) {
-      scrubRequestedFrameRef.current = targetFrame
-      void resumeScrubLoopRef.current()
+      resumeScrubLoopAfterEffects(targetFrame)
     }
   })
 
@@ -909,8 +912,7 @@ export function usePreviewRendererController(params: () => UsePreviewRendererCon
       return
     }
 
-    scrubRequestedFrameRef.current = targetFrame
-    void resumeScrubLoopRef.current()
+    resumeScrubLoopAfterEffects(targetFrame)
   })
 
   $effect(() => {
@@ -949,8 +951,7 @@ export function usePreviewRendererController(params: () => UsePreviewRendererCon
     if (scrubOffscreenRenderedFrameRef.current === targetFrame) {
       scrubOffscreenRenderedFrameRef.current = null
     }
-    scrubRequestedFrameRef.current = targetFrame
-    void resumeScrubLoopRef.current()
+    resumeScrubLoopAfterEffects(targetFrame)
   })
 
   $effect(() => {
