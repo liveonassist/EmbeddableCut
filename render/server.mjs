@@ -133,6 +133,11 @@ export async function createHarnessServer({
     extensionUrls: extensionFiles.map(
       (file, index) => `${base}/extensions/${index}/${encodeURIComponent(path.basename(file))}`,
     ),
-    close: () => new Promise((resolve) => server.close(() => resolve())),
+    // Whoever read from it is done, and a browser's spare connection would keep it open.
+    close: () =>
+      new Promise((resolve) => {
+        server.close(() => resolve())
+        server.closeAllConnections()
+      }),
   }
 }

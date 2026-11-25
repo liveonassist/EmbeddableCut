@@ -84,6 +84,11 @@ export async function createMediaServer(mediaFilesOrResolver, port = 0) {
   return {
     base,
     url: (mediaId) => `${base}/media/${encodeURIComponent(mediaId)}`,
-    close: () => new Promise((resolve) => server.close(() => resolve())),
+    // Whoever read from it is done, and a browser's spare connection would keep it open.
+    close: () =>
+      new Promise((resolve) => {
+        server.close(() => resolve())
+        server.closeAllConnections()
+      }),
   }
 }
