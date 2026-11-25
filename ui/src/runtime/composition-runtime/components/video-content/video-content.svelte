@@ -12,6 +12,7 @@
   import ProResPreviewCanvas from '../prores-preview-canvas.svelte'
   import { useVideoAudioState } from '../video-audio-context.svelte'
   import NativePreviewVideo from './native-preview-video.svelte'
+  import TwinPreviewVideo from './twin-preview-video.svelte'
   import {
     contentLog,
     isRecoverableVideoLoadError,
@@ -34,6 +35,7 @@
       _sequenceFrameOffset?: number
       _poolClipId?: string
       _sharedTransitionSync?: boolean
+      _twinOf?: string
     }
     muted: boolean
     safeTrimBefore: number
@@ -122,6 +124,12 @@
     hasError = true
   }
 
+  // Set when the twin never showed up, so the item gets a video of its own.
+  let untwinned = $derived.by(() => {
+    void item._twinOf
+    return false
+  })
+
   function handleLiveDecodeError(error: Error) {
     contentLog.warn(`Live decode failed for item ${item.id}:`, error.message)
     hasError = true
@@ -148,6 +156,8 @@
     {reverseSourceEnd}
     onError={handleLiveDecodeError}
   />
+{:else if item._twinOf && !untwinned}
+  <TwinPreviewVideo itemId={item.id} twinId={item._twinOf} onMissing={() => (untwinned = true)} />
 {:else}
   <!-- Native HTML5 video with VideoSourcePool for element reuse -->
   <NativePreviewVideo

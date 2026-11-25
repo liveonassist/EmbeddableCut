@@ -58,12 +58,16 @@ interface SourceLane {
   initPromise: Promise<boolean> | null
   /** Serializes drawFrame calls to prevent concurrent mutable-state corruption. */
   drawLock: Promise<void> | null
+  /** EmbeddableCut: the source time last asked of it. */
+  timestamp: number | null
 }
 
 interface SourceState {
   src: string
   lanes: SourceLane[]
   itemLaneById: Map<string, number>
+  /** EmbeddableCut: the source time each item last asked for. */
+  itemTimestamps: Map<string, number>
   laneAssignments: number[]
   sourceInitPromise: Promise<boolean> | null
   sourceInitAttempted: boolean
@@ -75,6 +79,8 @@ interface SourceState {
 }
 
 const DEFAULT_MAX_LANES_PER_SOURCE = 4
+/** EmbeddableCut: source times this close are the same frame. */
+const SAME_FRAME_SECONDS = 1e-4
 const DEFAULT_MAX_ACTIVE_SOURCES = Number.POSITIVE_INFINITY
 const PREVIEW_MAX_ACTIVE_SOURCES = 6
 
@@ -376,7 +382,7 @@ export class SharedVideoExtractorPool {
 
       // Serialize drawFrame calls per lane to prevent concurrent mutable-state corruption
       // inside VideoFrameExtractor (ensureSampleForTimestamp / recoverAndPrime).
-      const lane = await this.getInitializedLaneForItem(state, itemId)
+      const lane = await this.getInitializedLaneForItem(state, itemId, timestamp)
       if (!lane) return false
       const prev = lane.drawLock ?? Promise.resolve()
       const result = prev.then(() =>
@@ -411,7 +417,7 @@ export class SharedVideoExtractorPool {
         return { success: false, capturedFrame: null, capturedSourceTime: null }
       }
 
-      const lane = await this.getInitializedLaneForItem(state, itemId)
+      const lane = await this.getInitializedLaneForItem(state, itemId, timestamp)
       if (!lane) return { success: false, capturedFrame: null, capturedSourceTime: null }
       const prev = lane.drawLock ?? Promise.resolve()
       const result = prev.then(() =>
@@ -441,7 +447,7 @@ export class SharedVideoExtractorPool {
         return { success: false, frame: null, sourceTime: null }
       }
 
-      const lane = await this.getInitializedLaneForItem(state, itemId)
+      const lane = await this.getInitializedLaneForItem(state, itemId, timestamp)
       if (!lane) return { success: false, frame: null, sourceTime: null }
       const prev = lane.drawLock ?? Promise.resolve()
       const result = prev.then(() => lane.extractor.captureFrame(timestamp, shouldContinue))
@@ -554,6 +560,7 @@ export class SharedVideoExtractorPool {
         src,
         lanes: [],
         itemLaneById: new Map<string, number>(),
+        itemTimestamps: new Map<string, number>(),
         laneAssignments: [],
         sourceInitPromise: null,
         sourceInitAttempted: false,
@@ -579,6 +586,7 @@ export class SharedVideoExtractorPool {
       initialized: false,
       initPromise: null,
       drawLock: null,
+      timestamp: null,
     }
   }
 
@@ -613,9 +621,10 @@ export class SharedVideoExtractorPool {
   private async getInitializedLaneForItem(
     state: SourceState,
     itemId: string,
+    timestamp: number,
   ): Promise<SourceLane | null> {
     this.ensurePrimaryLane(state)
-    let laneIndex = this.getAssignedLaneIndex(state, itemId)
+    let laneIndex = this.getLaneIndexForFrame(state, itemId, timestamp)
     let laneReady = await this.ensureLaneInitialized(state, laneIndex)
 
     if (!laneReady && laneIndex !== 0) {
@@ -624,6 +633,46 @@ export class SharedVideoExtractorPool {
     }
 
     return laneReady ? (state.lanes[laneIndex] ?? null) : null
+  }
+
+  /**
+   * EmbeddableCut: the lane to read `timestamp` from. Items showing the same frame, as a clip and a
+   * blurred copy of it behind do, read it from one lane, so it's decoded once.
+   */
+  private getLaneIndexForFrame(state: SourceState, itemId: string, timestamp: number): number {
+    const isSameFrame = (other: number | null | undefined) =>
+      typeof other === 'number' && Math.abs(other - timestamp) <= SAME_FRAME_SECONDS
+    const assigned = state.itemLaneById.get(itemId)
+
+    if (assigned === undefined || !isSameFrame(state.lanes[assigned]?.timestamp)) {
+      const atFrame = state.lanes.findIndex((lane) => isSameFrame(lane.timestamp))
+      if (atFrame >= 0) {
+        this.assignItemToLane(state, itemId, atFrame)
+      } else if (assigned !== undefined && this.hasLaneMovedOn(state, itemId, assigned)) {
+        // Sharing it now would seek it back and forth between the two.
+        this.unassignItem(itemId, state.src)
+      }
+    }
+
+    const laneIndex = this.getAssignedLaneIndex(state, itemId)
+    state.lanes[laneIndex]!.timestamp = timestamp
+    state.itemTimestamps.set(itemId, timestamp)
+    return laneIndex
+  }
+
+  /** Whether other items took a shared lane to another time, and there's a lane to move to. */
+  private hasLaneMovedOn(state: SourceState, itemId: string, laneIndex: number): boolean {
+    return (
+      state.laneAssignments[laneIndex]! > 1 &&
+      state.lanes[laneIndex]!.timestamp !== state.itemTimestamps.get(itemId) &&
+      (state.lanes.length < this.maxLanesPerSource || state.laneAssignments.includes(0))
+    )
+  }
+
+  private assignItemToLane(state: SourceState, itemId: string, laneIndex: number): void {
+    this.unassignItem(itemId, state.src)
+    state.itemLaneById.set(itemId, laneIndex)
+    state.laneAssignments[laneIndex] = (state.laneAssignments[laneIndex] ?? 0) + 1
   }
 
   private getAssignedLaneIndex(state: SourceState, itemId: string): number {
@@ -649,8 +698,7 @@ export class SharedVideoExtractorPool {
       state.laneAssignments.push(0)
     }
 
-    state.itemLaneById.set(itemId, bestLane)
-    state.laneAssignments[bestLane] = (state.laneAssignments[bestLane] ?? 0) + 1
+    this.assignItemToLane(state, itemId, bestLane)
     return bestLane
   }
 
@@ -667,6 +715,7 @@ export class SharedVideoExtractorPool {
     const state = this.sourceStates.get(src)
     if (!state) return
 
+    state.itemTimestamps.delete(itemId)
     const laneIndex = state.itemLaneById.get(itemId)
     if (laneIndex !== undefined) {
       state.itemLaneById.delete(itemId)

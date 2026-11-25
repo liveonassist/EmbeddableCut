@@ -126,6 +126,7 @@
     prependResolvedAudioEqSources,
   } from '@/shared/utils/audio-eq'
   import { getAudioPitchShiftSemitones } from '@/shared/utils/audio-pitch'
+  import { resolveVideoTwins } from '@/runtime/composition-runtime/utils/video-twins'
   import ActiveMasksProvider from './active-masks-provider.svelte'
   import MaskedItem from './masked-item.svelte'
 
@@ -181,7 +182,18 @@
   const expressionItems = $derived(tracks.flatMap((track) => track.items))
   const maxOrder = $derived(renderPlan.trackRenderState.maxOrder)
 
-  const videoItems: StableVideoSequenceItem[] = $derived(renderPlan.videoItems)
+  // A clip that always shows the frame another does (a blurred copy behind it) uses its video,
+  // so the source is decoded once.
+  const videoItems: StableVideoSequenceItem[] = $derived.by(() => {
+    const inTransition = new Set(
+      renderPlan.transitionWindows.flatMap((window) => [window.leftClip.id, window.rightClip.id]),
+    )
+    const twins = resolveVideoTwins(renderPlan.videoItems, fps, inTransition)
+    if (twins.size === 0) return renderPlan.videoItems
+    return renderPlan.videoItems.map((item) =>
+      twins.has(item.id) ? { ...item, _twinOf: twins.get(item.id) } : item,
+    )
+  })
 
   // Audio items are derived separately and rendered outside mask groups
   // This prevents audio from being affected by visual layer changes (mask add/delete, item moves)

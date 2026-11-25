@@ -15,6 +15,8 @@ export type StableVideoSequenceItem = VideoItem & {
   _sequenceFrameOffset?: number
   _poolClipId?: string
   _sharedTransitionSync?: boolean
+  /** The clip whose `<video>` stands for this one's (`resolveVideoTwins`). */
+  _twinOf?: string
 }
 
 export interface StableVideoSequenceProps {

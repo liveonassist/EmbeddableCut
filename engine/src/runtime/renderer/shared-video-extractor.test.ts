@@ -75,6 +75,46 @@ describe('SharedVideoExtractorPool', () => {
     expect(extractorState.instances[1]!.dispose).toHaveBeenCalledTimes(1)
   })
 
+  it('reads items showing the same frame from one lane, whichever asks first', async () => {
+    const pool = new SharedVideoExtractorPool()
+    const ctx = {} as CanvasRenderingContext2D
+    const clip = pool.getOrCreateItemExtractor('clip', 'blob:source')
+    const blurredCopy = pool.getOrCreateItemExtractor('copy', 'blob:source')
+
+    for (const [first, second, timestamp] of [
+      [clip, blurredCopy, 0],
+      [clip, blurredCopy, 1],
+      [blurredCopy, clip, 2],
+    ] as const) {
+      await first.drawFrame(ctx, timestamp, 0, 0, 1, 1)
+      await second.drawFrame(ctx, timestamp, 0, 0, 1, 1)
+    }
+
+    expect(extractorState.instances).toHaveLength(1)
+  })
+
+  it('parts items whose frames part, and reunites them', async () => {
+    const pool = new SharedVideoExtractorPool()
+    const ctx = {} as CanvasRenderingContext2D
+    const clip = pool.getOrCreateItemExtractor('clip', 'blob:source')
+    const copy = pool.getOrCreateItemExtractor('copy', 'blob:source')
+    const timesRead = (instance: number) =>
+      extractorState.instances[instance]!.drawFrame.mock.calls.map((call) => call[1])
+
+    for (const [clipTime, copyTime] of [
+      [0, 0],
+      [1, 8],
+      [2, 9],
+      [3, 3],
+    ] as const) {
+      await clip.drawFrame(ctx, clipTime, 0, 0, 1, 1)
+      await copy.drawFrame(ctx, copyTime, 0, 0, 1, 1)
+    }
+
+    expect(timesRead(0)).toEqual([0, 0, 1, 2, 3, 3])
+    expect(timesRead(1)).toEqual([8, 9])
+  })
+
   it('keeps registered sources allocation-free until one is initialized', async () => {
     const pool = new SharedVideoExtractorPool({ maxActiveSources: 2 })
     const first = pool.getOrCreateItemExtractor('item-1', 'blob:first')

@@ -1,3 +1,21 @@
+/** EmbeddableCut: told when the elements of an item change. */
+const listenersByItemId = new Map<string, Set<() => void>>()
+
+/** EmbeddableCut: calls `listener` whenever an element of `itemId` comes or goes. */
+export function subscribeDomVideoElements(itemId: string, listener: () => void): () => void {
+  const listeners = listenersByItemId.get(itemId) ?? new Set()
+  listenersByItemId.set(itemId, listeners)
+  listeners.add(listener)
+  return () => {
+    listeners.delete(listener)
+    if (listeners.size === 0) listenersByItemId.delete(itemId)
+  }
+}
+
+function notifyDomVideoElements(itemId: string): void {
+  for (const listener of listenersByItemId.get(itemId) ?? []) listener()
+}
+
 const videoElementsByItemId = new Map<string, Set<HTMLVideoElement>>()
 
 function getOrCreateItemElements(itemId: string): Set<HTMLVideoElement> {
@@ -11,6 +29,7 @@ function getOrCreateItemElements(itemId: string): Set<HTMLVideoElement> {
 
 export function registerDomVideoElement(itemId: string, element: HTMLVideoElement): void {
   getOrCreateItemElements(itemId).add(element)
+  notifyDomVideoElements(itemId)
 }
 
 export function unregisterDomVideoElement(itemId: string, element: HTMLVideoElement): void {
@@ -21,6 +40,12 @@ export function unregisterDomVideoElement(itemId: string, element: HTMLVideoElem
   if (itemElements.size === 0) {
     videoElementsByItemId.delete(itemId)
   }
+  notifyDomVideoElements(itemId)
+}
+
+/** EmbeddableCut: whether `itemId` has an element, with a picture yet or not. */
+export function hasDomVideoElement(itemId: string): boolean {
+  return videoElementsByItemId.has(itemId)
 }
 
 export function getBestDomVideoElementForItem(itemId: string): HTMLVideoElement | null {

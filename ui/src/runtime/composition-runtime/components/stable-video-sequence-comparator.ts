@@ -18,6 +18,7 @@ export type StableVideoSequenceComparatorItem = VideoItem & {
   _sequenceFrameOffset?: number
   _poolClipId?: string
   _sharedTransitionSync?: boolean
+  _twinOf?: string
 }
 
 type StableVideoRenderBaseSignature = {
@@ -46,6 +47,7 @@ type StableVideoRenderBaseSignature = {
   reverseConformLocalStart: number | undefined
   audioPitchSemitones: number
   audioPitchCents: number
+  twinOf: string | undefined
 }
 
 type StableVideoRenderSignature = StableVideoRenderBaseSignature & {
@@ -81,6 +83,7 @@ function getStableVideoRenderBaseSignature(
     reverseConformLocalStart: item.reverseConformLocalStart,
     audioPitchSemitones: item.audioPitchSemitones ?? 0,
     audioPitchCents: item.audioPitchCents ?? 0,
+    twinOf: item._twinOf,
   }
 }
 
@@ -126,7 +129,8 @@ function areStableVideoRenderBaseSignaturesEqual(
     prevSignature.reverseConformStatus === nextSignature.reverseConformStatus &&
     prevSignature.reverseConformLocalStart === nextSignature.reverseConformLocalStart &&
     prevSignature.audioPitchSemitones === nextSignature.audioPitchSemitones &&
-    prevSignature.audioPitchCents === nextSignature.audioPitchCents
+    prevSignature.audioPitchCents === nextSignature.audioPitchCents &&
+    prevSignature.twinOf === nextSignature.twinOf
   )
 }
 
