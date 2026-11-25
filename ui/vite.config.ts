@@ -107,6 +107,9 @@ export default defineConfig({
     environment: 'jsdom',
     setupFiles: ['./src/test/setup.ts'],
     include: ['src/**/*.test.ts'],
+    // Background work (filmstrips, say) can log as a file's tests end, and a log still on its way to
+    // the reporter then fails the run.
+    disableConsoleIntercept: true,
   },
   worker: {
     format: 'es',
