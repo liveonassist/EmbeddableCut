@@ -244,12 +244,12 @@ export class TranscribeStream implements AsyncIterable<TranscriptSegment> {
         featureLabel: isParakeet ? 'Parakeet' : 'Whisper',
         modelKey: this.resolved.model,
         modelLabel: isParakeet
-          ? formatParakeetRuntimeModelLabel('webgpu')
+          ? formatParakeetRuntimeModelLabel()
           : formatWhisperRuntimeModelLabel(this.resolved.model, quantization),
         backend: 'unknown',
         state: 'loading',
         estimatedBytes: isParakeet
-          ? estimateParakeetRuntimeBytes('webgpu')
+          ? estimateParakeetRuntimeBytes()
           : estimateWhisperRuntimeBytes(this.resolved.model, quantization),
         activeJobs: 1,
         loadedAt: now,

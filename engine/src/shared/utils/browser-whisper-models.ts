@@ -1,10 +1,9 @@
 import type { MediaTranscriptModel } from '@/types/storage'
 
-// Parakeet TDT 0.6B v3 (NVIDIA, CC-BY-4.0) is the default browser ASR engine: measured
-// ~30-37x realtime via a hybrid WebGPU-encoder + WASM-decode pipeline (~10x faster than
-// Whisper base) with native punctuation. It covers 25 European languages; for ja/ko/zh
-// or when WebGPU is unavailable, transcription auto-falls back to Whisper base. See
-// `transcription-engine.ts` for the routing.
+// Parakeet TDT 0.6B v3 (NVIDIA, CC-BY-4.0) is the default browser ASR engine: ~10x faster
+// than Whisper base with native punctuation, its encoder on WebGPU where there is one and
+// everything else on the CPU. It covers 25 European languages; for ja/ko/zh transcription
+// auto-falls back to Whisper base. See `transcription-engine.ts` for the routing.
 export const DEFAULT_BROWSER_WHISPER_MODEL: MediaTranscriptModel = 'parakeet-tdt-v3'
 
 export const BROWSER_WHISPER_MODEL_LABELS: Record<MediaTranscriptModel, string> = {

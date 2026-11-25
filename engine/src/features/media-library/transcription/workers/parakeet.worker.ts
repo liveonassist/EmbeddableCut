@@ -2,27 +2,27 @@ import type { MainThreadMessage, PCMChunk, TranscriptWord, WhisperWorkerMessage 
 import { createLogger } from '@/shared/logging/logger'
 import { getChunkStartProgress, transcribingProgressEvent } from '../lib/chunk-progress'
 import { fetchOnnxModelBytes, fetchOnnxModelText } from '@/shared/utils/onnx-model-cache'
+import { getWasmThreadCount, ORT_WASM_PATH } from '@/shared/utils/ort-runtime'
 
 // Parakeet TDT 0.6B v3 (NVIDIA, CC-BY-4.0) on-device ASR, as moondream's post-trained
 // parakeet-ultra (same architecture and tokenizer, CC-BY-4.0). Clean-room ORT-web pipeline
 // (nemo128 log-mel preprocessor -> FastConformer encoder -> token-and-duration greedy
 // decode -> BPE detokenize), authored from the published onnx-asr algorithm. The encoder
-// runs on WebGPU (fp16) while the tiny autoregressive joint runs on WASM/CPU — the joint
-// has hundreds of sequential steps per span and per-step GPU dispatch sync dominates, so
-// keeping it on CPU is ~7x faster overall (measured). Implements the same worker message
+// runs on WebGPU, or the CPU without it, while the tiny autoregressive joint runs on the CPU —
+// the joint has hundreds of sequential steps per span and per-step GPU dispatch sync dominates,
+// so keeping it on CPU is ~7x faster overall (measured). Implements the same worker message
 // protocol as whisper.worker.ts so the Bridge can drive either engine.
 
 const logger = createLogger('ParakeetWorker')
 
-const ORT_WASM_PATH =
-  'https://cdn.jsdelivr.net/npm/onnxruntime-web@1.26.0-dev.20260410-5e55544225/dist/'
 // Pinned to a commit: the repo this worker first used moved its files on `main` and broke
 // every download. The decoder's extra outputs (LSE, top-K) are unused; `outputs` is still
 // the full token-then-duration logits the greedy decode reads.
 const HF_BASE =
   'https://huggingface.co/Olicorne/parakeet-tdt-0.6b-v3-ultra-onnx/resolve/b27f93c2238aa35e138996c005a62f1e8430f801'
 
-const ENCODER_FP16 = 'fp16/encoder-model.fp16.onnx'
+// EmbeddableCut: int8 everywhere. It transcribes as fp16 does, as fast on a GPU, at half the
+// download, and needs no 16-bit shaders, which some GPUs and drivers don't have.
 const ENCODER_INT8 = 'int8/encoder-model.int8.onnx'
 const DECODER_INT8 = 'int8/decoder_joint-model.int8.onnx'
 const PREPROCESSOR = 'nemo128.onnx'
@@ -36,10 +36,7 @@ const STATE_SHAPE = [2, 1, 640] as const // [pred_rnn_layers, batch, pred_hidden
 const RECENT_WORD_RETENTION_SECONDS = 8
 const DUPLICATE_WORD_START_TOLERANCE_SECONDS = 0.5
 
-const ESTIMATED_BYTES: Record<'webgpu' | 'wasm', number> = {
-  webgpu: Math.round(1_180 * 1024 * 1024),
-  wasm: Math.round(637 * 1024 * 1024),
-}
+const ESTIMATED_BYTES = Math.round(637 * 1024 * 1024)
 
 // Approximate on-disk sizes, summing to ESTIMATED_BYTES. These only weight the aggregate
 // download bar so it advances evenly across files rather than restarting at each one; the
@@ -47,7 +44,6 @@ const ESTIMATED_BYTES: Record<'webgpu' | 'wasm', number> = {
 // costs nothing beyond a slightly uneven first chunk.
 const APPROX_FILE_BYTES: Record<string, number> = {
   [PREPROCESSOR]: Math.round(1 * 1024 * 1024),
-  [ENCODER_FP16]: Math.round(1_162 * 1024 * 1024),
   [ENCODER_INT8]: Math.round(619 * 1024 * 1024),
   [DECODER_INT8]: Math.round(17 * 1024 * 1024),
 }
@@ -56,7 +52,8 @@ type OrtModule = typeof import('onnxruntime-web')
 type OrtTensor = InstanceType<OrtModule['Tensor']>
 type OrtSession = Awaited<ReturnType<OrtModule['InferenceSession']['create']>>
 
-let ortPromise: Promise<OrtModule> | null = null
+let cpuOrtPromise: Promise<OrtModule> | null = null
+let gpuOrtPromise: Promise<OrtModule> | null = null
 let preproc: OrtSession | null = null
 let encoder: OrtSession | null = null
 let decoder: OrtSession | null = null
@@ -127,15 +124,26 @@ self.onmessage = async (event: MessageEvent) => {
   }
 }
 
-function getOrt(): Promise<OrtModule> {
-  if (!ortPromise) {
-    ortPromise = import('onnxruntime-web').then((module) => {
-      module.env.wasm.wasmPaths = ORT_WASM_PATH
-      module.env.wasm.numThreads = 1
-      return module
-    })
-  }
-  return ortPromise
+// EmbeddableCut: two builds, as neither runs it all. The default build's WebGPU kernels refuse
+// 8-bit MatMulNBits, which the newer ones of the `webgpu` build run, and that build lacks a Cast
+// the preprocessor needs.
+function getCpuOrt(): Promise<OrtModule> {
+  cpuOrtPromise ??= import('onnxruntime-web/wasm').then((module) => {
+    module.env.wasm.wasmPaths = ORT_WASM_PATH
+    module.env.wasm.numThreads = getWasmThreadCount()
+    return module
+  })
+  return cpuOrtPromise
+}
+
+function getGpuOrt(): Promise<OrtModule> {
+  gpuOrtPromise ??= import('onnxruntime-web/webgpu').then((module) => {
+    module.env.wasm.wasmPaths = ORT_WASM_PATH
+    module.env.wasm.numThreads = 1
+    module.env.webgpu.powerPreference = 'high-performance'
+    return module
+  })
+  return gpuOrtPromise
 }
 
 async function loadVocab(): Promise<NonNullable<typeof vocab>> {
@@ -159,14 +167,11 @@ async function loadVocab(): Promise<NonNullable<typeof vocab>> {
   return { idToToken, vocabSize: idToToken.size, blankIdx }
 }
 
-/**
- * EmbeddableCut: whether the GPU runs the fp16 encoder. Without the feature its session is created
- * all the same, and its shaders then fail to compile and decode to no words.
- */
-async function supportsFp16Shaders(): Promise<boolean> {
+async function hasGpu(): Promise<boolean> {
   try {
-    const adapter = await navigator.gpu?.requestAdapter()
-    return adapter?.features.has('shader-f16') ?? false
+    const adapter = await navigator.gpu?.requestAdapter({ powerPreference: 'high-performance' })
+    // A software adapter is the CPU, slower than running on it directly.
+    return adapter != null && !adapter.info.isFallbackAdapter
   } catch {
     return false
   }
@@ -187,11 +192,7 @@ class DownloadProgress {
   private readonly loaded = new Map<string, number>()
   private sawNetwork = false
 
-  /** `restarted` marks a transfer opened after `preparing` began — see the fp16 fallback. */
-  constructor(
-    files: string[],
-    private readonly restarted = false,
-  ) {
+  constructor(files: string[]) {
     for (const file of files) {
       this.totals.set(file, APPROX_FILE_BYTES[file] ?? 0)
       this.loaded.set(file, 0)
@@ -219,20 +220,70 @@ class DownloadProgress {
           receivedBytes,
           totalBytes,
           fromCache: !this.sawNetwork,
-          ...(this.restarted && { restarted: true }),
         },
       })
     }
   }
 }
 
+function postRuntime(): void {
+  postMain({ type: 'runtime', info: { backend: activeBackend, estimatedBytes: ESTIMATED_BYTES } })
+}
+
+async function createEncoder(bytes: ArrayBuffer | Uint8Array, gpu: boolean): Promise<void> {
+  const model = bytes instanceof Uint8Array ? bytes : new Uint8Array(bytes)
+  if (gpu) {
+    try {
+      const ort = await getGpuOrt()
+      encoder = await ort.InferenceSession.create(model, sessionOptions('webgpu'))
+      activeBackend = 'webgpu'
+      return
+    } catch (error) {
+      logger.warn('WebGPU encoder failed to load, using the CPU', error)
+    }
+  }
+  const ort = await getCpuOrt()
+  encoder = await ort.InferenceSession.create(model, sessionOptions('wasm'))
+  activeBackend = 'wasm'
+}
+
+/** Whether encoder output is something: shaders a GPU fails to run leave zeros, not an error. */
+function isEncoded(data: Float32Array): boolean {
+  let silent = true
+  for (const value of data) {
+    if (!Number.isFinite(value)) return false
+    if (value !== 0) silent = false
+  }
+  return !silent
+}
+
+async function encode(features: OrtTensor, length: OrtTensor): Promise<Record<string, OrtTensor>> {
+  const run = async (): Promise<Record<string, OrtTensor>> => {
+    const { Tensor } = activeBackend === 'webgpu' ? await getGpuOrt() : await getCpuOrt()
+    return (await encoder!.run({
+      audio_signal: new Tensor('float32', features.data as Float32Array, features.dims),
+      length: new Tensor('int64', length.data as BigInt64Array, length.dims),
+    })) as Record<string, OrtTensor>
+  }
+  if (activeBackend === 'webgpu') {
+    try {
+      const output = await run()
+      if (isEncoded(output.outputs!.data as Float32Array)) return output
+      logger.warn('WebGPU encoder gave no usable output, using the CPU')
+    } catch (error) {
+      logger.warn('WebGPU encoder failed, using the CPU', error)
+    }
+    await encoder?.release().catch(() => {})
+    await createEncoder(await fetchOnnxModelBytes(`${HF_BASE}/${ENCODER_INT8}`), false)
+    postRuntime()
+  }
+  return run()
+}
+
 async function initPipeline(): Promise<void> {
   if (pipelineReady) {
     // Warm reuse: sessions already compiled — skip download/compile entirely.
-    postMain({
-      type: 'runtime',
-      info: { backend: activeBackend, estimatedBytes: ESTIMATED_BYTES[activeBackend] },
-    })
+    postRuntime()
     postMain({ type: 'progress', event: { stage: 'preparing', progress: 1 } })
     postMain({ type: 'ready' })
     if (queue.length > 0 && !processing && !paused) {
@@ -244,73 +295,35 @@ async function initPipeline(): Promise<void> {
   postMain({ type: 'progress', event: { stage: 'downloading', progress: 0 } })
 
   try {
-    const ort = await getOrt()
+    const ort = await getCpuOrt()
     vocab = await loadVocab()
-
-    // The heavy encoder prefers WebGPU (fp16) and falls back to the int8 WASM encoder.
-    const webgpuAvailable = await supportsFp16Shaders()
-    const encoderFile = webgpuAvailable ? ENCODER_FP16 : ENCODER_INT8
 
     // Pass 1 — fetch every weight file under a single aggregate byte counter. Compiling each
     // session as its bytes land would interleave `preparing` between downloads, and the
     // monotonic merge would then drop every `downloading` event that followed.
-    const download = new DownloadProgress([PREPROCESSOR, encoderFile, DECODER_INT8])
+    const download = new DownloadProgress([PREPROCESSOR, ENCODER_INT8, DECODER_INT8])
     const preprocBytes = await fetchOnnxModelBytes(
       `${HF_BASE}/${PREPROCESSOR}`,
       download.track(PREPROCESSOR),
     )
     const encoderBytes = await fetchOnnxModelBytes(
-      `${HF_BASE}/${encoderFile}`,
-      download.track(encoderFile),
+      `${HF_BASE}/${ENCODER_INT8}`,
+      download.track(ENCODER_INT8),
     )
     const decoderBytes = await fetchOnnxModelBytes(
       `${HF_BASE}/${DECODER_INT8}`,
       download.track(DECODER_INT8),
     )
 
-    // Pass 2 — compile. ORT reports no progress here and the fp16 encoder costs ~20 s on
-    // WebGPU, so the UI renders `preparing` as an indeterminate bar rather than a stalled one.
+    // Pass 2 — compile. ORT reports no progress here and the encoder takes seconds, so the UI
+    // renders `preparing` as an indeterminate bar rather than a stalled one.
     postMain({ type: 'progress', event: { stage: 'preparing', progress: 0 } })
 
     // Preprocessor + autoregressive joint always run on WASM (tiny graphs, no per-step GPU sync).
     preproc = await ort.InferenceSession.create(preprocBytes, sessionOptions('wasm'))
-
-    let encoderBackend: 'webgpu' | 'wasm' = 'wasm'
-    if (webgpuAvailable) {
-      try {
-        encoder = await ort.InferenceSession.create(encoderBytes, sessionOptions('webgpu'))
-        encoderBackend = 'webgpu'
-      } catch (error) {
-        logger.warn(
-          `WebGPU encoder init failed, falling back to WASM int8: ${error instanceof Error ? error.message : String(error)}`,
-        )
-        encoder = null
-      }
-    }
-    let fallbackBytes = encoderBytes
-    if (!encoder && webgpuAvailable) {
-      // Rare: WebGPU rejected the fp16 graph, so the int8 encoder must still be fetched. That
-      // is a real ~650 MB transfer, so hand the bar back to `downloading` with its own byte
-      // counter — parking on the indeterminate `preparing` would hide a multi-minute download.
-      const fallbackDownload = new DownloadProgress([ENCODER_INT8], true)
-      fallbackBytes = await fetchOnnxModelBytes(
-        `${HF_BASE}/${ENCODER_INT8}`,
-        fallbackDownload.track(ENCODER_INT8),
-      )
-      postMain({ type: 'progress', event: { stage: 'preparing', progress: 0 } })
-    }
-    if (!encoder) {
-      encoder = await ort.InferenceSession.create(fallbackBytes, sessionOptions('wasm'))
-      encoderBackend = 'wasm'
-    }
-
+    await createEncoder(encoderBytes, await hasGpu())
     decoder = await ort.InferenceSession.create(decoderBytes, sessionOptions('wasm'))
-
-    activeBackend = encoderBackend
-    postMain({
-      type: 'runtime',
-      info: { backend: activeBackend, estimatedBytes: ESTIMATED_BYTES[activeBackend] },
-    })
+    postRuntime()
 
     pipelineReady = true
     postMain({ type: 'progress', event: { stage: 'preparing', progress: 1 } })
@@ -415,7 +428,7 @@ async function transcribeChunk(chunk: PCMChunk): Promise<void> {
     postMain({ type: 'progress', event: { stage: 'transcribing', progress: startProgress } })
   }
 
-  const ort = await getOrt()
+  const ort = await getCpuOrt()
 
   // 1. Log-mel features: waveforms [1,N] + waveforms_lens [1] -> features [1,128,T].
   const preOut = (await preproc.run({
@@ -424,10 +437,7 @@ async function transcribeChunk(chunk: PCMChunk): Promise<void> {
   })) as Record<string, OrtTensor>
 
   // 2. Encoder: audio_signal [1,128,T] + length [1] -> outputs [1,D,T'] + encoded_lengths.
-  const encOut = (await encoder.run({
-    audio_signal: preOut.features!,
-    length: preOut.features_lens!,
-  })) as Record<string, OrtTensor>
+  const encOut = await encode(preOut.features!, preOut.features_lens!)
   const encoded = encOut.outputs!
   const encDims = encoded.dims as number[]
   const D = encDims[1] ?? 0

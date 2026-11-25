@@ -1,7 +1,7 @@
 import type { TranscriptionEngine } from '../types'
 
-// Transcription model load + compile is the dominant per-job cost: Parakeet's 1.24 GB
-// encoder takes ~20s to compile on WebGPU, and even Whisper re-downloads/re-instantiates
+// Transcription model load + compile is the dominant per-job cost: Parakeet's 0.65 GB
+// encoder takes seconds to compile, and even Whisper re-downloads/re-instantiates
 // its pipeline if the worker is recreated each job. Keeping one worker per engine resident
 // lets the worker reuse its already-compiled sessions across jobs (each worker early-returns
 // on re-init when the model is unchanged). Workers are evicted after a period of inactivity

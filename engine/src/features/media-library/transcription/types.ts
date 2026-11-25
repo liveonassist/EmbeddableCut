@@ -41,11 +41,6 @@ export interface TranscribeProgress {
    * Set while transcribing audio whose duration the decoder never reported.
    */
   indeterminate?: boolean
-  /**
-   * True when this event opens a transfer that was not part of the original download, so the
-   * merge is allowed to rewind the bar back out of `preparing`.
-   */
-  restarted?: boolean
 }
 
 export interface TranscribeRuntimeInfo {

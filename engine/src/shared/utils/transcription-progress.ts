@@ -18,11 +18,6 @@ export interface TranscriptionProgressSnapshot {
   fromCache?: boolean
   /** True when the stage cannot report a fraction, so `progress` only marks the band's floor. */
   indeterminate?: boolean
-  /**
-   * True when this event opens a transfer that was not part of the original download — the
-   * model track has genuinely returned to the network and may report less progress than before.
-   */
-  restarted?: boolean
 }
 
 function clampProgress(progress: number): number {
@@ -54,8 +49,8 @@ function isModelComplete(snapshot: TranscriptionProgressSnapshot): boolean {
 }
 
 // Band widths reflect real wall-clock cost, not pipeline step count. A cold run is dominated
-// by the model transfer — Parakeet ships ~1.2 GB — so `downloading` owns most of the track;
-// the compile after it costs ~20 s, audio decode ~1 s, and inference runs at ~30x realtime.
+// by the model transfer — Parakeet ships ~0.65 GB — so `downloading` owns most of the track;
+// the compile after it costs seconds, audio decode ~1 s, and inference runs at 10x realtime or more.
 // A warm run skips straight into the later bands, which is honest: the expensive part really
 // was skipped. Bands are ordered so progress within a track never steps backward.
 export function getTranscriptionOverallProgress(snapshot: TranscriptionProgressSnapshot): number {
@@ -109,18 +104,6 @@ export function mergeTranscriptionProgress(
   const previousIsModel = isModelStage(previous.stage)
 
   if (nextIsModel === previousIsModel) {
-    // The model track can legitimately go back to the network: when WebGPU rejects the fp16
-    // encoder, the int8 one is fetched after the compile has already begun. Only an event that
-    // declares itself a restart may rewind the bar — a plain late `downloading` is still a
-    // stale tail event and stays discarded.
-    if (
-      normalizedNext.stage === 'downloading' &&
-      normalizedNext.restarted &&
-      previous.stage === 'preparing' &&
-      !isModelComplete(previous)
-    ) {
-      return normalizedNext
-    }
     // Same track — `>=` rather than `>` so a stalled byte counter still refreshes its bytes.
     return getTranscriptionOverallProgress(normalizedNext) >=
       getTranscriptionOverallProgress(previous)
