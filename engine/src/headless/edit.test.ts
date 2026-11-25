@@ -214,6 +214,59 @@ describe('editProject', () => {
     expect(audioTrack.kind).toBe('audio')
   })
 
+  it('addClip plays a range of its media and leaves the rest to trim out to', async () => {
+    const edit = (op: object) =>
+      editProject({
+        project: baseProject(),
+        ops: [{ op: 'addClip', mediaId: 'm-vid', ...op } as EditOp],
+        media: [{ mediaId: 'm-vid', metadata: videoMedia }],
+      })
+    const result = await edit({ sourceStartSeconds: 1, sourceEndSeconds: 3 })
+    // Seconds 1 to 3: 50 timeline frames at 25 fps, 30 to 90 of the source at 30 fps.
+    const range = {
+      from: 0,
+      durationInFrames: 50,
+      sourceStart: 30,
+      sourceEnd: 90,
+      sourceDuration: 120,
+    }
+    expect(result.project.timeline!.items).toMatchObject([range, range])
+
+    await expect(edit({ sourceStartSeconds: 3, sourceEndSeconds: 1 })).rejects.toThrow(
+      /sourceEndSeconds/,
+    )
+    await expect(edit({ sourceEndSeconds: 5 })).rejects.toThrow(/sourceEndSeconds/)
+    await expect(edit({ sourceStartSeconds: 4 })).rejects.toThrow(/sourceStartSeconds/)
+    await expect(edit({ sourceEndSeconds: 1, durationInFrames: 26 })).rejects.toThrow(
+      /durationInFrames/,
+    )
+  })
+
+  it('addClip keeps each clip and its audio together when two play at once', async () => {
+    const result = await editProject({
+      project: baseProject(),
+      ops: [
+        { op: 'addClip', mediaId: 'm-vid', from: 10 },
+        { op: 'addTrack', callerId: 'above', kind: 'video' },
+        { op: 'addClip', mediaId: 'm-vid', from: 10, trackId: { $ref: 'above#/detail/trackId' } },
+        { op: 'addClip', mediaId: 'm-vid', from: 30, trackId: { $ref: 'above#/detail/trackId' } },
+        { op: 'addClip', mediaId: 'm-vid', from: 300, audio: false },
+      ] as EditOp[],
+      media: [{ mediaId: 'm-vid', metadata: videoMedia }],
+    })
+    const placed = result.project.timeline!.items.map((i) => [i.type, i.from])
+    expect(placed).toEqual([
+      ['video', 10],
+      ['audio', 10],
+      ['video', 10],
+      ['audio', 10],
+      // Its place was taken, so it went after, its audio with it.
+      ['video', 110],
+      ['audio', 110],
+      ['video', 300],
+    ])
+  })
+
   it('addClip insert splits what it lands in and moves every rippling track along', async () => {
     const track = (id: string, kind: 'video' | 'audio', order: number, extra = {}) => ({
       ...baseProject().timeline!.tracks[0]!,

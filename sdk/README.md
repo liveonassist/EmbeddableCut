@@ -43,7 +43,7 @@ editor.dispose()
 
 ## Editing
 
-`apply(op | ops)` runs edit operations as one undo step: `addTrack`, `addText`, `addItem`, `addClip`, `updateItem`, `moveItem`, `removeItems`, `split`, `trimStart`, `trimEnd`, the transition, keyframe, effect and transform ops, and any an extension adds (`editor.operations` lists them). `addClip` with `insert: true` makes room first: the clip at `from` is split, and everything after moves later on every track that ripples (unlocked, sync lock on). An op can refer to an earlier op's result with `{ "$ref": "<callerId>#/detail/<field>" }`. `undo()`, `redo()`, `canUndo` and `canRedo` work as in the editor.
+`apply(op | ops)` runs edit operations as one undo step: `addTrack`, `addText`, `addItem`, `addClip`, `updateItem`, `moveItem`, `removeItems`, `split`, `trimStart`, `trimEnd`, the transition, keyframe, effect and transform ops, and any an extension adds (`editor.operations` lists them). `addClip` plays the part of its media from `sourceStartSeconds` to `sourceEndSeconds` (all of it by default), leaving the rest to trim out to, and leaves out its sound with `audio: false`. With `insert: true` it makes room first: the clip at `from` is split, and everything after moves later on every track that ripples (unlocked, sync lock on). An op can refer to an earlier op's result with `{ "$ref": "<callerId>#/detail/<field>" }`. `undo()`, `redo()`, `canUndo` and `canRedo` work as in the editor.
 
 ## Settings and guards
 

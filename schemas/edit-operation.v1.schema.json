@@ -462,6 +462,17 @@
           "exclusiveMinimum": 0,
           "maximum": 9007199254740991
         },
+        "sourceStartSeconds": {
+          "type": "number",
+          "minimum": 0
+        },
+        "sourceEndSeconds": {
+          "type": "number",
+          "minimum": 0
+        },
+        "audio": {
+          "type": "boolean"
+        },
         "insert": {
           "type": "boolean"
         }

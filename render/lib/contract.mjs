@@ -14,6 +14,7 @@ const uuidV7Schema = z
 const finite = z.number().finite()
 const frame = z.number().int().nonnegative()
 const positiveFrames = z.number().int().positive()
+const seconds = finite.nonnegative()
 const projectObject = z.record(z.string(), z.unknown())
 const params = z.record(z.string(), z.union([z.number(), z.boolean(), z.string()]))
 const imageFormat = z.preprocess(
@@ -279,6 +280,11 @@ const opSchemas = [
       from: frame.optional(),
       trackId: id.optional(),
       durationInFrames: positiveFrames.optional(),
+      // The part of the media to play; what's outside it stays there to trim out to.
+      sourceStartSeconds: seconds.optional(),
+      sourceEndSeconds: seconds.optional(),
+      // false leaves out a video's own sound.
+      audio: z.boolean().optional(),
       // Moves everything at or after `from` later by the clip's length.
       insert: z.boolean().optional(),
     })
@@ -710,6 +716,9 @@ const checkpointRecipeOperationSchema = z.discriminatedUnion('op', [
       from: frame.optional(),
       trackId: checkpointResourceSchema.optional(),
       durationInFrames: positiveFrames.optional(),
+      sourceStartSeconds: seconds.optional(),
+      sourceEndSeconds: seconds.optional(),
+      audio: z.boolean().optional(),
     })
     .strict(),
   z

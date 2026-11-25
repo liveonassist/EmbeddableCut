@@ -14,6 +14,7 @@ import type { AnimatableProperty, EasingType } from '@/types/keyframe'
 import type { VisualEffect } from '@/types/effects'
 import type { TransformProperties } from '@/types/transform'
 
+import { useItemsStore } from '@/features/timeline/stores/items-store'
 import { useTransitionsStore } from '@/features/timeline/stores/transitions-store'
 import { useTimelineSettingsStore } from '@/features/timeline/stores/timeline-settings-store'
 import { useMediaLibraryStore } from '@/features/media-library/stores/media-library-store'
@@ -48,13 +49,14 @@ import {
   assertTransitionUpdateApplied,
   buildTextItem,
   getEditCanvas,
+  getOrCreateFreeAudioTrack,
   getOrCreateTrack,
   newId,
   resolveOrCreateTrack,
   requireItem,
   requireTrack,
   requireTransition,
-  sourceFieldsFor,
+  clipRangeFor,
   tracks,
 } from './edit-op-support'
 import { isVideoMimeType } from '@/shared/utils/media-mime'
@@ -226,7 +228,8 @@ interface ClipPlacement {
   mediaId: string
   media: MediaMetadata
   from: number
-  projectFps: number
+  /** Not for images. */
+  range: ReturnType<typeof clipRangeFor>
 }
 
 /** Place an `image/` clip: a still on a video track. */
@@ -250,21 +253,19 @@ function placeImageClip(op: EditOp, { mediaId, media, from }: ClipPlacement): Cr
 /** Place an `audio/` clip on an audio track. */
 function placeAudioClip(
   op: EditOp,
-  { mediaId, media, from, projectFps }: ClipPlacement,
+  { mediaId, media, from, range }: ClipPlacement,
 ): CreatedClip[] {
-  const sf = sourceFieldsFor(media, projectFps)
   const item: AudioItem = {
     id: newId(),
     type: 'audio',
     trackId: resolveOrCreateTrack(op.trackId, 'audio'),
     from,
-    durationInFrames:
-      asNumber(op.durationInFrames) ?? Math.max(1, Math.round((media.duration ?? 0) * projectFps)),
+    durationInFrames: range.durationInFrames,
     label: media.fileName ?? mediaId,
     mediaId,
     src: '',
     volume: 0,
-    ...sf,
+    ...range.source,
   }
   addItem(item)
   return [{ id: item.id, type: 'audio' }]
@@ -273,11 +274,9 @@ function placeAudioClip(
 /** Place a `video/` clip plus the linked audio companion the app creates on import. */
 function placeVideoClip(
   op: EditOp,
-  { mediaId, media, from, projectFps }: ClipPlacement,
+  { mediaId, media, from, range }: ClipPlacement,
 ): CreatedClip[] {
-  const sf = sourceFieldsFor(media, projectFps)
-  const durationInFrames =
-    asNumber(op.durationInFrames) ?? Math.max(1, Math.round((media.duration ?? 0) * projectFps))
+  const { durationInFrames } = range
   const label = media.fileName ?? mediaId
   const linkedGroupId = crypto.randomUUID()
   const video: VideoItem = {
@@ -293,24 +292,27 @@ function placeVideoClip(
     linkedGroupId,
     ...(media.width ? { sourceWidth: media.width } : {}),
     ...(media.height ? { sourceHeight: media.height } : {}),
-    ...sf,
+    ...range.source,
   }
   addItem(video)
   const created: CreatedClip[] = [{ id: video.id, type: 'video' }]
   // Linked audio companion (as the app creates on import) so audio renders.
-  if (!media.audioCodec) return created
+  if (!media.audioCodec || op.audio === false) return created
+  // EmbeddableCut: with the video, which was moved past whatever was in its way; another clip's
+  // audio at the same time is left where it is, on its own track.
+  const placedFrom = useItemsStore.getState().itemById[video.id]?.from ?? from
   const audio: AudioItem = {
     id: newId(),
     type: 'audio',
-    trackId: getOrCreateTrack('audio'),
-    from,
+    trackId: getOrCreateFreeAudioTrack(placedFrom, placedFrom + durationInFrames),
+    from: placedFrom,
     durationInFrames,
     label: `${label} audio`,
     mediaId,
     src: '',
     volume: 0,
     linkedGroupId,
-    ...sf,
+    ...range.source,
   }
   addItem(audio)
   created.push({ id: audio.id, type: 'audio' })
@@ -318,14 +320,13 @@ function placeVideoClip(
 }
 
 /** EmbeddableCut: `insert` makes room for the clip where the placements below will put it. */
-function openInsertGap(op: EditOp, { media, from, projectFps }: ClipPlacement): void {
+function openInsertGap(op: EditOp, { media, from, range }: ClipPlacement): void {
   const isAudio = media.mimeType.startsWith('audio/')
   const isImage = media.mimeType.startsWith('image/')
-  const length =
-    asNumber(op.durationInFrames) ??
-    (isImage ? 150 : Math.max(1, Math.round((media.duration ?? 0) * projectFps)))
+  const length = isImage ? asNumber(op.durationInFrames, 150)! : range.durationInFrames
   const targets = [resolveOrCreateTrack(op.trackId, isAudio ? 'audio' : 'video')]
-  if (isVideoMimeType(media.mimeType) && media.audioCodec) targets.push(getOrCreateTrack('audio'))
+  if (isVideoMimeType(media.mimeType) && media.audioCodec && op.audio !== false)
+    targets.push(getOrCreateTrack('audio'))
   if (!insertSpace(from, length, targets)) {
     throw new Error(
       `addClip: can't insert at frame ${from}: its track is locked, or the clip there can't be split`,
@@ -344,7 +345,7 @@ function applyAddClip(op: EditOp): unknown {
     mediaId,
     media,
     from: asNumber(op.from, 0)!,
-    projectFps: useTimelineSettingsStore.getState().fps || 30,
+    range: clipRangeFor(op, media, useTimelineSettingsStore.getState().fps || 30),
   }
   if (op.insert === true) openInsertGap(op, placement)
   if (media.mimeType.startsWith('image/')) return { created: placeImageClip(op, placement) }

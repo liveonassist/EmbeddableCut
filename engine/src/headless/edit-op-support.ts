@@ -144,12 +144,69 @@ export function resolveOrCreateTrack(preferred: unknown, kind: 'video' | 'audio'
   return getOrCreateTrack(kind)
 }
 
-/** Source-frame fields for a media clip (source* are in source-native fps). */
-export function sourceFieldsFor(media: MediaMetadata, projectFps: number) {
+/** EmbeddableCut: an audio track with nothing between `from` and `end`, made if there's none. */
+export function getOrCreateFreeAudioTrack(from: number, end: number): string {
+  const { items } = useItemsStore.getState()
+  const isFree = (trackId: string) =>
+    !items.some(
+      (item) =>
+        item.trackId === trackId && item.from < end && item.from + item.durationInFrames > from,
+    )
+  const preferred = getOrCreateTrack('audio')
+  if (isFree(preferred)) return preferred
+
+  const all = tracks()
+  const other = all.find((track) => !track.isGroup && track.kind === 'audio' && isFree(track.id))
+  if (other) return other.id
+  const order = Math.max(...all.map((track) => track.order)) + 1
+  const track = createClassicTrack({ tracks: all, kind: 'audio', order })
+  setTracks([...all, track])
+  return track.id
+}
+
+/**
+ * EmbeddableCut: the part of its media a new clip plays, and for how long: from
+ * `sourceStartSeconds` to `sourceEndSeconds`, or for `durationInFrames`, the rest of it by default.
+ * The media either side stays there to trim out to.
+ */
+export function clipRangeFor(op: EditOp, media: MediaMetadata, projectFps: number) {
   const sourceFps = media.fps && media.fps > 0 ? media.fps : projectFps
-  const durationSec = media.duration ?? 0
-  const sourceEnd = Math.max(1, Math.round(durationSec * sourceFps))
-  return { sourceFps, sourceStart: 0, sourceEnd, sourceDuration: sourceEnd, speed: 1 }
+  const mediaSeconds = media.duration ?? 0
+  const sourceDuration = Math.max(1, Math.round(mediaSeconds * sourceFps))
+
+  const startSeconds = asNumber(op.sourceStartSeconds, 0)!
+  const endSeconds = asNumber(op.sourceEndSeconds)
+  // The length probed and the one a host knows can differ by a frame.
+  const lastSecond = mediaSeconds + 1 / sourceFps
+  if (startSeconds < 0 || (startSeconds > 0 && startSeconds >= mediaSeconds)) {
+    throw new Error(`addClip: sourceStartSeconds ${startSeconds} is outside the media`)
+  }
+  if (endSeconds !== undefined && (endSeconds <= startSeconds || endSeconds > lastSecond)) {
+    throw new Error(
+      `addClip: sourceEndSeconds ${endSeconds} must be after sourceStartSeconds and inside the media`,
+    )
+  }
+
+  const rangeFrames = Math.max(
+    1,
+    Math.round(((endSeconds ?? mediaSeconds) - startSeconds) * projectFps),
+  )
+  const durationInFrames = asNumber(op.durationInFrames) ?? rangeFrames
+  if (endSeconds !== undefined && durationInFrames > rangeFrames) {
+    throw new Error(
+      `addClip: durationInFrames ${durationInFrames} is longer than the ${rangeFrames} frames from sourceStartSeconds to sourceEndSeconds`,
+    )
+  }
+
+  const sourceStart = Math.min(sourceDuration - 1, Math.round(startSeconds * sourceFps))
+  const sourceEnd = Math.min(
+    sourceDuration,
+    sourceStart + Math.max(1, Math.round((durationInFrames * sourceFps) / projectFps)),
+  )
+  return {
+    durationInFrames,
+    source: { sourceFps, sourceStart, sourceEnd, sourceDuration, speed: 1 },
+  }
 }
 
 export function buildTextItem(op: EditOp): TextItem {
