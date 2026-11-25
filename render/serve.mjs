@@ -1094,6 +1094,8 @@ async function main() {
     `  GET /health  GET /capabilities  GET /projects  POST /render  POST /edit  POST /frame  POST /layout`,
   )
 
+  /** How long a client has to finish reading a response at shutdown. */
+  const RESPONSE_GRACE_MS = 2_000
   let shuttingDown
   const shutdown = () =>
     (shuttingDown ??= (async () => {
@@ -1109,15 +1111,12 @@ async function main() {
         await browser.close()
         await closeServers()
         await releaseWriterLock()
-        let closeTimer
-        const closed = await Promise.race([
-          serverClosed.then(() => true),
-          new Promise((resolve) => {
-            closeTimer = setTimeout(() => resolve(false), shutdownTimeoutMs)
-          }),
-        ])
+        // The queue has drained, so all that's left are responses being read. Without a deadline a
+        // client's spare connection, which has sent no request and so isn't idle to Node, would
+        // hold the server open.
+        const closeTimer = setTimeout(() => server.closeAllConnections(), RESPONSE_GRACE_MS)
+        await serverClosed
         clearTimeout(closeTimer)
-        if (!closed) server.closeAllConnections?.()
         serviceStatus.stopped()
       }
     })())
