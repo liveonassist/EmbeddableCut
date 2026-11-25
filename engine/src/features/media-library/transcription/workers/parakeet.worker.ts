@@ -159,6 +159,19 @@ async function loadVocab(): Promise<NonNullable<typeof vocab>> {
   return { idToToken, vocabSize: idToToken.size, blankIdx }
 }
 
+/**
+ * EmbeddableCut: whether the GPU runs the fp16 encoder. Without the feature its session is created
+ * all the same, and its shaders then fail to compile and decode to no words.
+ */
+async function supportsFp16Shaders(): Promise<boolean> {
+  try {
+    const adapter = await navigator.gpu?.requestAdapter()
+    return adapter?.features.has('shader-f16') ?? false
+  } catch {
+    return false
+  }
+}
+
 function sessionOptions(backend: 'webgpu' | 'wasm') {
   return { executionProviders: [backend], graphOptimizationLevel: 'all' } as const
 }
@@ -235,8 +248,7 @@ async function initPipeline(): Promise<void> {
     vocab = await loadVocab()
 
     // The heavy encoder prefers WebGPU (fp16) and falls back to the int8 WASM encoder.
-    const webgpuAvailable =
-      typeof navigator !== 'undefined' && 'gpu' in navigator && navigator.gpu != null
+    const webgpuAvailable = await supportsFp16Shaders()
     const encoderFile = webgpuAvailable ? ENCODER_FP16 : ENCODER_INT8
 
     // Pass 1 — fetch every weight file under a single aggregate byte counter. Compiling each
