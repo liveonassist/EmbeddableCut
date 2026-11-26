@@ -25,7 +25,7 @@ const page = {
         {
           kind: 'note',
           tone: 'info',
-          text: 'Some tools require Chrome or Edge 113+ (or Safari 26+) and WebGPU support. The first model download can be large.',
+          text: 'Some tools require WebGPU: Chrome or Edge 113+, Firefox 141+ on Windows or 147+ on Apple Silicon Macs, or Safari 26+. The first model download can be large.',
         },
       ],
     },

@@ -24,7 +24,7 @@ just web install
 just web dev
 ```
 
-The editor serves at `http://localhost:5173`. Open it in a Chromium browser (Chrome, Edge, Brave or Arc): it needs WebGPU, WebCodecs and the File System Access API. The first visit asks for a workspace folder, where projects, media metadata and caches live as plain files.
+The editor serves at `http://localhost:5173`. Open it in a Chromium browser (Chrome, Edge, Brave or Arc) or Firefox. In Chromium the first visit asks for a workspace folder, where projects, media metadata and caches live as plain files; Firefox can't open folders, so its workspace is the browser's private storage. [`BROWSERS.md`](BROWSERS.md) has the differences.
 
 For playback and export timing, use a production build instead: `npm run perf` in `web/` builds and serves one at `http://localhost:4173`.
 

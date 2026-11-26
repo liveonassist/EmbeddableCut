@@ -185,7 +185,12 @@ async function main() {
     resolveMedia: (id) => ({ h264: files.h264, hevc: files.hevc })[id] ?? null,
   })
   const streams = await startStreamHost(files.hls)
-  const firefox = await launchFirefox({ prefs: { 'dom.webgpu.enabled': true } })
+  // EMBEDDABLECUT_FIREFOX_WEBGPU=default keeps release Firefox's own setting,
+  // which is WebGPU off on Linux: everything but the GPU effect still renders.
+  const firefox = await launchFirefox({
+    prefs:
+      process.env.EMBEDDABLECUT_FIREFOX_WEBGPU === 'default' ? {} : { 'dom.webgpu.enabled': true },
+  })
   const errors = []
   firefox.onConsole(({ level, text }) => {
     if (level === 'error') errors.push(text)

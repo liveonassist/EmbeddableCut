@@ -65,7 +65,7 @@ Read [`docs/GETTING_STARTED.md`](docs/GETTING_STARTED.md). The short version:
 ```bash
 nix develop
 just web install
-just web dev    # the editor at http://localhost:5173, in Chrome, Edge, Brave or Arc
+just web dev    # the editor at http://localhost:5173, in Chrome, Edge, Brave, Arc or Firefox
 just            # every other command
 ```
 
@@ -77,6 +77,7 @@ just            # every other command
 - [`docs/MEDIA.md`](docs/MEDIA.md): local files and URL media, authentication, caching.
 - [`docs/RENDERING.md`](docs/RENDERING.md): preview, browser export and the render service; extensions on servers; scaling.
 - [`docs/EMBEDDING.md`](docs/EMBEDDING.md): putting the editor or its preview in a page, theming it, adding panels and tools.
+- [`docs/BROWSERS.md`](docs/BROWSERS.md): what Chromium and Firefox each support, and how the editor handles the difference.
 - [`docs/BRIDGE.md`](docs/BRIDGE.md): driving an editor in an iframe or a WebView.
 - [`docs/FLUTTER.md`](docs/FLUTTER.md): using EmbeddableCut from a Flutter app, and toward a native one.
 - [`sdk/README.md`](sdk/README.md): driving the editor from your own app.
