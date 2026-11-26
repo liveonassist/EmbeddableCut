@@ -1183,7 +1183,13 @@ export async function createCompositionRenderer(
   // near-zero when nothing edited the sub-comp.
   const subCompRenderDataSource = new Map<string, SubComposition>()
 
+  // EmbeddableCut: the store replaces compositionById on any composition change
+  // and this renderer's tracks are fixed, so an unchanged lookup has nothing new
+  // to reach. Preview refreshes every frame; walking every item each time isn't free.
+  let refreshedCompositionById: Record<string, SubComposition> | null = null
   const refreshSubCompRenderData = (compositionById: Record<string, SubComposition>) => {
+    if (compositionById === refreshedCompositionById) return
+    refreshedCompositionById = compositionById
     const reachableIds = collectReachableCompositionIdsFromTracks(tracks, compositionById)
     for (const compositionId of reachableIds) {
       const subComp = compositionById[compositionId]
