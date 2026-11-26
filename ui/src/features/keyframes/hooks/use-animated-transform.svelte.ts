@@ -89,13 +89,18 @@ export function useAnimatedTransform(
 
   const relativeFrame = $derived(animationFrame.current - item().from)
 
+  // Their own deriveds, so a frame change doesn't rebuild them.
+  const itemsById = $derived(
+    new Map(allItems.current.map((candidate) => [candidate.id, candidate])),
+  )
+  const keyframesByItemId = $derived(
+    new Map(allKeyframes.current.map((candidate) => [candidate.itemId, candidate])),
+  )
+
   const transform = $derived.by(() => {
     const size = projectSize()
     const frame = animationFrame.current
-    const keyframes = allKeyframes.current
     const canvas = { width: size.width, height: size.height, fps: 30 }
-    const itemsById = new Map(allItems.current.map((candidate) => [candidate.id, candidate]))
-    const keyframesByItemId = new Map(keyframes.map((candidate) => [candidate.itemId, candidate]))
     return resolveTransformHierarchy(item(), {
       getItem: (itemId) => itemsById.get(itemId),
       resolveLocal: (candidate) =>
@@ -137,15 +142,18 @@ export function useAnimatedTransforms(
 
   const animationFrame = useResolvedPlaybackFrame()
 
+  const itemsById = $derived(
+    new Map(allItems.current.map((candidate) => [candidate.id, candidate])),
+  )
+  const keyframesByItemId = $derived(
+    new Map(allKeyframes.current.map((candidate) => [candidate.itemId, candidate])),
+  )
+
   const transforms = $derived.by(() => {
     const result = new Map<string, ResolvedTransform>()
     const size = projectSize()
     const frame = animationFrame.current
     const canvas = { width: size.width, height: size.height, fps: 30 }
-    const itemsById = new Map(allItems.current.map((candidate) => [candidate.id, candidate]))
-    const keyframesByItemId = new Map(
-      allKeyframes.current.map((candidate) => [candidate.itemId, candidate]),
-    )
 
     for (const item of items()) {
       result.set(
