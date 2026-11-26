@@ -44,15 +44,22 @@ const INITIAL_PROGRESS: SemanticIndexProgress = {
 
 export function useSemanticIndex(): { readonly current: SemanticIndexProgress } {
   const mode = select(useSettingsStore, (s) => s.captionSearchMode)
-  const mediaItems = select(useMediaLibraryStore, (s) => s.mediaItems)
-  const taggingMediaIds = select(useMediaLibraryStore, (s) => s.taggingMediaIds)
+  // Which media to index, not the media list itself: indexing a clip writes
+  // its captions back, and re-running on that restarted the pass, re-reading
+  // every clip's embeddings, after each clip. A re-captioned clip still
+  // re-runs it, leaving the set while it is tagged.
+  const candidateIds = select(useMediaLibraryStore, (s) =>
+    s.mediaItems
+      .filter((media) => (media.aiCaptions?.length ?? 0) > 0 && !s.taggingMediaIds.has(media.id))
+      .map((media) => media.id)
+      .join('\n'),
+  )
   let progress = $state.raw<SemanticIndexProgress>(INITIAL_PROGRESS)
   let runIdCounter = 0
 
   $effect(() => {
     const currentMode = mode.current
-    const items = mediaItems.current
-    const tagging = taggingMediaIds.current
+    const ids = candidateIds.current
     if (currentMode !== 'semantic') {
       progress = INITIAL_PROGRESS
       return
@@ -60,9 +67,10 @@ export function useSemanticIndex(): { readonly current: SemanticIndexProgress } 
 
     const runId = ++runIdCounter
 
-    const candidates = items.filter(
-      (media) => (media.aiCaptions?.length ?? 0) > 0 && !tagging.has(media.id),
-    )
+    const eligible = new Set(ids ? ids.split('\n') : [])
+    const candidates = useMediaLibraryStore
+      .getState()
+      .mediaItems.filter((media) => eligible.has(media.id))
     if (candidates.length === 0) {
       progress = INITIAL_PROGRESS
       return
