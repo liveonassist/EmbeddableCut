@@ -754,9 +754,46 @@ describe('windowed audio processing', () => {
     }
   })
 
-  it('retains full-segment processing for stateful DSP clips', () => {
-    expect(supportsWindowedAudioProcessing(simpleComposition({ speed: 1.25 }))).toBe(false)
-    expect(supportsWindowedAudioProcessing(simpleComposition({ audioEqHighGainDb: 3 }))).toBe(false)
+  it('mixes a stateful clip across window boundaries as full processing does', async () => {
+    // A reversed clip straddling the 30 s window edge, under an ordinary clip.
+    const composition: CompositionInputProps = {
+      fps: 30,
+      durationInFrames: 1_000,
+      width: 1920,
+      height: 1080,
+      tracks: [
+        makeTrack({
+          id: 'track-a1',
+          order: 0,
+          kind: 'audio',
+          items: [
+            makeAudioItem({ id: 'plain', from: 0, durationInFrames: 120 }),
+            makeAudioItem({
+              id: 'reversed',
+              src: 'blob:ramp',
+              from: 870,
+              durationInFrames: 120,
+              isReversed: true,
+            }),
+          ],
+        }),
+      ],
+    }
+
+    expect(supportsWindowedAudioProcessing(composition)).toBe(true)
+    const full = await processAudio(composition)
+    const windows = []
+    for await (const window of processAudioWindows(composition)) windows.push(window)
+
+    expect(windows).toHaveLength(2)
+    const windowed = new Float32Array(full!.samples[0]!.length)
+    windowed.set(windows[0]!.samples[0]!)
+    windowed.set(windows[1]!.samples[0]!, windows[0]!.samples[0]!.length)
+    for (const index of [48_000, 29 * 48_000 + 100, 30 * 48_000 - 1, 30 * 48_000, 32 * 48_000]) {
+      expect(windowed[index]).toBeCloseTo(full!.samples[0]![index]!, 7)
+    }
+    // Reversed: the ramp falls through the clip.
+    expect(windowed[29 * 48_000 + 100]!).toBeGreaterThan(windowed[32 * 48_000]!)
   })
 })
 
