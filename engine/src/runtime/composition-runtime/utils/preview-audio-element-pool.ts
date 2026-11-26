@@ -1,3 +1,5 @@
+import { getObjectUrlSourceMetadata } from '@/infrastructure/browser/object-url-registry'
+
 const IDLE_EVICT_MS = 15000
 const PREWARM_PLAY_PAUSE_MS = 48
 const SEEK_TOLERANCE_SECONDS = 0.05
@@ -30,6 +32,15 @@ function isRemoteMediaUrl(src: string): boolean {
 
 function configureAudioElement(audio: HTMLAudioElement, src: string): void {
   if (audio.src !== src) {
+    // A remote source is read with CORS, as VideoSourcePool's are: Web Audio plays a
+    // cross-origin element read without it as silence, and the element is routed through
+    // Web Audio for playback. Set before src, which starts the load.
+    if (isRemoteMediaUrl(src)) {
+      const credentials = getObjectUrlSourceMetadata(src)?.remote?.credentials
+      audio.crossOrigin = credentials === 'include' ? 'use-credentials' : 'anonymous'
+    } else {
+      audio.removeAttribute('crossorigin')
+    }
     audio.src = src
   }
   // EmbeddableCut: a URL asset is read over the network, where Chrome's
