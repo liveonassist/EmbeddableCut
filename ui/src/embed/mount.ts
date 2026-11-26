@@ -131,7 +131,10 @@ export async function mountEditor(
 }
 
 export interface MountEditorFrameOptions {
-  /** The editor page: `embed.html` from the UI build, served with COOP and COEP. */
+  /**
+   * The editor page: `embed.html` from the UI build. Serving it (and the host page) with COOP and
+   * COEP is optional, and lets the AI features use threads.
+   */
   src: string
   theme?: ThemeMode | Theme
   /** Built-in features to hide or lock, as in `mountEditor`; values only, as they cross to the frame. */

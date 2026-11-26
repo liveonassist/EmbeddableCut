@@ -105,7 +105,7 @@ const editor = await createEditor({
 
 ### What a media server must do
 
-- **Allow CORS** (`Access-Control-Allow-Origin`, and `Access-Control-Expose-Headers: Content-Range, Content-Length, Accept-Ranges`). The editor runs cross-origin isolated, and its GPU overlays draw video frames, which needs CORS either way.
+- **Allow CORS** (`Access-Control-Allow-Origin`, and `Access-Control-Expose-Headers: Content-Range, Content-Length, Accept-Ranges`). The editor reads media with CORS whether or not its page is cross-origin isolated: its GPU overlays draw video frames, and playback routes audio through Web Audio, which plays media read without CORS as silence.
 - **Support `Range`** for streaming and partial reads. A server that doesn't is still read, sequentially and uncached.
 - **Put the index first** (`-movflags +faststart` for MP4) so opening and seeking don't need the end of the file.
 

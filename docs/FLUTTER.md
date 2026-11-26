@@ -43,7 +43,7 @@ Future<void> call(int id, String method, Map<String, dynamic>? params) {
 }
 ```
 
-`project.load` opens a document, `project.toDocument` gives it back for the app to store, and `render.export` returns the video base64-encoded. The editor needs what it needs in a browser: WebGPU, WebCodecs, and a cross-origin-isolated page (COOP and COEP headers). That means a Chromium-based WebView on Android, and a WKWebView recent enough for WebGPU on iOS and macOS.
+`project.load` opens a document, `project.toDocument` gives it back for the app to store, and `render.export` returns the video base64-encoded. The editor needs what it needs in a browser: WebGPU and WebCodecs; a cross-origin-isolated page (COOP and COEP headers) is optional and only speeds up the AI features. That means a Chromium-based WebView on Android, and a WKWebView recent enough for WebGPU on iOS and macOS.
 
 ## Editing without a UI
 
