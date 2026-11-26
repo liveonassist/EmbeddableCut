@@ -81,7 +81,6 @@ export async function renderCompositionItem(
   }
 
   // Create an offscreen canvas at the sub-comp dimensions
-  const { canvas: subCanvas, ctx: subCtx } = rctx.canvasPool.acquire()
   const { canvas: subContentCanvas, ctx: subContentCtx } = rctx.canvasPool.acquire()
 
   try {
@@ -91,11 +90,8 @@ export async function renderCompositionItem(
     // Use the sub-composition's authored dimensions for canvas settings
     // so transforms and positioning inside the sub-composition are correct.
     // The pooled canvas may be at main canvas size, so we resize it to match.
-    subCanvas.width = subRenderWidth
-    subCanvas.height = subRenderHeight
     subContentCanvas.width = subRenderWidth
     subContentCanvas.height = subRenderHeight
-    subCtx.clearRect(0, 0, subCanvas.width, subCanvas.height)
     subContentCtx.clearRect(0, 0, subContentCanvas.width, subContentCanvas.height)
     const subCanvasSettings: CanvasSettings = {
       width: subRenderWidth,
@@ -297,15 +293,14 @@ export async function renderCompositionItem(
       })
     }
 
-    subCtx.drawImage(subContentCanvas, 0, 0)
-
     // Crop the flattened sub-composition in wrapper space before parent-level
-    // effects, masks, and corner pinning are applied.
+    // effects, masks, and corner pinning are applied. EmbeddableCut: straight
+    // from the content canvas; a full-size copy of it was drawn here instead.
     drawContainedMediaSource(
       ctx,
-      subCanvas,
-      subCanvas.width,
-      subCanvas.height,
+      subContentCanvas,
+      subContentCanvas.width,
+      subContentCanvas.height,
       transform,
       rctx.canvasSettings,
       item.crop,
@@ -315,7 +310,6 @@ export async function renderCompositionItem(
     )
   } finally {
     rctx.canvasPool.release(subContentCanvas)
-    rctx.canvasPool.release(subCanvas)
   }
 }
 

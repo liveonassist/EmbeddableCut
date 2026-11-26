@@ -1377,7 +1377,7 @@ describe('renderTransitionToGpuTexture', () => {
 
     expect(rendered).toBe(true)
     expect(gpuMediaPipeline.renderSourceToTexture).toHaveBeenCalledTimes(1)
-    expect(canvasPool.acquire).toHaveBeenCalledTimes(3)
+    expect(canvasPool.acquire).toHaveBeenCalledTimes(2)
     expect(device.queue.copyExternalImageToTexture).not.toHaveBeenCalled()
     expect(gpuMediaPipeline.renderTextureToTexture).not.toHaveBeenCalled()
     expect(gpuPipeline.applyEffectsToTexture).toHaveBeenCalledWith(

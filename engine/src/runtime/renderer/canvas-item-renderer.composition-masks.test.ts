@@ -108,7 +108,7 @@ function createCompositionMaskRenderHarness(params: {
     canvasPool,
     rootCtx,
     rctx,
-    subContentCtx: poolEntries[1]!.ctx,
+    subContentCtx: poolEntries[0]!.ctx,
     transform,
   }
 }
