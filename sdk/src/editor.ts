@@ -803,7 +803,7 @@ export class Editor {
     let image: Blob | null = null
     await renderFrame({
       project: document.project as unknown as Project,
-      media: await this.renderSources(),
+      media: await this.renderSources(document),
       frame: request.frame ?? (request.atSeconds === undefined ? this.frame : undefined),
       atSeconds: request.atSeconds,
       width: request.width,
@@ -834,7 +834,7 @@ export class Editor {
     let output: { blob: Blob; fileName: string } | null = null
     const summary = await renderProject({
       project: document.project as unknown as Project,
-      media: await this.renderSources(),
+      media: await this.renderSources(document),
       settings,
       inPoint: request.inFrame ?? null,
       outPoint: request.outFrame ?? null,
@@ -855,9 +855,14 @@ export class Editor {
     }
   }
 
-  /** Fetchable URLs for every media item, as the render path wants them. */
-  private async renderSources(): Promise<HeadlessMediaSource[]> {
-    const media = useMediaLibraryStore.getState().mediaItems
+  /**
+   * Fetchable URLs for the media a document uses, as the render path wants
+   * them. Not the whole library: resolving a URL asset can ask the host's
+   * resolver, and a render shouldn't for media it never reads.
+   */
+  private async renderSources(document: ProjectDocument): Promise<HeadlessMediaSource[]> {
+    const used = new Set(document.assets.map((asset) => asset.id))
+    const media = useMediaLibraryStore.getState().mediaItems.filter((item) => used.has(item.id))
     const sources = await Promise.all(
       media.map(async (metadata: MediaMetadata) => {
         try {
