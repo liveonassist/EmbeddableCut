@@ -31,6 +31,48 @@ function layeredSourceAliasPlugin(): Plugin {
   }
 }
 
+// EmbeddableCut: what the headless harness shares with the app. `manualChunks`
+// runs as one chunk group, which takes each module's dependencies with it, so
+// these landed in whichever UI chunk reached them first and the harness loaded
+// 780 KB of editor UI for a logger and two caches. Groups ahead of it claim
+// them, apart, so the landing page doesn't load what only rendering uses.
+const sharedChunks = [
+  {
+    name: 'core-shared',
+    modules: [
+      '/src/shared/logging/logger.ts',
+      '/src/infrastructure/browser/blob-url-manager.ts',
+      'vite/preload-helper',
+    ],
+  },
+  {
+    name: 'render-shared',
+    modules: [
+      '/src/shared/utils/media-utils.ts',
+      '/src/features/timeline/services/gif-frame-cache.ts',
+    ],
+  },
+]
+
+function sharedChunksPlugin(): Plugin {
+  return {
+    name: 'embeddablecut-shared-chunks',
+    apply: 'build',
+    outputOptions(options) {
+      const { manualChunks, ...rest } = options
+      if (typeof manualChunks !== 'function') return null
+      const groups = sharedChunks.map(({ name, modules }) => ({
+        name,
+        priority: 1,
+        // Their dependencies stay where the app puts them.
+        includeDependenciesRecursively: false,
+        test: (id: string) => modules.some((path) => id.replaceAll('\\', '/').includes(path)),
+      }))
+      return { ...rest, codeSplitting: { groups: [...groups, { name: manualChunks }] } }
+    },
+  }
+}
+
 // Stamps public/sw.js with the hashed entry-chunk filename at build time so the service
 // worker's CACHE_VERSION — and the sw.js bytes — change on every deploy. Without this the
 // SW file is byte-identical across deploys, so registration.update() never detects a new
@@ -100,6 +142,7 @@ export default defineConfig({
     svelte({ configFile: fileURLToPath(new URL('../ui/svelte.config.js', import.meta.url)) }),
     tailwindcss(),
     serviceWorkerVersionPlugin(),
+    sharedChunksPlugin(),
   ]),
   resolve: {
     alias: {
