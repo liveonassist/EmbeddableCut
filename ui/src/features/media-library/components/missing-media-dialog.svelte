@@ -22,6 +22,10 @@
   import { importMediaLibraryService } from '@/features/media-library/services/media-library-service-loader'
   import { useProjectStore } from '@/features/media-library/deps/projects'
   import { showMediaFilePicker } from '@/features/media-library/utils/media-file-picker'
+  import {
+    fileBackedHandle,
+    pickFolderFilesWithInput,
+  } from '@/infrastructure/browser/file-backed-handle'
   import { getProjectBrokenMediaInfo } from '@/features/media-library/utils/broken-media'
   import { select } from '$lib/store.svelte'
   import { t } from '$lib/i18n.svelte'
@@ -79,6 +83,16 @@
     }
 
     return foundRelinks
+  }
+
+  function matchPickedFiles(
+    files: File[],
+    itemsToMatch: BrokenItem[],
+  ): Array<{ mediaId: string; handle: FileSystemFileHandle }> {
+    return itemsToMatch.flatMap((item) => {
+      const file = files.find((f) => f.name.toLowerCase() === item.fileName.toLowerCase())
+      return file ? [{ mediaId: item.mediaId, handle: fileBackedHandle(file) }] : []
+    })
   }
 
   // Auto-scan project folder when dialog opens
@@ -163,11 +177,14 @@
   async function handleLocateFolder() {
     locatingFolder = true
     try {
-      const dirHandle = await window.showDirectoryPicker({
-        mode: 'read',
-      })
-
-      const foundRelinks = await scanDirectoryForMatches(dirHandle, brokenItems)
+      // EmbeddableCut: without a folder picker (Firefox), a directory input lists the files.
+      const foundRelinks =
+        typeof window.showDirectoryPicker === 'function'
+          ? await scanDirectoryForMatches(
+              await window.showDirectoryPicker({ mode: 'read' }),
+              brokenItems,
+            )
+          : matchPickedFiles(await pickFolderFilesWithInput(), brokenItems)
 
       if (foundRelinks.length > 0) {
         const { success } = await useMediaLibraryStore.getState().relinkMediaBatch(foundRelinks)

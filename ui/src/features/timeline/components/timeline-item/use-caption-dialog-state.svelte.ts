@@ -4,6 +4,7 @@ import { untrack } from 'svelte'
 import type { TimelineItem as TimelineItemType } from '@/types/timeline'
 import { select } from '$lib/store.svelte'
 import { i18n } from '@/i18n'
+import { requestHandlePermission } from '@/infrastructure/storage/handles-db'
 import { useItemsStore } from '@/features/timeline/stores/items-store'
 import { selectConsolidatableCaptionClipIds } from '@/features/timeline/stores/items-store-indexes'
 import { useMediaLibraryStore } from '@/features/timeline/deps/media-library-store'
@@ -143,9 +144,7 @@ export function useCaptionDialogState(
     try {
       const handle = media.fileHandle
       if (media.storageType === 'handle' && handle) {
-        const granted =
-          (await handle.requestPermission({ mode: 'read' }).catch(() => 'denied' as const)) ===
-          'granted'
+        const granted = (await requestHandlePermission(handle, 'read')) === 'granted'
         if (!granted) {
           mediaStore.showNotification?.({
             type: 'error',
