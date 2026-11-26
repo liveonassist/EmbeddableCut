@@ -1,0 +1,13 @@
+{
+  "browserSupport": {
+    "privateWorkspace": {
+      "title": "Projects are stored in this browser",
+      "description": "This browser can't open a folder on disk, so projects and the media you import live in its private storage. Clearing site data deletes them: export project bundles to back them up.",
+      "keep": "Keep storage",
+      "notPersisted": "The browser didn't make storage persistent. It may clear projects when disk space runs low."
+    },
+    "storageUnavailable": "Storage unavailable",
+    "storageUnavailableDescription": "{{productName}} keeps projects in a folder on disk or in the browser's private storage, and this window allows neither. Private windows often block storage: open {{productName}} in a regular window.",
+    "folderPickerUnavailable": "This browser can't pick folders. Projects are stored in its private storage."
+  }
+}
