@@ -59,6 +59,7 @@ vi.mock('@/runtime/renderer/deps/composition-runtime-contract', () => ({
 }))
 
 import {
+  applyMasks,
   buildMaskFrameIndex,
   buildPreparedMask,
   getActiveMasksForFrame,
@@ -93,15 +94,18 @@ beforeAll(() => {
     rotate() {}
     clearRect() {}
     fillRect() {}
+    reset() {}
   }
 
   class MockOffscreenCanvas {
+    static created = 0
     public width: number
     public height: number
 
     constructor(width: number, height: number) {
       this.width = width
       this.height = height
+      MockOffscreenCanvas.created += 1
     }
 
     getContext() {
@@ -281,5 +285,24 @@ describe('canvas mask animation', () => {
       120,
     )
     expect(mocks.drawCornerPinImageMock).toHaveBeenCalledTimes(1)
+  })
+
+  it('renders a still feathered mask once, for every layer it covers and later frames', () => {
+    const feathered = { ...baseMask, maskType: 'alpha' as const, maskFeather: 12 }
+    const index = buildMaskFrameIndex([{ ...track, items: [feathered] }], canvas)
+    const keyframes = new Map([[feathered.id, { itemId: feathered.id, properties: [] }]])
+    const layers = Array.from({ length: 3 }, () => new OffscreenCanvas(1920, 1080))
+    const target = new OffscreenCanvas(1920, 1080).getContext('2d')!
+    const created = () => (OffscreenCanvas as unknown as { created: number }).created
+
+    const frame10 = getActiveMasksForFrame(index, 10, canvas, keyframes)
+    for (const layer of layers) applyMasks(target, layer, frame10, canvas)
+    const afterFirstFrame = created()
+    const frame11 = getActiveMasksForFrame(index, 11, canvas, keyframes)
+    for (const layer of layers) applyMasks(target, layer, frame11, canvas)
+
+    expect(frame11[0]!.path).toBe(frame10[0]!.path)
+    expect(mocks.getShapePathMock).toHaveBeenCalledTimes(1)
+    expect(created()).toBe(afterFirstFrame)
   })
 })
