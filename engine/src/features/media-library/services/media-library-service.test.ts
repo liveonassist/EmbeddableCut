@@ -168,6 +168,7 @@ vi.mock('../utils/proxy-key', () => ({
 import { mediaLibraryService, FileAccessError } from './media-library-service'
 import { MediaRefusedError, setMediaAcceptPolicy } from './media-accept-policy'
 import type { MediaMetadata } from '@/types/storage'
+import { fileBackedHandle } from '@/infrastructure/browser/file-backed-handle'
 import { useMediaPreparationStore } from '../stores/media-preparation-store'
 
 const fetchMock = vi.fn()
@@ -536,6 +537,32 @@ describe('MediaLibraryService', () => {
 
       expect(results.map((media) => media.id)).toEqual(['a.mp4', 'b.mp4'])
       expect(indexedDbMocks.getAllMediaMetadata).toHaveBeenCalledTimes(1)
+    })
+
+    it('reads the project media once for the copied files of one import', async () => {
+      // Firefox's picked and dropped files are copied, so they check the project instead.
+      const existing = ['a.mp4', 'b.mp4'].map((fileName) =>
+        makeMediaMetadata({ id: fileName, fileName, fileSize: 4 }),
+      )
+      indexedDbMocks.getMediaForProject.mockResolvedValue(existing)
+      indexedDbMocks.getMediaForProject.mockClear()
+
+      const batch = {}
+      const results = await Promise.all(
+        ['a.mp4', 'b.mp4'].map((name) =>
+          mediaLibraryService.importMediaWithHandle(
+            fileBackedHandle(new File(['data'], name)),
+            'project-2',
+            { batch },
+          ),
+        ),
+      )
+
+      expect(results.map((media) => [media.id, media.isDuplicate])).toEqual([
+        ['a.mp4', true],
+        ['b.mp4', true],
+      ])
+      expect(indexedDbMocks.getMediaForProject).toHaveBeenCalledTimes(1)
     })
 
     it('starts preview audio conform in background for custom-decoded imports', async () => {

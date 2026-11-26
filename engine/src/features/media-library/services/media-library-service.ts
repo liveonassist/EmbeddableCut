@@ -335,20 +335,41 @@ function buildGeneratedVideoMetadata(
   }
 }
 
-// EmbeddableCut: one workspace scan for the files of an import. Each linked
-// file read every media record, so linking 100 files into a workspace of
-// 1,000 spent 18 s re-reading metadata. A batch's files are distinct, so they
-// needn't see each other's new records.
-const workspaceMediaByBatch = new WeakMap<object, Promise<MediaMetadata[]>>()
+// EmbeddableCut: one scan per import of the media its files are checked
+// against: the workspace's for a link, the project's for a copy. Each file read
+// every record again, so linking 100 files into a workspace of 1,000 spent 18 s
+// re-reading metadata, and every import is a copy in Firefox. A batch's files
+// are distinct, so they needn't see each other's new records.
+const mediaScansByBatch = new WeakMap<object, Map<string, Promise<MediaMetadata[]>>>()
+
+function scanOncePerBatch(
+  batch: object | undefined,
+  key: string,
+  scan: () => Promise<MediaMetadata[]>,
+): Promise<MediaMetadata[]> {
+  if (!batch) return scan()
+  let scans = mediaScansByBatch.get(batch)
+  if (!scans) {
+    scans = new Map()
+    mediaScansByBatch.set(batch, scans)
+  }
+  let pending = scans.get(key)
+  if (!pending) {
+    pending = scan()
+    scans.set(key, pending)
+  }
+  return pending
+}
 
 function getWorkspaceMediaForBatch(batch: object | undefined): Promise<MediaMetadata[]> {
-  if (!batch) return getAllMediaMetadataDB()
-  let scan = workspaceMediaByBatch.get(batch)
-  if (!scan) {
-    scan = getAllMediaMetadataDB()
-    workspaceMediaByBatch.set(batch, scan)
-  }
-  return scan
+  return scanOncePerBatch(batch, 'workspace', getAllMediaMetadataDB)
+}
+
+function getProjectMediaForBatch(
+  batch: object | undefined,
+  projectId: string,
+): Promise<MediaMetadata[]> {
+  return scanOncePerBatch(batch, `project:${projectId}`, () => getMediaForProjectDB(projectId))
 }
 
 class MediaLibraryService {
@@ -619,7 +640,7 @@ class MediaLibraryService {
   private async importMediaFileToOpfs(
     file: File,
     projectId: string,
-    options?: { attribution?: MediaAttribution },
+    options?: { attribution?: MediaAttribution; batch?: object },
   ): Promise<MediaMetadata & { isDuplicate?: boolean; hasUnsupportedCodec?: boolean }> {
     const validationResult = await validateMediaFileContent(file)
     if (!validationResult.valid) {
@@ -627,7 +648,7 @@ class MediaLibraryService {
     }
 
     const existingMedia = getWorkspaceRoot()
-      ? (await getMediaForProjectDB(projectId)).find(
+      ? (await getProjectMediaForBatch(options?.batch, projectId)).find(
           (media) => media.fileName === file.name && media.fileSize === file.size,
         )
       : findSessionMedia(file.name, file.size)
@@ -992,7 +1013,7 @@ class MediaLibraryService {
     // Without a workspace there's nowhere to keep a link, so the file is held.
     // EmbeddableCut: a wrapped File (Firefox) has no disk entry to link to either.
     if (options?.storageMode === 'copy' || !getWorkspaceRoot() || isFileBackedHandle(handle)) {
-      return this.importMediaFileToOpfs(file, projectId)
+      return this.importMediaFileToOpfs(file, projectId, { batch: options?.batch })
     }
 
     // Stage 2: Validation
