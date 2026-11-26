@@ -64,7 +64,7 @@
           version = "0.0.0";
           src = workspaceSrc;
           inherit nodejs;
-          npmDepsHash = "sha256-ZiQr7kCphF0lK7eCPCmVrjSezwNrUhDNjfLkYPPNziw=";
+          npmDepsHash = "sha256-F4KfftAyDK1UHQkDR2X/6EaML40L8voqRtjy4Q2brv4=";
           # Install scripts only fetch native binaries for Node-side inference
           # and Playwright's own browsers, neither of which a build uses.
           npmFlags = ["--ignore-scripts"];
