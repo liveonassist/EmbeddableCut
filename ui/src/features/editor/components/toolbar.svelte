@@ -469,7 +469,7 @@
     <Button
       variant="outline"
       size="sm"
-      class={cn('gap-1.5', saveAs && 'rounded-r-none')}
+      class={cn('cursor-pointer gap-1.5', saveAs && 'rounded-r-none')}
       onclick={() => handleSave()}
       aria-label={saveName.label ?? t('toolbar.saveAria')}
     >
@@ -497,7 +497,7 @@
               {...props}
               variant="outline"
               size="sm"
-              class="w-7 rounded-l-none border-l-0 px-0"
+              class="w-7 cursor-pointer rounded-l-none border-l-0 px-0"
               aria-label={t('toolbar.saveMoreOptions')}
             >
               <ChevronDown class="h-3 w-3" />
@@ -563,7 +563,7 @@
     {#if soleExport === 'video'}
       <Button
         size="sm"
-        class="gap-1.5 glow-primary-sm"
+        class="cursor-pointer gap-1.5 glow-primary-sm"
         onclick={onExport}
         disabled={exportVideoMode === 'locked'}
       >
@@ -577,7 +577,7 @@
     {:else if soleExport === 'bundle'}
       <Button
         size="sm"
-        class="gap-1.5 glow-primary-sm"
+        class="cursor-pointer gap-1.5 glow-primary-sm"
         onclick={onExportBundle}
         disabled={exportBundleMode === 'locked'}
       >
@@ -588,7 +588,7 @@
     <DropdownMenu>
       <DropdownMenuTrigger>
         {#snippet child({ props })}
-          <Button {...props} size="sm" class="gap-1.5 glow-primary-sm">
+          <Button {...props} size="sm" class="cursor-pointer gap-1.5 glow-primary-sm">
             <Download class="h-4 w-4" />
             {t('toolbar.export')}
             <ChevronDown class="h-3 w-3" />
