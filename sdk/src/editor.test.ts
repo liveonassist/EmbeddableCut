@@ -81,6 +81,22 @@ describe('editor', () => {
     expect(e.timeline.items).toHaveLength(2)
   })
 
+  it('announces an edit once, however many stores it writes', async () => {
+    const e = await newEditor()
+    await e.createProject({ name: 'Demo' })
+    await Promise.resolve()
+    let changes = 0
+    e.on('change', () => changes++)
+
+    e.apply([
+      { op: 'addTrack', kind: 'video' },
+      { op: 'addText', text: 'One' },
+    ])
+    await Promise.resolve()
+
+    expect(changes).toBe(1)
+  })
+
   it('reloads its own documents without loss', async () => {
     const first = await newEditor()
     await first.createProject({ name: 'Round trip' })

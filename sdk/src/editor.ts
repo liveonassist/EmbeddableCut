@@ -210,7 +210,10 @@ export interface EditorEvents extends Record<string, unknown> {
   project: ProjectInfo
   /** The loaded project's name, canvas, frame rate or background changed, by anyone. */
   projectChange: ProjectInfo
-  /** Anything in the project changed: an edit on the timeline, its settings, undo or redo. */
+  /**
+   * Anything in the project changed: an edit on the timeline, its settings,
+   * undo or redo. Sent once per edit, just after it.
+   */
   change: void
   /** The project gained unsaved changes, or was saved. */
   dirty: boolean
@@ -295,7 +298,17 @@ export class Editor {
         throw new Error(refusalMessage(refusal))
       }),
     )
-    const emitChange = () => this.events.emit('change', undefined)
+    // One edit writes several stores, some more than once (their indexes), and a
+    // load writes them all: hosts that save on `change` should hear it once.
+    let changeQueued = false
+    const emitChange = () => {
+      if (changeQueued) return
+      changeQueued = true
+      queueMicrotask(() => {
+        changeQueued = false
+        if (!this.disposed) this.events.emit('change', undefined)
+      })
+    }
     this.teardown.push(
       useProjectStore.subscribe((state, previous) => {
         const [project, before] = [state.currentProject, previous.currentProject]
