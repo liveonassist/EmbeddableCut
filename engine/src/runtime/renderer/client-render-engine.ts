@@ -169,6 +169,9 @@ export { subCompositionRenderDataHasGpuEffects }
 export type RenderedFrameCacheMode = 'full' | 'gpu-only' | 'skip'
 
 const ISOLATED_SEEK_WORKER_WAIT_MS = 900
+/** EmbeddableCut: sources an export keeps open, and opens at once. */
+const EXPORT_MAX_ACTIVE_SOURCES = 8
+const SOURCE_INIT_CONCURRENCY = 8
 
 export interface VideoPreloadPlan {
   priorityItemIds: string[]
@@ -734,6 +737,10 @@ export async function createCompositionRenderer(
       // Same-source transitions and overlaps can require multiple concurrent decode
       // timelines. Keep a small fixed lane cap to prevent per-clip duplication.
       maxLanesPerSource: 4,
+      // EmbeddableCut: each open source holds a decoder and its frames, about
+      // 25 MB at 720p, so a montage of 150 sources held 4 GB for the whole
+      // export. An evicted source reopens on its next draw.
+      maxActiveSources: EXPORT_MAX_ACTIVE_SOURCES,
       logFrameFailuresAsDebug: false,
     })
   const videoExtractors = new Map<string, VideoFrameSource>()
@@ -1263,27 +1270,34 @@ export async function createCompositionRenderer(
       ids.push(itemId)
     }
 
-    await Promise.all(
-      [...bySource.entries()].map(async ([src, ids]) => {
-        throwIfAborted(signal)
-        const success = await sharedVideoExtractors.initSource(src)
-        throwIfAborted(signal)
-        if (isDisposed) return
-        // Intentional side effect: decode readiness is tracked per shared source,
-        // while itemResult only reports back for the explicitly requested ids.
-        const allItemsForSource = videoItemIdsBySource.get(src) ?? new Set(ids)
-        for (const itemId of allItemsForSource) {
-          if (success) {
-            useMediabunny.add(itemId)
-          } else {
-            useMediabunny.delete(itemId)
-          }
+    const initSourceItems = async (src: string, ids: string[]): Promise<void> => {
+      throwIfAborted(signal)
+      const success = await sharedVideoExtractors.initSource(src)
+      throwIfAborted(signal)
+      if (isDisposed) return
+      // Intentional side effect: decode readiness is tracked per shared source,
+      // while itemResult only reports back for the explicitly requested ids.
+      const allItemsForSource = videoItemIdsBySource.get(src) ?? new Set(ids)
+      for (const itemId of allItemsForSource) {
+        if (success) {
+          useMediabunny.add(itemId)
+        } else {
+          useMediabunny.delete(itemId)
         }
-        for (const itemId of ids) {
-          itemResult.set(itemId, success)
-        }
-      }),
-    )
+      }
+      for (const itemId of ids) {
+        itemResult.set(itemId, success)
+      }
+    }
+    // EmbeddableCut: a few at a time, so opening every source of a long
+    // timeline stays within the pool's cap rather than all open at once.
+    const pending = [...bySource.entries()]
+    const initNext = async (): Promise<void> => {
+      for (let entry = pending.shift(); entry; entry = pending.shift()) {
+        await initSourceItems(entry[0], entry[1])
+      }
+    }
+    await Promise.all(Array.from({ length: SOURCE_INIT_CONCURRENCY }, initNext))
 
     return itemResult
   }
