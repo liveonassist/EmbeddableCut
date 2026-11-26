@@ -396,7 +396,11 @@
             : t('projects.import.importTitle')}
       </DialogTitle>
       {#if !importError && !isImporting && pendingImportFile}
-        <DialogDescription>{t('projects.import.selectWhereToExtract')}</DialogDescription>
+        <DialogDescription>
+          {folderAccess
+            ? t('projects.import.selectWhereToExtract')
+            : t('browserSupport.bundleIntoPrivateStorage')}
+        </DialogDescription>
       {/if}
       {#if !importError && isImporting && importProgress}
         <DialogDescription>

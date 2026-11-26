@@ -8,6 +8,6 @@
     },
     "storageUnavailable": "Storage unavailable",
     "storageUnavailableDescription": "{{productName}} keeps projects in a folder on disk or in the browser's private storage, and this window allows neither. Private windows often block storage: open {{productName}} in a regular window.",
-    "folderPickerUnavailable": "This browser can't pick folders. Projects are stored in its private storage."
+    "bundleIntoPrivateStorage": "The project and its media will be stored in this browser."
   }
 }

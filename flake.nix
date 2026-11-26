@@ -36,7 +36,7 @@
         # Firefox for its end-to-end suite (`just render test-firefox`), built
         # with FFmpeg for H.264, AAC and HEVC. nixpkgs builds it for Linux.
         firefox =
-          if pkgs.stdenv.isLinux
+          if pkgs.stdenv.hostPlatform.isLinux
           then pkgs.firefox
           else null;
         firefoxEnv = lib.optionalAttrs (firefox != null) {
