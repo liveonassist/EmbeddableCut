@@ -70,6 +70,8 @@ jobs:
       # The portable Node, Chrome, edit-operation and generated-media suites
       # reuse the build above and never need WebGPU.
       - run: nix develop --command sh -c 'cd render && npm run test:portable'
+      # The same harness in Firefox; its GPU cases skip where there's no adapter.
+      - run: nix develop --command sh -c 'cd render && npm run test:firefox'
 
   nix:
     if: github.event_name != 'schedule'

@@ -203,7 +203,8 @@ async function main() {
       if (!window.embeddablecut?.ready) throw new Error('harness not ready')
     })()`)
     const browser = await firefox.evaluate(`(async () => ({
-      webgpu: !!navigator.gpu,
+      // An adapter, not just the API: a GPU-less CI runner has navigator.gpu and no adapter.
+      webgpu: !!(await navigator.gpu?.requestAdapter()),
       hevcInElement: document.createElement('video').canPlayType('video/mp4; codecs="hvc1.1.6.L120.90"') !== '',
       hevcInWebCodecs: (await VideoDecoder.isConfigSupported({ codec: 'hvc1.1.6.L120.90', codedWidth: 320, codedHeight: 180 })).supported,
     }))()`)
