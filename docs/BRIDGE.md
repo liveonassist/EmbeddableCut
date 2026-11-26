@@ -65,7 +65,7 @@ Every message carries `"protocol": "embeddablecut.bridge"` and `"version": 1`.
 | `ui.runDefaultAction` | `id` of a waiting action | `null`, once the editor's own behavior has run |
 | `ui.completeAction` | `id` of a waiting action, `error?` | `null` |
 
-A **binary result** is `{ "mimeType", "fileName"?, "data", "encoding"? }`. Over a port `data` is an `ArrayBuffer`, transferred; over strings it's base64 and `encoding` is `"base64"`.
+A **binary result** is `{ "mimeType", "fileName"?, "data", "encoding"? }`. Over a port `data` is a `Blob`, which a port carries by reference so the file is never read into memory; over strings it's base64 and `encoding` is `"base64"`.
 
 ### Events
 

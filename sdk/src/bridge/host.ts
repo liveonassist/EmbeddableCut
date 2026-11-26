@@ -97,8 +97,8 @@ export class RemoteEditor {
 
   /** A binary result as a Blob, whichever transport carried it. */
   static toBlob(result: BinaryResult): Blob {
-    const data = typeof result.data === 'string' ? fromBase64(result.data) : result.data
-    return new Blob([data], { type: result.mimeType })
+    if (typeof result.data !== 'string') return result.data
+    return new Blob([fromBase64(result.data)], { type: result.mimeType })
   }
 
   close(): void {

@@ -168,13 +168,15 @@ export interface ProjectSummary {
 }
 
 /**
- * Bytes a method returns. Over a `MessagePort` `data` is an `ArrayBuffer`,
- * transferred; over a string channel it's base64 and `encoding` says so.
+ * Bytes a method returns. Over a `MessagePort` `data` is the `Blob` itself,
+ * which a port carries by reference, so an export or bundle is never read
+ * into memory on the way; over a string channel it's base64 and `encoding`
+ * says so.
  */
 export interface BinaryResult {
   mimeType: string
   fileName?: string
-  data: ArrayBuffer | string
+  data: Blob | string
   encoding?: 'base64'
 }
 
