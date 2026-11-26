@@ -255,7 +255,14 @@ export function useFadeEditors(params: () => UseFadeEditorsParams): FadeEditorsH
       if (!container) return
       const ratio = audioVolumeLineY / AUDIO_ENVELOPE_VIEWBOX_HEIGHT
       snapVolumeLineTop(ratio)
-      const ro = new ResizeObserver(() => snapVolumeLineTop(ratio))
+      // Zooming resizes every clip's width, and only its height moves the line.
+      let observedHeight: number | undefined
+      const ro = new ResizeObserver(([entry]) => {
+        const height = entry?.contentRect.height
+        if (height === observedHeight) return
+        observedHeight = height
+        snapVolumeLineTop(ratio)
+      })
       ro.observe(container)
       return () => ro.disconnect()
     })
