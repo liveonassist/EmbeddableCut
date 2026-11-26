@@ -23,11 +23,46 @@ interface Entry {
   blob: Blob
 }
 
-const CRC_TABLE = Uint32Array.from({ length: 256 }, (_, n) => {
-  let c = n
-  for (let k = 0; k < 8; k++) c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1
-  return c >>> 0
-})
+/**
+ * CRC-32 tables for slicing by 8: table `k` advances a byte through `k` more
+ * zero bytes, so eight table reads take eight bytes at once. A bundle CRCs
+ * every media byte on the main thread; byte at a time, that's seconds per GB.
+ */
+const CRC_TABLES = (() => {
+  const tables = new Uint32Array(256 * 8)
+  for (let n = 0; n < 256; n++) {
+    let c = n
+    for (let k = 0; k < 8; k++) c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1
+    tables[n] = c >>> 0
+  }
+  for (let n = 0; n < 256; n++) {
+    for (let k = 1; k < 8; k++) {
+      const previous = tables[(k - 1) * 256 + n]!
+      tables[k * 256 + n] = (previous >>> 8) ^ tables[previous & 0xff]!
+    }
+  }
+  return tables
+})()
+
+function updateCrc32(crc: number, bytes: Uint8Array): number {
+  const t = CRC_TABLES
+  let i = 0
+  for (const end = bytes.length - 7; i < end; i += 8) {
+    const word =
+      crc ^ (bytes[i]! | (bytes[i + 1]! << 8) | (bytes[i + 2]! << 16) | (bytes[i + 3]! << 24))
+    crc =
+      t[1792 + (word & 0xff)]! ^
+      t[1536 + ((word >>> 8) & 0xff)]! ^
+      t[1280 + ((word >>> 16) & 0xff)]! ^
+      t[1024 + (word >>> 24)]! ^
+      t[768 + bytes[i + 4]!]! ^
+      t[512 + bytes[i + 5]!]! ^
+      t[256 + bytes[i + 6]!]! ^
+      t[bytes[i + 7]!]!
+  }
+  for (; i < bytes.length; i++) crc = t[(crc ^ bytes[i]!) & 0xff]! ^ (crc >>> 8)
+  return crc
+}
 
 /** How much of a file is read at once. */
 const CHUNK_LENGTH = 4 << 20
@@ -35,8 +70,7 @@ const CHUNK_LENGTH = 4 << 20
 async function crc32(blob: Blob): Promise<number> {
   let crc = 0xffffffff
   for (let at = 0; at < blob.size; at += CHUNK_LENGTH) {
-    const chunk = new Uint8Array(await blob.slice(at, at + CHUNK_LENGTH).arrayBuffer())
-    for (const byte of chunk) crc = CRC_TABLE[(crc ^ byte) & 0xff]! ^ (crc >>> 8)
+    crc = updateCrc32(crc, new Uint8Array(await blob.slice(at, at + CHUNK_LENGTH).arrayBuffer()))
   }
   return (crc ^ 0xffffffff) >>> 0
 }
