@@ -33,6 +33,16 @@
           EMBEDDABLECUT_CHROME_PATH = "${chrome}/bin/google-chrome-stable";
         };
 
+        # Firefox for its end-to-end suite (`just render test-firefox`), built
+        # with FFmpeg for H.264, AAC and HEVC. nixpkgs builds it for Linux.
+        firefox =
+          if pkgs.stdenv.isLinux
+          then pkgs.firefox
+          else null;
+        firefoxEnv = lib.optionalAttrs (firefox != null) {
+          EMBEDDABLECUT_FIREFOX_PATH = "${firefox}/bin/firefox";
+        };
+
         # One npm workspace: the packages build against each other's sources,
         # so every package.json and the shared lockfile travel together.
         workspaceSrc = lib.fileset.toSource {
@@ -139,7 +149,10 @@
 
         # The renderer's end-to-end suites synthesise clips with ffmpeg and
         # check what they export with ffprobe.
-        renderPkgs = [pkgs.ffmpeg] ++ lib.optional (chrome != null) chrome;
+        renderPkgs =
+          [pkgs.ffmpeg]
+          ++ lib.optional (chrome != null) chrome
+          ++ lib.optional (firefox != null) firefox;
 
         shellHook = ''
           echo "🎬 EmbeddableCut development environment loaded!"
@@ -147,6 +160,7 @@
           echo "  - 🟩 Node.js:  $(node --version 2>/dev/null || echo 'not found')"
           echo "  - 🎞️ ffmpeg:   $(ffmpeg -version 2>/dev/null | head -1 | awk '{print $3}' || echo 'not found')"
           echo "  - 🌐 Chrome:   ''${EMBEDDABLECUT_CHROME_PATH:-the Playwright chrome channel}"
+          echo "  - 🦊 Firefox:  ''${EMBEDDABLECUT_FIREFOX_PATH:-firefox on the PATH}"
           echo ""
           echo "Quickstart:"
           echo "  - 📋 commands: just"
@@ -170,7 +184,8 @@
             # Playwright drives the Chrome above, never one it downloads.
             PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD = "1";
           }
-          // chromeEnv);
+          // chromeEnv
+          // firefoxEnv);
 
         checks = {
           inherit web render;

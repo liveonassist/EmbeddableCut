@@ -34,6 +34,11 @@ test:
 test-portable:
     npm run test:portable
 
+# Render through the harness in Firefox and probe the output; needs `just web build`, ffmpeg and Firefox.
+[working-directory('../render')]
+test-firefox:
+    npm run test:firefox
+
 # Build the render service's container image.
 [working-directory('..')]
 image tag="embeddablecut-render":

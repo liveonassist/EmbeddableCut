@@ -12,6 +12,7 @@ just render frame --workspace DIR --project ID --at 2
 just render serve --workspace DIR                # serve.mjs: the HTTP API on 127.0.0.1:8787
 just render test                                 # node --test contracts, no browser
 just render test-portable                        # + Chrome, edit-operation and media suites
+just render test-firefox                         # the harness in Firefox: H.264, HEVC, HLS, GPU effects
 just render image                                # the container image (render/Dockerfile)
 ```
 
@@ -29,6 +30,8 @@ just render image                                # the container image (render/D
 ## Conventions
 
 - **Google Chrome, not Chromium:** export needs its H.264 and AAC encoders. Playwright uses the `chrome` channel unless `EMBEDDABLECUT_CHROME_PATH` names an executable; the dev shell sets it on x86_64 Linux. `EMBEDDABLECUT_CHROME_ARGS` adds launch flags, `EMBEDDABLECUT_CHROME_ARGS_REPLACE` replaces them.
+- **The Firefox suite drives stock Firefox over WebDriver BiDi** (`lib/firefox-bidi.mjs`), not Playwright's patched build, so it tests the browser users run: `EMBEDDABLECUT_FIREFOX_PATH`, set by the dev shell on Linux, else `firefox` on the PATH. It forces `dom.webgpu.enabled`, which release Firefox sets only on Windows and Apple Silicon. Services stay on Chrome.
+- **The `firefox` launcher is often a wrapper script**: `launchFirefox` starts it in its own process group and kills the group, or the browser outlives it and keeps the profile locked.
 - The service binds to 127.0.0.1 and has no authentication. Put it behind something that does before exposing it; the container binds 0.0.0.0 for its own network.
 - One warm page serves every request, serialized through the operation queue; scale out with more processes or containers, each with its own workspace lock.
 - Software WebGPU (lavapipe in the container) rejects GPU-effect renders, which can come out blank there. Real-GPU effects need a GPU host.
