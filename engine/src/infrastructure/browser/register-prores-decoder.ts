@@ -22,6 +22,8 @@
  * decoder-prewarm worker, whose `canDecode()` gate must keep skipping ProRes.
  */
 
+import { ensureMediaElementVideoDecoderRegistered } from './media-element-video-decoder'
+
 let registerPromise: Promise<void> | null = null
 
 export function ensureProResDecoderRegistered(): Promise<void> {
@@ -30,6 +32,9 @@ export function ensureProResDecoderRegistered(): Promise<void> {
       .then(({ registerProresDecoder }) => {
         registerProresDecoder()
       })
+      // EmbeddableCut: and, on the main thread of a browser whose WebCodecs lacks
+      // HEVC (Firefox), the decoder that reads it through the media element.
+      .then(() => ensureMediaElementVideoDecoderRegistered())
       .catch((error: unknown) => {
         // Clear the guard so a transient failure (e.g. a failed dynamic import) doesn't
         // permanently block ProRes decoding in this realm — the next call can retry.
