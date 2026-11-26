@@ -102,4 +102,18 @@ describe('TranscriptEditorPanel', () => {
     expect(Object.keys(useTranscriptIgnoreStore.getState().ranges)).toEqual(['media-1'])
     expect(word.className).toContain('line-through')
   })
+  it('keeps the word selection through an edit to another clip', async () => {
+    const { container } = render(TranscriptEditorPanel, { active: true })
+    await vi.waitFor(() => expect(container.querySelector('[data-token-index="1"]')).not.toBeNull())
+    const word = container.querySelector<HTMLElement>('[data-token-index="1"]')!
+    await fireEvent.pointerDown(word, { pointerId: 1 })
+    flushSync()
+
+    useItemsStore
+      .getState()
+      .setItems([makeVideoItem(), makeVideoItem({ id: 'clip-2', mediaId: 'media-2', from: 60 })])
+    flushSync()
+
+    expect(word.className).toContain('bg-primary')
+  })
 })
