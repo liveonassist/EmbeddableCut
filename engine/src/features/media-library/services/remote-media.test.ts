@@ -1,6 +1,6 @@
 // @vitest-environment node
 
-import { afterEach, describe, expect, it, vi } from 'vite-plus/test'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vite-plus/test'
 import type { MediaMetadata } from '@/types/storage'
 import { blobUrlManager } from '@/infrastructure/browser/blob-url-manager'
 import { getObjectUrlSourceMetadata } from '@/infrastructure/browser/object-url-registry'
@@ -30,7 +30,12 @@ function seed(remote: MediaMetadata['remote']): MediaMetadata {
   return media
 }
 
+beforeEach(() => {
+  vi.useFakeTimers()
+})
+
 afterEach(() => {
+  vi.useRealTimers()
   setRemoteMediaResolver(null)
   resetRemoteMedia()
   blobUrlManager.releaseAll()
@@ -88,17 +93,34 @@ describe('remote media', () => {
     let signature = 0
     setRemoteMediaResolver(async () => ({
       url: `https://cdn.test/clip.mp4?sig=${++signature}`,
-      // Inside the renewal margin, so the next read renews.
-      expiresAt: Date.now() + 60_000,
+      expiresAt: Date.now() + 3_600_000,
     }))
     const version = blobUrlManager.getSnapshot()
 
     await resolveMediaUrl('remote-1')
+    vi.setSystemTime(Date.now() + 3_600_000 - 60_000)
     const renewed = await resolveMediaUrl('remote-1')
 
     expect(renewed).toBe('https://cdn.test/clip.mp4?sig=2')
     expect(blobUrlManager.get('remote-1')).toBe(renewed)
     expect(blobUrlManager.getSnapshot()).toBeGreaterThan(version)
     expect(getObjectUrlSourceMetadata('https://cdn.test/clip.mp4?sig=1')).toBeNull()
+  })
+
+  it('renews a URL that lives shorter than the margin halfway through, not back to back', async () => {
+    seed({ url: 'https://cdn.test/clip.mp4' })
+    const resolver = vi.fn(async () => ({
+      url: 'https://cdn.test/clip.mp4?sig',
+      expiresAt: Date.now() + 60_000,
+    }))
+    setRemoteMediaResolver(resolver)
+
+    await resolveMediaUrl('remote-1')
+    await vi.advanceTimersByTimeAsync(29_000)
+    await resolveMediaUrl('remote-1')
+    expect(resolver).toHaveBeenCalledOnce()
+
+    await vi.advanceTimersByTimeAsync(1_000)
+    expect(resolver).toHaveBeenCalledTimes(2)
   })
 })
