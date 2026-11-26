@@ -52,6 +52,30 @@ export async function renderEffectsFromMaskedSource(
   }
 
   const { canvas: effectCanvas, ctx: effectCtx } = canvasPool.acquire()
+
+  // EmbeddableCut: a batching pipeline hands back its own output canvas, so
+  // copying the source into effectCanvas first is a wasted full-frame blit.
+  // The upload snapshots the source, so the caller may reuse it at once. A
+  // source of another size still goes through the copy, which pads or crops it.
+  if (
+    gpuPipeline?.isBatching() &&
+    effectSource.width === effectCanvas.width &&
+    effectSource.height === effectCanvas.height
+  ) {
+    poolCanvases.push(effectCanvas)
+    const gpuInstances = getGpuEffectInstances(effects, frame / canvas.fps)
+    if (gpuInstances.length > 0) {
+      try {
+        const result = gpuPipeline.applyEffectsToCanvas(effectSource, gpuInstances)
+        if (result) return { source: result, poolCanvases }
+      } catch (error) {
+        log.warn('GPU effects zero-copy path failed, skipping', error)
+      }
+    }
+    effectCtx.drawImage(effectSource, 0, 0)
+    return { source: effectCanvas, poolCanvases }
+  }
+
   const deferredGpuCanvas = await applyAllEffectsAsync(
     effectCtx,
     effectSource,
