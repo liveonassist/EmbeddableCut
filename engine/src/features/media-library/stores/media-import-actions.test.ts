@@ -282,14 +282,17 @@ describe('createImportActions', () => {
       1,
       handles[0],
       'project-1',
-      { storageMode: 'copy' },
+      expect.objectContaining({ storageMode: 'copy' }),
     )
     expect(mediaLibraryServiceMocks.importMediaWithHandle).toHaveBeenNthCalledWith(
       2,
       handles[1],
       'project-1',
-      { storageMode: 'copy' },
+      expect.objectContaining({ storageMode: 'copy' }),
     )
+    // One import's files share a batch, so the service scans the workspace once.
+    const [first, second] = mediaLibraryServiceMocks.importMediaWithHandle.mock.calls
+    expect(first![2].batch).toBe(second![2].batch)
   })
 
   it('passes link mode through for advanced linked-file imports', async () => {
@@ -305,7 +308,7 @@ describe('createImportActions', () => {
     expect(mediaLibraryServiceMocks.importMediaWithHandle).toHaveBeenCalledWith(
       handle,
       'project-1',
-      { storageMode: 'link' },
+      expect.objectContaining({ storageMode: 'link' }),
     )
   })
 
