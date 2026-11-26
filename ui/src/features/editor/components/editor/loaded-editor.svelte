@@ -74,7 +74,6 @@
     useTimelineShortcuts,
     useTransitionBreakageNotifications,
   } from '@/features/editor/deps/timeline-hooks'
-  import { initTransitionChainSubscription } from '@/features/editor/deps/timeline-subscriptions'
   import { toggleSnap, useTimelineSettingsStore } from '@/features/editor/deps/timeline-store'
   import { useSettingsStore } from '@/features/editor/deps/settings'
   import { useMaskEditorStore } from '@/features/editor/deps/preview'
@@ -137,20 +136,6 @@
   const replacement = (slot: ReplaceableSlot) => contributions?.replacement(slot) ?? null
   const bottomPanels = $derived(contributions?.panels('bottom') ?? [])
   const inspectorPanels = $derived(contributions?.panels('inspector') ?? [])
-
-  // Initialize transition chain subscription (pre-computes chains from timeline data)
-  // This subscription recomputes chains when items/transitions change - deferred to idle
-  // time so it doesn't compete with the initial editor render.
-  $effect(() => {
-    let unsubscribe: (() => void) | undefined
-    const id = requestIdleCallback(() => {
-      unsubscribe = initTransitionChainSubscription()
-    })
-    return () => {
-      cancelIdleCallback(id)
-      unsubscribe?.()
-    }
-  })
 
   // Preload export dialogs during idle time so they open instantly.
   $effect(() => {
