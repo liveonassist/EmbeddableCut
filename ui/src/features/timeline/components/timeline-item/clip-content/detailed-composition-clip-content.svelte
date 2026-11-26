@@ -93,7 +93,11 @@
     const current = item
     return select(
       useItemsStore,
-      (s) => current.type === 'composition' && hasLinkedAudioCompanion(s.items, current),
+      // A compound clip's audio companion shares its linked group: look there, not in every item.
+      (s) =>
+        current.type === 'composition' &&
+        !!current.linkedGroupId &&
+        hasLinkedAudioCompanion(s.itemsByLinkedGroupId[current.linkedGroupId] ?? [], current),
     )
   })
   const composition = $derived(compositionSource.current)
