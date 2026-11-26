@@ -54,6 +54,10 @@ const sharedChunks = [
   },
 ]
 
+const lucideIcons = '/@lucide/svelte/dist/icons/'
+const isPageModule = (id: string) =>
+  /\/ui\/src\/(features\/docs|routes\/docs|routes\/changelog)/.test(id.replaceAll('\\', '/'))
+
 function sharedChunksPlugin(): Plugin {
   return {
     name: 'embeddablecut-shared-chunks',
@@ -68,7 +72,34 @@ function sharedChunksPlugin(): Plugin {
         includeDependenciesRecursively: false,
         test: (id: string) => modules.some((path) => id.replaceAll('\\', '/').includes(path)),
       }))
-      return { ...rest, codeSplitting: { groups: [...groups, { name: manualChunks }] } }
+      return {
+        ...rest,
+        codeSplitting: {
+          groups: [
+            ...groups,
+            // The editor's chunks captured the docs' and changelog's icons too,
+            // so a docs page loaded 2 MB of editor for an Info icon. A page
+            // imports `icons/<name>.js`, which imports the component.
+            {
+              name: (id, ctx) => {
+                if (!id.includes(lucideIcons)) return null
+                const importers = ctx.getModuleInfo(id)?.importers ?? []
+                const isPageIcon =
+                  importers.some(isPageModule) ||
+                  importers.some(
+                    (importer) =>
+                      importer.includes(lucideIcons) &&
+                      ctx.getModuleInfo(importer)?.importers.some(isPageModule),
+                  )
+                return isPageIcon ? 'page-icons' : null
+              },
+              priority: 1,
+              includeDependenciesRecursively: false,
+            },
+            { name: manualChunks },
+          ],
+        },
+      }
     },
   }
 }
