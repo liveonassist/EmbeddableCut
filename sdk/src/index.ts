@@ -21,7 +21,12 @@ export {
   type NewProject,
   type ProjectInfo,
   type ProjectUpdate,
+  type WorkspaceKind,
 } from './editor'
+export {
+  getPlatformSupport,
+  type PlatformSupport,
+} from '@embeddablecut/engine/infrastructure/browser/platform-support'
 export { EditorError, type EditorErrorCode } from './errors'
 export {
   ExtensionHost,

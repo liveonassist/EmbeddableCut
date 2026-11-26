@@ -37,7 +37,9 @@ Every message carries `"protocol": "embeddablecut.bridge"` and `"version": 1`.
 
 | Method | Params | Result |
 | --- | --- | --- |
-| `editor.describe` | — | `sdkVersion`, `bridgeVersion`, `schemaVersions`, `operations` |
+| `editor.describe` | — | `sdkVersion`, `bridgeVersion`, `schemaVersions`, `operations`, `platform` (what the browser supports: `getPlatformSupport()`), `workspace`: `"folder"`, `"private"` or `"none"` |
+| `editor.storagePersisted` | — | whether the origin's storage is persistent, or `null` where the browser can't say |
+| `editor.requestPersistentStorage` | — | whether it is now. Firefox asks the user, so send it from a gesture in the host page |
 | `project.create` | `name`, `width?`, `height?`, `fps?`, `backgroundColor?` | the project's `id`, `name`, `width`, `height`, `fps`, `backgroundColor` |
 | `project.update` | `name?`, `width?`, `height?`, `fps?`, `backgroundColor?`, `framing?`: `"fit"`, `"fill"` or `"keep"` | the project |
 | `project.load` | `document`: a project document | `project`, `migrated`, `warnings` |

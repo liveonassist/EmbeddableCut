@@ -188,8 +188,9 @@ export class MediaApi {
   /**
    * Imports files from the user's disk, as dropping them on the media library
    * does. `copy` puts the bytes in the workspace; `link` references the
-   * original file and asks for permission again in later sessions. Without a
-   * workspace, both hold the file in memory. Files the accept policy refuses
+   * original file and asks for permission again in later sessions; where the
+   * browser can't link files (`getPlatformSupport().linkedMedia`, false on
+   * Firefox), `link` copies. Without a workspace, both hold the file in memory. Files the accept policy refuses
    * are left out, with a notification saying why.
    *
    * @throws {EditorError} `MEDIA_SOURCE_DISABLED` or `NO_PROJECT`.

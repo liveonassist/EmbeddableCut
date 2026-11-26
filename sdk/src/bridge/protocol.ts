@@ -10,6 +10,9 @@
  * not when the SDK's does.
  */
 
+import type { PlatformSupport } from '@embeddablecut/engine/infrastructure/browser/platform-support'
+import type { WorkspaceKind } from '../editor'
+
 export const BRIDGE_PROTOCOL = 'embeddablecut.bridge'
 export const BRIDGE_VERSION = 1
 
@@ -23,8 +26,15 @@ export interface BridgeMethods {
       bridgeVersion: number
       schemaVersions: Record<string, unknown>
       operations: string[]
+      /** What the editor's browser supports (`getPlatformSupport`). */
+      platform: PlatformSupport
+      workspace: WorkspaceKind
     }
   }
+  /** `Editor.storagePersisted`. */
+  'editor.storagePersisted': { params: undefined; result: boolean | null }
+  /** `Editor.requestPersistentStorage`: Firefox asks the user, so call it from a gesture. */
+  'editor.requestPersistentStorage': { params: undefined; result: boolean }
   'project.create': {
     params: {
       name: string
