@@ -130,7 +130,10 @@ export function mergeLiveItemPresentation(
   item: TimelineItem,
   liveItem: TimelineItem | undefined,
 ): TimelineItem {
-  if (!liveItem || liveItem.id !== item.id || liveItem.type !== item.type) return item
+  // The snapshot is usually current: the renderer asks this per item, several
+  // times a frame, and a text item would be copied every time.
+  if (!liveItem || liveItem === item) return item
+  if (liveItem.id !== item.id || liveItem.type !== item.type) return item
 
   const itemWithLiveTransform =
     'transform' in liveItem && 'transform' in item && liveItem.transform !== item.transform
