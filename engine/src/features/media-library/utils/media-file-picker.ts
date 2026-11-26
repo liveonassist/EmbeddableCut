@@ -1,3 +1,9 @@
+import {
+  acceptFromPickerTypes,
+  fileBackedHandle,
+  pickFilesWithInput,
+} from '@/infrastructure/browser/file-backed-handle'
+
 export const MEDIA_FILE_PICKER_TYPES = [
   {
     description: 'Media files',
@@ -24,12 +30,20 @@ export function getSupportedMediaFormatLabels(): string[] {
 }
 
 export function hasMediaFilePickerSupport(): boolean {
-  return typeof window !== 'undefined' && 'showOpenFilePicker' in window
+  // EmbeddableCut: a file input stands in for the picker where there's none (Firefox).
+  return typeof window !== 'undefined' && typeof document !== 'undefined'
 }
 
 export async function showMediaFilePicker(options?: {
   multiple?: boolean
 }): Promise<FileSystemFileHandle[]> {
+  if (!('showOpenFilePicker' in window)) {
+    const files = await pickFilesWithInput({
+      multiple: options?.multiple ?? true,
+      accept: acceptFromPickerTypes(MEDIA_FILE_PICKER_TYPES),
+    })
+    return files.map(fileBackedHandle)
+  }
   return window.showOpenFilePicker({
     multiple: options?.multiple ?? true,
     types: MEDIA_FILE_PICKER_TYPES,

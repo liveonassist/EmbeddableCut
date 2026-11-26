@@ -524,14 +524,16 @@ describe('createImportActions', () => {
     })
   })
 
-  it('sets a browser support error when the picker API is unavailable', async () => {
+  it('sets a browser support error when there is no page to pick files in', async () => {
     const originalWindow = globalThis.window
     const originalNavigator = globalThis.navigator
+    const originalDocument = globalThis.document
     const mockWindow = {} as Window & typeof globalThis
     const mockNavigator = {} as Navigator
 
     vi.stubGlobal('window', mockWindow)
     vi.stubGlobal('navigator', mockNavigator)
+    vi.stubGlobal('document', undefined)
 
     try {
       const harness = createImportActionsHarness()
@@ -546,6 +548,7 @@ describe('createImportActions', () => {
     } finally {
       vi.stubGlobal('window', originalWindow)
       vi.stubGlobal('navigator', originalNavigator)
+      vi.stubGlobal('document', originalDocument)
     }
   })
 })

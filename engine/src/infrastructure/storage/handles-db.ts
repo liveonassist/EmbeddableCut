@@ -249,6 +249,8 @@ export async function queryHandlePermission(
   handle: FileSystemHandle,
   mode: 'read' | 'readwrite' = 'readwrite',
 ): Promise<HandlePermissionState> {
+  // EmbeddableCut: Firefox has no permission API; its handles are private storage or wrapped Files.
+  if (!('queryPermission' in handle)) return 'granted'
   try {
     const state = await (handle as FileSystemDirectoryHandle).queryPermission({ mode })
     return state as HandlePermissionState
@@ -262,6 +264,7 @@ export async function requestHandlePermission(
   handle: FileSystemHandle,
   mode: 'read' | 'readwrite' = 'readwrite',
 ): Promise<HandlePermissionState> {
+  if (!('requestPermission' in handle)) return 'granted'
   try {
     const state = await (handle as FileSystemDirectoryHandle).requestPermission({ mode })
     return state as HandlePermissionState

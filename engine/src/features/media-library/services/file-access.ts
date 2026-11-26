@@ -22,6 +22,11 @@ export class FileAccessError extends Error {
 export async function ensureFileHandlePermission(handle: FileSystemFileHandle): Promise<boolean> {
   const opId = createOperationId()
   const event = logger.startEvent('file.permission.check', opId)
+  // EmbeddableCut: Firefox has no permission API; its handles are private storage or wrapped Files.
+  if (!('queryPermission' in handle)) {
+    event.success({ permission: 'granted' })
+    return true
+  }
 
   try {
     const permission = await handle.queryPermission({ mode: 'read' })

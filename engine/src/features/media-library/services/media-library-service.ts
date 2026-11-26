@@ -1,4 +1,5 @@
 import type { MediaAttribution, MediaMetadata, ThumbnailData } from '@/types/storage'
+import { isFileBackedHandle } from '@/infrastructure/browser/file-backed-handle'
 import { createLogger } from '@/shared/logging/logger'
 import { mapWithConcurrency } from '@/shared/utils/async-utils'
 
@@ -67,6 +68,7 @@ import {
   hasMediaSource,
   readMediaSource,
   writeMediaSource,
+  queryHandlePermission,
 } from '@/features/media-library/deps/storage'
 import {
   importFilmstripCache,
@@ -971,7 +973,8 @@ class MediaLibraryService {
     const file = await handle.getFile()
 
     // Without a workspace there's nowhere to keep a link, so the file is held.
-    if (options?.storageMode === 'copy' || !getWorkspaceRoot()) {
+    // EmbeddableCut: a wrapped File (Firefox) has no disk entry to link to either.
+    if (options?.storageMode === 'copy' || !getWorkspaceRoot() || isFileBackedHandle(handle)) {
       return this.importMediaFileToOpfs(file, projectId)
     }
 
@@ -2025,7 +2028,7 @@ class MediaLibraryService {
     }
 
     try {
-      const permission = await media.fileHandle.queryPermission({ mode: 'read' })
+      const permission = await queryHandlePermission(media.fileHandle, 'read')
       return permission !== 'granted'
     } catch {
       return true // Error means we likely need permission
@@ -2055,7 +2058,7 @@ class MediaLibraryService {
     for (const media of allMedia) {
       if (media.storageType === 'handle' && media.fileHandle) {
         try {
-          const permission = await media.fileHandle.queryPermission({ mode: 'read' })
+          const permission = await queryHandlePermission(media.fileHandle, 'read')
           if (permission !== 'granted') {
             needsPermission.push(media)
           }
@@ -2098,6 +2101,19 @@ class MediaLibraryService {
 
     // Verify file exists and get basic info
     const file = await newHandle.getFile()
+
+    // EmbeddableCut: a wrapped File (Firefox) can't be kept as a link; its bytes move in.
+    if (isFileBackedHandle(newHandle)) {
+      await writeMediaSource(mediaId, file, file.name, { strict: true })
+      return updateMediaDB(mediaId, {
+        storageType: 'workspace',
+        fileHandle: undefined,
+        fileName: file.name,
+        fileSize: file.size,
+        fileLastModified: file.lastModified,
+        updatedAt: Date.now(),
+      })
+    }
 
     // Update metadata with new handle and file info
     const updated = await updateMediaDB(mediaId, {

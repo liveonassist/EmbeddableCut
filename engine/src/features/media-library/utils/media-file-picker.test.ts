@@ -5,20 +5,32 @@ import {
   MEDIA_FILE_PICKER_TYPES,
   showMediaFilePicker,
 } from './media-file-picker'
+import { isFileBackedHandle } from '@/infrastructure/browser/file-backed-handle'
 
 describe('media-file-picker', () => {
-  it('detects file picker support from window.showOpenFilePicker', () => {
-    const originalWindow = globalThis.window
+  it('falls back to a file input where the browser has no picker, as Firefox has none', async () => {
+    const file = new File(['bytes'], 'clip.mp4', { type: 'video/mp4' })
+    let picked: HTMLInputElement | null = null
+    const click = vi.spyOn(HTMLInputElement.prototype, 'click').mockImplementation(function (
+      this: HTMLInputElement,
+    ) {
+      picked = this
+      Object.defineProperty(this, 'files', { value: [file] })
+      this.dispatchEvent(new Event('change'))
+    })
 
-    vi.stubGlobal('window', {} as Window & typeof globalThis)
-    expect(hasMediaFilePickerSupport()).toBe(false)
+    try {
+      expect(hasMediaFilePickerSupport()).toBe(true)
+      const [handle] = await showMediaFilePicker({ multiple: true })
 
-    vi.stubGlobal('window', {
-      showOpenFilePicker: vi.fn(),
-    } as unknown as Window & typeof globalThis)
-    expect(hasMediaFilePickerSupport()).toBe(true)
-
-    vi.stubGlobal('window', originalWindow)
+      expect(picked!.multiple).toBe(true)
+      expect(picked!.accept).toContain('.mp4')
+      expect(handle!.name).toBe('clip.mp4')
+      expect(await handle!.getFile()).toBe(file)
+      expect(isFileBackedHandle(handle)).toBe(true)
+    } finally {
+      click.mockRestore()
+    }
   })
 
   it('passes the shared media picker types to the browser file picker', async () => {
