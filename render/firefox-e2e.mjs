@@ -258,6 +258,42 @@ async function main() {
         },
         expect: { video: 'vp9' },
       },
+      browser.webgpu &&
+        browser.hevcInElement &&
+        !browser.hevcInWebCodecs && {
+          name: 'GPU transition from H.264 into HEVC, to VP9',
+          file: 'transition.webm',
+          input: {
+            tracks: [track('v1', 'video', 0)],
+            items: [
+              { ...clip('h264'), id: 'left', durationInFrames: 15, sourceEnd: 15 },
+              {
+                ...clip('hevc'),
+                id: 'right',
+                from: 15,
+                durationInFrames: 15,
+                sourceStart: 15,
+                sourceEnd: 30,
+              },
+            ],
+            transitions: [
+              {
+                id: 'glitch',
+                type: 'crossfade',
+                presentation: 'glitch',
+                timing: 'linear',
+                leftClipId: 'left',
+                rightClipId: 'right',
+                trackId: 'v1',
+                durationInFrames: 10,
+                alignment: 0.5,
+              },
+            ],
+            media: [...media('h264'), ...media('hevc')],
+            settings: settings('vp9', 'opus', 'webm'),
+          },
+          expect: { video: 'vp9' },
+        },
       browser.hevcInElement &&
         !browser.hevcInWebCodecs && {
           name: 'HEVC through the media element, to VP9',
