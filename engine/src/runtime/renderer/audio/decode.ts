@@ -51,8 +51,9 @@ function appendDecodedAudioSample(
   state: AudioDecodeAccumulator,
   sample: MediabunnyAudioSample,
   itemId: string,
+  skipFrames = 0,
 ): void {
-  const frameCount = Math.max(0, sample.numberOfFrames)
+  const frameCount = Math.max(0, sample.numberOfFrames - skipFrames)
   const sampleChannels = Math.max(1, sample.numberOfChannels)
   if (frameCount === 0) return
 
@@ -77,6 +78,8 @@ function appendDecodedAudioSample(
     sample.copyTo(channelData, {
       planeIndex: Math.min(channel, sampleChannels - 1),
       format: 'f32-planar',
+      frameOffset: skipFrames,
+      frameCount,
     })
     state.channelChunks[channel]!.push(channelData)
   }
@@ -111,7 +114,11 @@ export async function decodeAudioRangeFromSink(
 
   for await (const sample of sink.samples(startTime, endTime)) {
     try {
-      appendDecodedAudioSample(state, sample, itemId)
+      // EmbeddableCut: the first sample starts at the codec frame holding
+      // startTime, up to a frame early (1,024 samples in AAC). Kept, it shifted
+      // every windowed export window late, a click at each edge.
+      const lead = Math.round((startTime - sample.timestamp) * sample.sampleRate)
+      appendDecodedAudioSample(state, sample, itemId, Math.max(0, lead))
     } finally {
       sample.close()
     }

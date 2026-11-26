@@ -25,7 +25,7 @@ vi.mock('mediabunny', () => {
     }
 
     async computeDuration() {
-      return 10
+      return this.source.url.includes('long') ? 120 : 10
     }
 
     dispose() {
@@ -42,11 +42,16 @@ vi.mock('mediabunny', () => {
         throw new Error('Mediabunny range decode failed')
       }
       const sampleRate = this.track.src.includes('44100') ? 44100 : 48000
-      const frameCount = Math.max(1, Math.round((endTime - startTime) * sampleRate))
+      // 'framed' sources decode from the codec frame holding startTime, as AAC does.
+      const exactStart = Math.round(startTime * sampleRate)
+      const startIndex = this.track.src.includes('framed')
+        ? Math.floor(exactStart / 1024) * 1024
+        : exactStart
+      const frameCount =
+        Math.max(1, Math.round((endTime - startTime) * sampleRate)) + exactStart - startIndex
       // 'ramp' sources yield a monotone ramp tied to the ABSOLUTE source
       // position, so tests can observe reversal and speed consumption.
       const ramp = this.track.src.includes('ramp')
-      const startIndex = Math.round(startTime * sampleRate)
       const makePlane = () => {
         const plane = new Float32Array(frameCount)
         if (ramp) {
@@ -62,8 +67,14 @@ vi.mock('mediabunny', () => {
         numberOfFrames: frameCount,
         numberOfChannels: 2,
         sampleRate,
-        copyTo(destination: Float32Array, options: { planeIndex: number }) {
-          destination.set(planes[options.planeIndex] ?? planes[0]!)
+        timestamp: startIndex / sampleRate,
+        copyTo(
+          destination: Float32Array,
+          options: { planeIndex: number; frameOffset?: number; frameCount?: number },
+        ) {
+          const plane = planes[options.planeIndex] ?? planes[0]!
+          const offset = options.frameOffset ?? 0
+          destination.set(plane.subarray(offset, offset + (options.frameCount ?? plane.length)))
         },
         close() {},
         trackSrc: this.track.src,
@@ -751,6 +762,25 @@ describe('windowed audio processing', () => {
       expect(windows[0]?.samples[0]?.[23_999]).toBeCloseTo(full!.samples[0]![23_999]!, 7)
     } finally {
       vi.unstubAllGlobals()
+    }
+  })
+
+  it('starts each window at its own sample when decoding begins a codec frame early', async () => {
+    const composition = simpleComposition({
+      src: 'blob:ramp-framed-long',
+      durationInFrames: 1_830,
+      volume: -20,
+    })
+    composition.durationInFrames = 1_830
+    const full = await processAudio(composition)
+    const windows = []
+    for await (const window of processAudioWindows(composition)) windows.push(window)
+
+    const edge = 30 * 48_000
+    for (const index of [edge - 1, edge, edge + 1]) {
+      const windowed =
+        index < edge ? windows[0]!.samples[0]![index] : windows[1]!.samples[0]![index - edge]
+      expect(windowed).toBeCloseTo(full!.samples[0]![index]!, 6)
     }
   })
 
