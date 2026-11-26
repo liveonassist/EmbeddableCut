@@ -20,7 +20,7 @@ import {
   setRemoteUrlHooks,
   type RemoteRequestMetadata,
 } from '@/infrastructure/remote-media/remote-fetch'
-import { registerKeyframeIndex } from '@/shared/utils/keyframe-index-registry'
+import { clearKeyframeIndex, registerKeyframeIndex } from '@/shared/utils/keyframe-index-registry'
 import { createLogger } from '@/shared/logging/logger'
 import { useMediaLibraryStore } from '../stores/media-library-store'
 
@@ -115,7 +115,10 @@ function activate(
   }
 
   if (previous?.timer) clearTimeout(previous.timer)
-  if (previous && previous.url !== url) unregisterRemoteUrl(previous.url)
+  if (previous && previous.url !== url) {
+    unregisterRemoteUrl(previous.url)
+    clearKeyframeIndex(previous.url)
+  }
   registerRemoteUrl(url, {
     mediaId: media.id,
     storageType: 'url',
@@ -222,6 +225,7 @@ export function resetRemoteMedia(): void {
   for (const entry of active.values()) {
     if (entry.timer) clearTimeout(entry.timer)
     unregisterRemoteUrl(entry.url)
+    clearKeyframeIndex(entry.url)
   }
   active.clear()
   pending.clear()

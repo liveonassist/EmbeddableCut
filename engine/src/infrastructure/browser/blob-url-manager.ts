@@ -1,4 +1,5 @@
 import { createLogger } from '@/shared/logging/logger'
+import { clearKeyframeIndex } from '@/shared/utils/keyframe-index-registry'
 import {
   registerObjectUrl,
   unregisterObjectUrl,
@@ -145,6 +146,7 @@ class BlobUrlManager {
   private revokeEntry(entry: BlobUrlEntry): void {
     if (entry.external) return
     unregisterObjectUrl(entry.url)
+    clearKeyframeIndex(entry.url)
     URL.revokeObjectURL(entry.url)
     for (const listener of this.revokeListeners) {
       listener(entry.url)
