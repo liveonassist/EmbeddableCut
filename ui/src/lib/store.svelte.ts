@@ -39,11 +39,18 @@ export function select<S, U>(
       }
     })
   })
+  // Every tracked `track()` call makes an effect that holds the subscription.
+  // Read through a derived, a reader re-running each frame (or a loop reading
+  // `.current` per row) depends on one signal, and the effect is remade only
+  // when the slice changes.
+  const value = $derived.by(() => {
+    track()
+    return last
+  })
   return {
     get current() {
-      track()
       // Outside an effect nothing keeps `last` fresh, so read through.
-      return $effect.tracking() ? last : selector(store.getState())
+      return $effect.tracking() ? value : selector(store.getState())
     },
   }
 }
