@@ -161,7 +161,16 @@ export default defineConfig({
             // primitive must live in the shell. Without this pin, the chunker
             // places it in feature-editing-core (majority importer) and the
             // entire 1.2MB editor chunk loads on the landing page.
-            normalizedId.includes('/src/components/ui/tooltip/')
+            normalizedId.includes('/src/components/ui/tooltip/') ||
+            // EmbeddableCut: the app root mounts the toaster and the theme
+            // shell sets the hotkey scope. A group takes its modules'
+            // dependencies with it, so left unpinned these land in
+            // feature-editing-core and the landing page loads all of it.
+            normalizedId.includes('/src/components/ui/sonner/') ||
+            normalizedId.includes('/node_modules/svelte-sonner/') ||
+            normalizedId.includes('/src/shared/notifications/') ||
+            normalizedId.endsWith('/src/lib/hotkeys.svelte.ts') ||
+            normalizedId.endsWith('/src/app/route-error.svelte')
 
           // Logger must be in its own chunk to avoid circular chunk TDZ errors.
           // Without this, Rollup places it in composition-runtime which has a
@@ -290,10 +299,8 @@ export default defineConfig({
           ) {
             return 'vendor-ui'
           }
-          // Icons - keep @lucide/svelte in separate chunk for better caching
-          if (normalizedId.includes('/node_modules/@lucide/svelte/')) {
-            return 'vendor-icons'
-          }
+          // EmbeddableCut: no icon chunk. The by-name barrel put all 1,400
+          // icons in it, so one icon on the error screen loaded 660 KB.
           return undefined
         },
       },
