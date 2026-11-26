@@ -1,7 +1,11 @@
 // @vitest-environment jsdom
 
-import { afterEach, describe, expect, it } from 'vite-plus/test'
+import { afterEach, describe, expect, it, vi } from 'vite-plus/test'
 import type { ProjectDocument } from '@embeddablecut/engine/schema/index'
+import {
+  asHandle,
+  createRoot,
+} from '@embeddablecut/engine/infrastructure/storage/workspace-fs/__tests__/in-memory-handle'
 import { createEditor, type Editor } from './editor'
 import { EditorError } from './errors'
 import type { Extension } from './extensions'
@@ -102,6 +106,32 @@ describe('editor', () => {
   it('allows one live editor per page', async () => {
     await newEditor()
     await expect(createEditor()).rejects.toSatisfy((error) => codeOf(error) === 'EDITOR_ACTIVE')
+  })
+
+  it('says whether projects live in a folder, private storage or nowhere', async () => {
+    // jsdom has no private storage, as some private windows don't.
+    expect((await newEditor()).workspaceKind).toBe('none')
+    editor!.dispose()
+
+    const origin = createRoot('origin')
+    const storage = {
+      getDirectory: async () =>
+        Object.assign(asHandle(origin), {
+          resolve: async (handle: FileSystemHandle) =>
+            handle.name === 'embeddablecut' ? ['embeddablecut'] : null,
+        }),
+    }
+    vi.stubGlobal('navigator', Object.assign(Object.create(navigator), { storage }))
+    try {
+      expect((await newEditor()).workspaceKind).toBe('private')
+      editor!.dispose()
+      // A folder the user picked, as only Chromium can give.
+      expect((await newEditor({ workspace: asHandle(createRoot('Projects')) })).workspaceKind).toBe(
+        'folder',
+      )
+    } finally {
+      vi.unstubAllGlobals()
+    }
   })
 
   it('refuses media sources the host turned off', async () => {
