@@ -1,0 +1,13 @@
+{
+  "browserSupport": {
+    "privateWorkspace": {
+      "title": "Projekte werden in diesem Browser gespeichert",
+      "description": "Dieser Browser kann keinen Ordner auf dem Datenträger öffnen, daher liegen Projekte und importierte Medien in seinem privaten Speicher. Beim Löschen der Websitedaten gehen sie verloren: Exportiere Projektpakete als Sicherung.",
+      "keep": "Speicher behalten",
+      "notPersisted": "Der Browser hat den Speicher nicht dauerhaft gemacht. Bei knappem Speicherplatz kann er Projekte löschen."
+    },
+    "storageUnavailable": "Speicher nicht verfügbar",
+    "storageUnavailableDescription": "{{productName}} speichert Projekte in einem Ordner auf dem Datenträger oder im privaten Speicher des Browsers, und dieses Fenster erlaubt keins von beiden. Private Fenster blockieren oft den Speicher: Öffne {{productName}} in einem normalen Fenster.",
+    "bundleIntoPrivateStorage": "Das Projekt und seine Medien werden in diesem Browser gespeichert."
+  }
+}

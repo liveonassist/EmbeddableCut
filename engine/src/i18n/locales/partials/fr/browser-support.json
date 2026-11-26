@@ -1,0 +1,13 @@
+{
+  "browserSupport": {
+    "privateWorkspace": {
+      "title": "Les projets sont stockés dans ce navigateur",
+      "description": "Ce navigateur ne peut pas ouvrir de dossier sur le disque : les projets et les médias importés sont conservés dans son stockage privé. Effacer les données du site les supprime : exportez des paquets de projet pour les sauvegarder.",
+      "keep": "Conserver le stockage",
+      "notPersisted": "Le navigateur n'a pas rendu le stockage persistant. Il peut effacer des projets quand l'espace disque vient à manquer."
+    },
+    "storageUnavailable": "Stockage indisponible",
+    "storageUnavailableDescription": "{{productName}} conserve les projets dans un dossier sur le disque ou dans le stockage privé du navigateur, et cette fenêtre n'autorise ni l'un ni l'autre. Les fenêtres privées bloquent souvent le stockage : ouvrez {{productName}} dans une fenêtre normale.",
+    "bundleIntoPrivateStorage": "Le projet et ses médias seront stockés dans ce navigateur."
+  }
+}

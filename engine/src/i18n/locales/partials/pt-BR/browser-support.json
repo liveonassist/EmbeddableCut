@@ -1,0 +1,13 @@
+{
+  "browserSupport": {
+    "privateWorkspace": {
+      "title": "Os projetos ficam armazenados neste navegador",
+      "description": "Este navegador não consegue abrir uma pasta no disco, então os projetos e as mídias importadas ficam no armazenamento privado dele. Limpar os dados do site os apaga: exporte pacotes de projeto como backup.",
+      "keep": "Manter armazenamento",
+      "notPersisted": "O navegador não tornou o armazenamento persistente. Ele pode apagar projetos quando o espaço em disco ficar baixo."
+    },
+    "storageUnavailable": "Armazenamento indisponível",
+    "storageUnavailableDescription": "O {{productName}} guarda os projetos em uma pasta no disco ou no armazenamento privado do navegador, e esta janela não permite nenhum dos dois. Janelas privadas costumam bloquear o armazenamento: abra o {{productName}} em uma janela normal.",
+    "bundleIntoPrivateStorage": "O projeto e suas mídias serão armazenados neste navegador."
+  }
+}

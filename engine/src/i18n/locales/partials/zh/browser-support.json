@@ -1,0 +1,13 @@
+{
+  "browserSupport": {
+    "privateWorkspace": {
+      "title": "项目保存在此浏览器中",
+      "description": "此浏览器无法打开磁盘上的文件夹，因此项目和导入的媒体保存在它的私有存储中。清除网站数据会删除它们：请导出项目包作为备份。",
+      "keep": "保留存储",
+      "notPersisted": "浏览器未将存储设为持久存储。磁盘空间不足时，它可能会清除项目。"
+    },
+    "storageUnavailable": "存储不可用",
+    "storageUnavailableDescription": "{{productName}} 将项目保存在磁盘上的文件夹或浏览器的私有存储中，而此窗口两者都不允许。隐私窗口通常会阻止存储：请在普通窗口中打开 {{productName}}。",
+    "bundleIntoPrivateStorage": "项目及其媒体将保存在此浏览器中。"
+  }
+}
