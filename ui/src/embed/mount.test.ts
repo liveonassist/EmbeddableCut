@@ -4,6 +4,8 @@ import { tick } from 'svelte'
 import { fireEvent, screen, waitFor } from '@testing-library/svelte'
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vite-plus/test'
 import type { Editor } from '@embeddablecut/sdk'
+import HardDriveDownload from '@lucide/svelte/icons/hard-drive-download'
+import Upload from '@lucide/svelte/icons/upload'
 import { useTimelineSettingsStore } from '@/features/timeline/stores/timeline-settings-store'
 import type { ActionHandler, EditorActions, SaveContext } from '../extensions/actions.svelte'
 import { mountEditor, type MountedEditor } from './mount'
@@ -117,13 +119,21 @@ describe('mountEditor actions', { timeout: 15_000 }, () => {
       // Publishing is the only way out, so it's a button rather than a menu.
       features: { 'export.bundle': false },
       actions: {
-        save: { label: 'Save to disk', icon: 'hard-drive-download', run: save },
+        // Components, not names: a named icon loads the whole icon set, which a test environment
+        // compiles icon by icon, for longer than the test runs.
+        save: { label: 'Save to disk', icon: HardDriveDownload, run: save },
         saveAs: { label: 'Save as a new file', run: saveAs },
-        exportVideo: { label: 'Publish', icon: 'upload', run: publish },
+        exportVideo: { label: 'Publish', icon: Upload, run: publish },
       },
     })
     await mounted.editor.createProject({ name: 'Hosted' })
     await tick()
+    expect(screen.getByRole('button', { name: 'Publish' }).querySelector('svg')).toHaveClass(
+      'lucide-upload',
+    )
+    expect(screen.getByRole('button', { name: 'Save to disk' }).querySelector('svg')).toHaveClass(
+      'lucide-hard-drive-download',
+    )
 
     await fireEvent.click(screen.getByRole('button', { name: 'Publish' }))
     expect(publish).toHaveBeenCalledTimes(1)
