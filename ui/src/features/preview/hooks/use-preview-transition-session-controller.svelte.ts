@@ -942,14 +942,25 @@ export function usePreviewTransitionSessionController(
     })
   }
 
+  // The snapshot the buffer last dropped, drawn over rather than allocating a
+  // frame-sized canvas for every buffered frame. Buffered frames are only
+  // drawn synchronously, so a dropped one is free.
+  let droppedSnapshot: OffscreenCanvas | null = null
+
   const cacheTransitionSessionFrame = (frame: number) => {
     const offscreen = scrubOffscreenCanvasRef.current
     if (!offscreen || !transitionSessionWindowRef.current) return
 
-    const snapshot = new OffscreenCanvas(offscreen.width, offscreen.height)
+    const reusable =
+      droppedSnapshot?.width === offscreen.width && droppedSnapshot.height === offscreen.height
+    const snapshot = reusable
+      ? droppedSnapshot!
+      : new OffscreenCanvas(offscreen.width, offscreen.height)
+    droppedSnapshot = null
     const snapshotCtx = snapshot.getContext('2d')
     if (!snapshotCtx) return
 
+    if (reusable) snapshotCtx.clearRect(0, 0, snapshot.width, snapshot.height)
     snapshotCtx.drawImage(offscreen, 0, 0)
     transitionSessionBufferedFramesRef.current.set(frame, snapshot)
     const trace = transitionSessionTraceRef.current
@@ -974,6 +985,7 @@ export function usePreviewTransitionSessionController(
     while (transitionSessionBufferedFramesRef.current.size > maxBufferedFrames) {
       const oldestFrame = transitionSessionBufferedFramesRef.current.keys().next().value
       if (oldestFrame === undefined) break
+      droppedSnapshot = transitionSessionBufferedFramesRef.current.get(oldestFrame) ?? null
       transitionSessionBufferedFramesRef.current.delete(oldestFrame)
     }
   }
