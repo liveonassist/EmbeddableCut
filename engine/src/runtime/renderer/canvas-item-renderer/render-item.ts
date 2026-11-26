@@ -41,6 +41,7 @@ import { getTextRasterCacheKey, renderSubtitleSegmentItem, renderTextItem } from
 import { isTextMotionActive } from '@/shared/typography/text-motion'
 import { renderCompositionItem } from './composition'
 import type { CornerPinWarpCacheEntry } from './types'
+import { acquireScratchCanvas, releaseScratchCanvas } from '../scratch-canvas-pool'
 import {
   getLogicalCanvasSize,
   scaleShapeItemForCanvas,
@@ -293,10 +294,12 @@ async function renderItemWithCornerPin(
   const itemH = Math.ceil(transform.height)
   if (itemW <= 0 || itemH <= 0) return
 
-  // Render item content to a temp canvas at item dimensions
-  const tempCanvas = new OffscreenCanvas(itemW, itemH)
-  const tempCtx = tempCanvas.getContext('2d')
-  if (!tempCtx) return
+  // Render item content to a temp canvas at item dimensions. EmbeddableCut:
+  // this and the canvases below are reused across frames, not made per frame.
+  // One a throw skips releasing is only collected, as before.
+  const temp = acquireScratchCanvas(itemW, itemH)
+  if (!temp) return
+  const { canvas: tempCanvas, ctx: tempCtx } = temp
 
   // Create a centered transform for the temp canvas
   const tempTransform: ItemTransform = {
@@ -310,12 +313,9 @@ async function renderItemWithCornerPin(
   }
 
   if (preCornerPinMasks.length > 0) {
-    const maskedSourceCanvas = new OffscreenCanvas(
-      rctx.canvasSettings.width,
-      rctx.canvasSettings.height,
-    )
-    const maskedSourceCtx = maskedSourceCanvas.getContext('2d')
-    if (!maskedSourceCtx) return
+    const maskedSource = acquireScratchCanvas(rctx.canvasSettings.width, rctx.canvasSettings.height)
+    if (!maskedSource) return
+    const { canvas: maskedSourceCanvas, ctx: maskedSourceCtx } = maskedSource
 
     await renderItemContent(
       maskedSourceCtx,
@@ -327,15 +327,17 @@ async function renderItemWithCornerPin(
       renderSpan,
     )
 
-    const maskedCanvas = new OffscreenCanvas(rctx.canvasSettings.width, rctx.canvasSettings.height)
-    const maskedCtx = maskedCanvas.getContext('2d')
-    if (!maskedCtx) return
+    const masked = acquireScratchCanvas(rctx.canvasSettings.width, rctx.canvasSettings.height)
+    if (!masked) return
+    const { canvas: maskedCanvas, ctx: maskedCtx } = masked
 
     applyMasks(maskedCtx, maskedSourceCanvas, preCornerPinMasks, rctx.canvasSettings)
 
     const left = rctx.canvasSettings.width / 2 + transform.x - transform.width / 2
     const top = rctx.canvasSettings.height / 2 + transform.y - transform.height / 2
     tempCtx.drawImage(maskedCanvas, left, top, itemW, itemH, 0, 0, itemW, itemH)
+    releaseScratchCanvas(maskedSourceCanvas)
+    releaseScratchCanvas(maskedCanvas)
   } else {
     // Render content to temp canvas
     await renderItemContent(
@@ -385,12 +387,12 @@ async function renderItemWithCornerPin(
     Math.abs(cornerPinTargetRect.x) < 0.01 &&
     Math.abs(cornerPinTargetRect.y) < 0.01
       ? tempCanvas
-      : new OffscreenCanvas(pinSourceWidth, pinSourceHeight)
+      : acquireScratchCanvas(pinSourceWidth, pinSourceHeight)?.canvas
 
+  if (!pinCanvas) return
   if (pinCanvas !== tempCanvas) {
     const pinCtx = pinCanvas.getContext('2d')
     if (!pinCtx) return
-    pinCtx.clearRect(0, 0, pinSourceWidth, pinSourceHeight)
     pinCtx.drawImage(
       tempCanvas,
       cornerPinTargetRect.x,
@@ -498,4 +500,6 @@ async function renderItemWithCornerPin(
   } finally {
     ctx.restore()
   }
+  releaseScratchCanvas(tempCanvas)
+  if (pinCanvas !== tempCanvas) releaseScratchCanvas(pinCanvas)
 }
