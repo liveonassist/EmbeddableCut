@@ -1,4 +1,5 @@
 import { FULLSCREEN_QUAD_WGSL } from '@/infrastructure/gpu-shared/fullscreen-quad'
+import { uploadExternalImage } from './external-image-upload'
 
 type GpuMediaSource =
   | OffscreenCanvas
@@ -246,11 +247,10 @@ export class MediaRenderPipeline {
     this.ensureInputTexture(sourceWidth, sourceHeight)
     if (!this.inputTexture || !this.inputView) return false
 
-    this.device.queue.copyExternalImageToTexture(
-      { source, flipY: false },
-      { texture: this.inputTexture },
-      { width: sourceWidth, height: sourceHeight },
-    )
+    uploadExternalImage(this.device, source, this.inputTexture, {
+      width: sourceWidth,
+      height: sourceHeight,
+    })
 
     if (!params.maskTexture) {
       return this.renderInputViewToTexture(outputTexture, params, sourceWidth, sourceHeight)

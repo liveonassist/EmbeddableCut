@@ -1,4 +1,8 @@
 import { createLogger } from '@/shared/logging/logger'
+import {
+  canImportExternalFrames,
+  uploadExternalImage,
+} from '@/infrastructure/gpu-media/external-image-upload'
 import { drawFullscreenCanvasPass } from '@/infrastructure/gpu-shared/fullscreen-canvas-pass'
 import { FULLSCREEN_QUAD_WGSL } from '@/infrastructure/gpu-shared/fullscreen-quad'
 import { COMMON_WGSL } from './common'
@@ -403,6 +407,9 @@ export class EffectsPipeline {
   }
 
   private createImportExternalPipeline(): void {
+    // EmbeddableCut: where frames can't be imported (Firefox on Linux), skip the
+    // shader rather than fail to compile it.
+    if (!canImportExternalFrames(this.device)) return
     try {
       const module = this.device.createShaderModule({
         label: 'import-external',
@@ -992,11 +999,7 @@ export class EffectsPipeline {
     if (!this.pingTexture || !this.pongTexture) return null
 
     // Upload source → GPU texture (zero-copy path, no ImageData)
-    this.device.queue.copyExternalImageToTexture(
-      { source, flipY: false },
-      { texture: this.pingTexture },
-      { width: w, height: h },
-    )
+    uploadExternalImage(this.device, source, this.pingTexture, { width: w, height: h })
 
     const commandEncoder = this.device.createCommandEncoder()
 
@@ -1058,21 +1061,13 @@ export class EffectsPipeline {
     if (outputTexture.width !== w || outputTexture.height !== h) return false
 
     if (enabled.length === 0) {
-      this.device.queue.copyExternalImageToTexture(
-        { source, flipY: false },
-        { texture: outputTexture },
-        { width: w, height: h },
-      )
+      uploadExternalImage(this.device, source, outputTexture, { width: w, height: h })
       return true
     }
     this.ensurePingPong(w, h)
     if (!this.pingTexture || !this.pongTexture) return false
 
-    this.device.queue.copyExternalImageToTexture(
-      { source, flipY: false },
-      { texture: this.pingTexture },
-      { width: w, height: h },
-    )
+    uploadExternalImage(this.device, source, this.pingTexture, { width: w, height: h })
 
     const commandEncoder = this.device.createCommandEncoder()
     const finalTex = this.runEffectChain(

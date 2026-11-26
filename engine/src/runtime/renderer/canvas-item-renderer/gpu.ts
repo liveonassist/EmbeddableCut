@@ -69,6 +69,7 @@ import {
   type ActiveSubCompMask,
 } from './composition'
 import { resolveVideoParticipantSourceTime } from './video'
+import { importsPlainVideo } from './imported-video'
 import {
   resolveSubCompLayerCapabilityGap,
   resolveSubCompLayerCompositeFlags,
@@ -273,7 +274,8 @@ export async function renderItemGpuEffectsToTexture(
   if (item.type !== 'video' && item.type !== 'image') return false
 
   const enabledEffects = effects.filter((effect) => effect.enabled)
-  if (enabledEffects.length === 0) return false
+  // EmbeddableCut: plain video takes this path too where a 2D canvas would read it back (Firefox).
+  if (enabledEffects.length === 0 && !importsPlainVideo(item, rctx)) return false
   if (enabledEffects.some((effect) => effect.effect.type !== 'gpu-effect')) return false
   if (
     item.type === 'video' &&
