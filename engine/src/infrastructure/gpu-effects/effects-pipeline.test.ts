@@ -5,6 +5,7 @@ import type { GpuEffectInstance } from './types'
 
 const originalShaderStage = globalThis.GPUShaderStage
 const originalBufferUsage = globalThis.GPUBufferUsage
+const originalTextureUsage = globalThis.GPUTextureUsage
 const originalGpuDescriptor = Object.getOwnPropertyDescriptor(navigator, 'gpu')
 
 afterEach(() => {
@@ -12,6 +13,7 @@ afterEach(() => {
   Object.assign(globalThis, {
     GPUShaderStage: originalShaderStage,
     GPUBufferUsage: originalBufferUsage,
+    GPUTextureUsage: originalTextureUsage,
   })
   if (originalGpuDescriptor) {
     Object.defineProperty(navigator, 'gpu', originalGpuDescriptor)
@@ -176,5 +178,85 @@ describe('EffectsPipeline pass planning', () => {
     })
     run([effect('gpu-brightness', { amount: 0.1 }), effect('gpu-contrast', { amount: 1.2 })])
     expect(beginRenderPass).toHaveBeenCalledTimes(2)
+  })
+})
+
+describe('EffectsPipeline data textures', () => {
+  it('keeps one texture per look, so two items graded differently both stay cached', async () => {
+    Object.assign(globalThis, {
+      GPUShaderStage: { FRAGMENT: 1, COMPUTE: 2 },
+      GPUBufferUsage: { UNIFORM: 1, COPY_DST: 2 },
+      GPUTextureUsage: { TEXTURE_BINDING: 4, COPY_DST: 2 },
+    })
+    Object.defineProperty(navigator, 'gpu', {
+      configurable: true,
+      value: { getPreferredCanvasFormat: () => 'rgba8unorm' },
+    })
+    const writeTexture = vi.fn()
+    const createTexture = vi.fn(() => ({ createView: () => ({}), destroy: vi.fn() }))
+    const createBindGroup = vi.fn((descriptor: GPUBindGroupDescriptor) => descriptor)
+    const device = {
+      queue: { writeBuffer: vi.fn(), writeTexture },
+      createSampler: vi.fn(() => ({})),
+      createShaderModule: vi.fn(() => ({})),
+      createBindGroupLayout: vi.fn(() => ({})),
+      createPipelineLayout: vi.fn(() => ({})),
+      createRenderPipeline: vi.fn(() => ({})),
+      createComputePipeline: vi.fn(() => ({})),
+      createBindGroup,
+      createTexture,
+      createBuffer: vi.fn((descriptor: GPUBufferDescriptor) => ({
+        destroy: vi.fn(),
+        size: descriptor.size,
+      })),
+    } as unknown as GPUDevice
+    const Pipeline = EffectsPipeline as unknown as new (device: GPUDevice) => EffectsPipeline
+    const pipeline = new Pipeline(device)
+    await (pipeline as unknown as { createPipelines(): Promise<void> }).createPipelines()
+    const ping = {} as GPUTexture
+    const pong = {} as GPUTexture
+    Object.assign(pipeline, { pingTexture: ping, pongTexture: pong, pingView: {}, pongView: {} })
+    const setBindGroup = vi.fn()
+    const encoder = {
+      beginRenderPass: () => ({ setPipeline: vi.fn(), setBindGroup, draw: vi.fn(), end: vi.fn() }),
+    } as unknown as GPUCommandEncoder
+    const run = (preset: string) =>
+      (
+        pipeline as unknown as {
+          runEffectChain(
+            encoder: GPUCommandEncoder,
+            effects: GpuEffectInstance[],
+            input: GPUTexture,
+            output: GPUTexture,
+            width: number,
+            height: number,
+          ): GPUTexture
+        }
+      ).runEffectChain(
+        encoder,
+        [{ id: preset, type: 'gpu-gradient-map', name: '', enabled: true, params: { preset } }],
+        ping,
+        pong,
+        1920,
+        1080,
+      )
+    const boundTexture = () => {
+      const group = setBindGroup.mock.lastCall![1] as GPUBindGroupDescriptor
+      return [...group.entries].find((entry) => entry.binding === 3)!.resource
+    }
+
+    run('inferno')
+    const inferno = boundTexture()
+    run('viridis')
+    const viridis = boundTexture()
+    for (let frame = 0; frame < 3; frame++) {
+      run('inferno')
+      expect(boundTexture()).toBe(inferno)
+      run('viridis')
+      expect(boundTexture()).toBe(viridis)
+    }
+
+    expect(inferno).not.toBe(viridis)
+    expect(writeTexture).toHaveBeenCalledTimes(2)
   })
 })
