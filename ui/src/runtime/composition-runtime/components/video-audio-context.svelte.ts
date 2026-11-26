@@ -35,6 +35,9 @@ import {
 const connectedVideoElements = new WeakSet<HTMLVideoElement>()
 const videoAudioGraphs = new WeakMap<HTMLVideoElement, PreviewClipAudioGraph>()
 const videoAudioContexts = new WeakMap<HTMLVideoElement, AudioContext>()
+// The EQ stages each graph last took. Volume changes every frame of a fade or
+// a keyframed level; re-ramping every filter with it is wasted work.
+const appliedEqStages = new WeakMap<PreviewClipAudioGraph, ReadonlyArray<ResolvedAudioEqSettings>>()
 
 export function applyVideoElementAudioState(
   video: HTMLVideoElement,
@@ -50,11 +53,15 @@ export function applyVideoElementAudioState(
     const graph = videoAudioGraphs.get(video)
     const audioContext = videoAudioContexts.get(video)
     if (graph && audioContext?.state === 'running') {
-      rampPreviewClipEq(graph, audioEqStages)
+      if (appliedEqStages.get(graph) !== audioEqStages) {
+        rampPreviewClipEq(graph, audioEqStages)
+        appliedEqStages.set(graph, audioEqStages)
+      }
       rampPreviewClipGain(graph, safeVolume)
     } else if (graph) {
       // Context not running yet — direct assignment is safe (no audio output)
       setPreviewClipEq(graph, audioEqStages)
+      appliedEqStages.set(graph, audioEqStages)
       setPreviewClipGain(graph, safeVolume)
     }
     if (audioContext?.state === 'suspended') {
@@ -84,6 +91,7 @@ export function applyVideoElementAudioState(
       graph.context.resume()
     }
     setPreviewClipEq(graph, audioEqStages)
+    appliedEqStages.set(graph, audioEqStages)
     rampPreviewClipGain(graph, safeVolume)
   } catch {
     // Fallback if Web Audio setup fails.
