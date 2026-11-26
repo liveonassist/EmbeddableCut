@@ -137,9 +137,14 @@
   // the tab is first opened; it then stays mounted (state preserved).
   // svelte-ignore state_referenced_locally
   let lottieTabActivated = $state(activeTab.current === 'lottie')
+  // EmbeddableCut: each effect thumbnail renders through the GPU pipeline on
+  // mount, so mount the Effects tab when first opened, not at editor load.
+  // svelte-ignore state_referenced_locally
+  let effectsTabActivated = $state(activeTab.current === 'effects')
   $effect(() => {
     if (activeBuiltInTab === 'ai') aiTabActivated = true
     if (activeBuiltInTab === 'lottie') lottieTabActivated = true
+    if (activeBuiltInTab === 'effects') effectsTabActivated = true
   })
 
   // The collapsed panel stays mounted (clipped to 0 width, see NOTE below), so
@@ -923,6 +928,7 @@
       <div
         class="min-h-0 flex-1 overflow-y-auto p-3 {activeBuiltInTab === 'effects' ? 'block' : 'hidden'}"
       >
+        {#if effectsTabActivated}
         <div class="space-y-3">
           <!-- Blank Adjustment Layer -->
           <button
@@ -1038,6 +1044,7 @@
             </div>
           {/each}
         </div>
+        {/if}
       </div>
 
       <!-- Transitions Tab -->
