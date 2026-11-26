@@ -50,7 +50,8 @@ export function getPlatformSupport(): PlatformSupport {
 
 let nativeHls: boolean | null = null
 
-function hasNativeHlsPlayback(): boolean {
+/** Whether a `<video>` plays HLS playlists itself (Chromium, Safari; not Firefox). */
+export function hasNativeHlsPlayback(): boolean {
   if (nativeHls !== null) return nativeHls
   if (typeof document === 'undefined') return false
   try {
