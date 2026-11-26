@@ -1,6 +1,6 @@
 <!-- SPDX-License-Identifier: MIT -->
 <script lang="ts">
-  import RotateCcw from 'lucide-svelte/icons/rotate-ccw'
+  import RotateCcw from '@lucide/svelte/icons/rotate-ccw'
   import { Button } from '@/components/ui/button'
   import { cn } from '@/shared/ui/cn'
 

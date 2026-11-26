@@ -2,8 +2,8 @@
 <script lang="ts">
   import { fly } from 'svelte/transition'
   import { prefersReducedMotion } from 'svelte/motion'
-  import Cpu from 'lucide-svelte/icons/cpu'
-  import Loader2 from 'lucide-svelte/icons/loader-circle'
+  import Cpu from '@lucide/svelte/icons/cpu'
+  import Loader2 from '@lucide/svelte/icons/loader-circle'
   import { select } from '$lib/store.svelte'
   import { t } from '$lib/i18n.svelte'
   import {

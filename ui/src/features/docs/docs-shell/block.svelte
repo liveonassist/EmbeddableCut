@@ -1,8 +1,8 @@
 <!-- SPDX-License-Identifier: MIT -->
 <script lang="ts" module>
-  import AlertTriangle from 'lucide-svelte/icons/alert-triangle'
-  import Info from 'lucide-svelte/icons/info'
-  import Lightbulb from 'lucide-svelte/icons/lightbulb'
+  import AlertTriangle from '@lucide/svelte/icons/alert-triangle'
+  import Info from '@lucide/svelte/icons/info'
+  import Lightbulb from '@lucide/svelte/icons/lightbulb'
 
   const NOTE_STYLES = {
     tip: {

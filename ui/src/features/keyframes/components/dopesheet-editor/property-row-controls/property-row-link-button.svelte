@@ -1,6 +1,6 @@
 <!-- SPDX-License-Identifier: MIT -->
 <script lang="ts">
-  import Unlink from 'lucide-svelte/icons/unlink'
+  import Unlink from '@lucide/svelte/icons/unlink'
   import { Button } from '@/components/ui/button'
   import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
   import { cn } from '@/shared/ui/cn'

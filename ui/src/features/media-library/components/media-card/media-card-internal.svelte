@@ -1,16 +1,16 @@
 <!-- SPDX-License-Identifier: MIT -->
 <script lang="ts">
   import { i18n } from '@/i18n'
-  import Video from 'lucide-svelte/icons/video'
-  import FileAudio from 'lucide-svelte/icons/file-audio'
-  import FileJson from 'lucide-svelte/icons/file-json'
-  import ImageIcon from 'lucide-svelte/icons/image'
-  import Loader2 from 'lucide-svelte/icons/loader-circle'
-  import Link2Off from 'lucide-svelte/icons/link-2-off'
-  import Zap from 'lucide-svelte/icons/zap'
-  import Sparkles from 'lucide-svelte/icons/sparkles'
-  import Globe from 'lucide-svelte/icons/globe'
-  import CloudUpload from 'lucide-svelte/icons/cloud-upload'
+  import Video from '@lucide/svelte/icons/video'
+  import FileAudio from '@lucide/svelte/icons/file-audio'
+  import FileJson from '@lucide/svelte/icons/file-json'
+  import ImageIcon from '@lucide/svelte/icons/image'
+  import Loader2 from '@lucide/svelte/icons/loader-circle'
+  import Link2Off from '@lucide/svelte/icons/link-2-off'
+  import Zap from '@lucide/svelte/icons/zap'
+  import Sparkles from '@lucide/svelte/icons/sparkles'
+  import Globe from '@lucide/svelte/icons/globe'
+  import CloudUpload from '@lucide/svelte/icons/cloud-upload'
   import {
     ContextMenu,
     ContextMenuContent,

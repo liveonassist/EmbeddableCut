@@ -1,13 +1,13 @@
 <!-- SPDX-License-Identifier: MIT -->
 <script module lang="ts">
-  import AlignCenterHorizontal from 'lucide-svelte/icons/align-center-horizontal'
-  import AlignCenterVertical from 'lucide-svelte/icons/align-center-vertical'
-  import AlignEndHorizontal from 'lucide-svelte/icons/align-end-horizontal'
-  import AlignEndVertical from 'lucide-svelte/icons/align-end-vertical'
-  import AlignHorizontalDistributeCenter from 'lucide-svelte/icons/align-horizontal-distribute-center'
-  import AlignStartHorizontal from 'lucide-svelte/icons/align-start-horizontal'
-  import AlignStartVertical from 'lucide-svelte/icons/align-start-vertical'
-  import AlignVerticalDistributeCenter from 'lucide-svelte/icons/align-vertical-distribute-center'
+  import AlignCenterHorizontal from '@lucide/svelte/icons/align-center-horizontal'
+  import AlignCenterVertical from '@lucide/svelte/icons/align-center-vertical'
+  import AlignEndHorizontal from '@lucide/svelte/icons/align-end-horizontal'
+  import AlignEndVertical from '@lucide/svelte/icons/align-end-vertical'
+  import AlignHorizontalDistributeCenter from '@lucide/svelte/icons/align-horizontal-distribute-center'
+  import AlignStartHorizontal from '@lucide/svelte/icons/align-start-horizontal'
+  import AlignStartVertical from '@lucide/svelte/icons/align-start-vertical'
+  import AlignVerticalDistributeCenter from '@lucide/svelte/icons/align-vertical-distribute-center'
   import type { TimelineItem } from '@/types/timeline'
 
 
@@ -62,7 +62,7 @@
   import { select } from '$lib/store.svelte'
   import { t } from '$lib/i18n.svelte'
   import { cssStyle } from '@/features/preview/utils/css-style'
-  import Magnet from 'lucide-svelte/icons/magnet'
+  import Magnet from '@lucide/svelte/icons/magnet'
   import { Button } from '@/components/ui/button'
   import { cn } from '@/shared/ui/cn'
   import { useSelectionStore } from '@/shared/state/selection'

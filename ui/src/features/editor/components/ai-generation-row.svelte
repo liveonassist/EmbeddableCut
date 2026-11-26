@@ -1,10 +1,10 @@
 <!-- SPDX-License-Identifier: MIT -->
 <script lang="ts">
-  import CheckCircle2 from 'lucide-svelte/icons/circle-check'
-  import Download from 'lucide-svelte/icons/download'
-  import ListPlus from 'lucide-svelte/icons/list-plus'
-  import Loader2 from 'lucide-svelte/icons/loader-circle'
-  import X from 'lucide-svelte/icons/x'
+  import CheckCircle2 from '@lucide/svelte/icons/circle-check'
+  import Download from '@lucide/svelte/icons/download'
+  import ListPlus from '@lucide/svelte/icons/list-plus'
+  import Loader2 from '@lucide/svelte/icons/loader-circle'
+  import X from '@lucide/svelte/icons/x'
   import { Button } from '@/components/ui/button'
   import { t } from '$lib/i18n.svelte'
   import AiPanelMiniAudioPlayer from './ai-panel-mini-audio-player.svelte'

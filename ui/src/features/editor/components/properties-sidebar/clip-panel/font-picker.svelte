@@ -6,10 +6,10 @@
 
 <script lang="ts">
   import { t } from '$lib/i18n.svelte'
-  import Check from 'lucide-svelte/icons/check'
-  import Loader2 from 'lucide-svelte/icons/loader-2'
-  import Search from 'lucide-svelte/icons/search'
-  import Type from 'lucide-svelte/icons/type'
+  import Check from '@lucide/svelte/icons/check'
+  import Loader2 from '@lucide/svelte/icons/loader-2'
+  import Search from '@lucide/svelte/icons/search'
+  import Type from '@lucide/svelte/icons/type'
   import { Button } from '@/components/ui/button'
   import { Input } from '@/components/ui/input'
   import {

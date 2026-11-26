@@ -1,7 +1,7 @@
 <!-- SPDX-License-Identifier: MIT -->
 <script lang="ts">
   import type { Snippet } from 'svelte'
-  import RotateCcw from 'lucide-svelte/icons/rotate-ccw'
+  import RotateCcw from '@lucide/svelte/icons/rotate-ccw'
   import { Button } from '@/components/ui/button'
   import { cn } from '@/shared/ui/cn'
   import { t } from '$lib/i18n.svelte'

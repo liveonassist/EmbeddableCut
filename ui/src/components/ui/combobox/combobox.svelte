@@ -1,7 +1,7 @@
 <!-- SPDX-License-Identifier: MIT -->
 <script lang="ts">
-  import Check from 'lucide-svelte/icons/check'
-  import ChevronsUpDown from 'lucide-svelte/icons/chevrons-up-down'
+  import Check from '@lucide/svelte/icons/check'
+  import ChevronsUpDown from '@lucide/svelte/icons/chevrons-up-down'
   import { Button } from '@/components/ui/button'
   import { Input } from '@/components/ui/input'
   import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'

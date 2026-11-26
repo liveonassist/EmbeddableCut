@@ -1,6 +1,6 @@
 <!-- SPDX-License-Identifier: MIT -->
 <script lang="ts">
-  import RotateCcw from 'lucide-svelte/icons/rotate-ccw'
+  import RotateCcw from '@lucide/svelte/icons/rotate-ccw'
   import { Button } from '@/components/ui/button'
   import { t } from '$lib/i18n.svelte'
   import type { GpuParamValue } from './panel-props'

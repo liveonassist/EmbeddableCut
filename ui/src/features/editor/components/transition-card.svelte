@@ -1,6 +1,6 @@
 <!-- SPDX-License-Identifier: MIT -->
 <script lang="ts">
-  import Blend from 'lucide-svelte/icons/blend'
+  import Blend from '@lucide/svelte/icons/blend'
   import TransitionPreview from './transition-preview/transition-preview.svelte'
   import type { PresentationConfig } from '@/types/transition'
   import { cn } from '@/shared/ui/cn'

@@ -1,14 +1,14 @@
 <!-- SPDX-License-Identifier: MIT -->
 <script lang="ts">
   import { toast } from 'svelte-sonner'
-  import MoreVertical from 'lucide-svelte/icons/more-vertical'
-  import PlayCircle from 'lucide-svelte/icons/play-circle'
-  import Edit2 from 'lucide-svelte/icons/edit-2'
-  import Copy from 'lucide-svelte/icons/copy'
-  import Trash2 from 'lucide-svelte/icons/trash-2'
-  import AlertTriangle from 'lucide-svelte/icons/alert-triangle'
-  import HardDrive from 'lucide-svelte/icons/hard-drive'
-  import Check from 'lucide-svelte/icons/check'
+  import MoreVertical from '@lucide/svelte/icons/more-vertical'
+  import PlayCircle from '@lucide/svelte/icons/play-circle'
+  import Edit2 from '@lucide/svelte/icons/edit-2'
+  import Copy from '@lucide/svelte/icons/copy'
+  import Trash2 from '@lucide/svelte/icons/trash-2'
+  import AlertTriangle from '@lucide/svelte/icons/alert-triangle'
+  import HardDrive from '@lucide/svelte/icons/hard-drive'
+  import Check from '@lucide/svelte/icons/check'
   import {
     DropdownMenu,
     DropdownMenuContent,

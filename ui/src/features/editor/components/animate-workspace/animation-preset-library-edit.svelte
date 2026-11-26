@@ -1,7 +1,7 @@
 <!-- SPDX-License-Identifier: MIT -->
 <script lang="ts">
-  import ExternalLink from 'lucide-svelte/icons/external-link'
-  import Layers3 from 'lucide-svelte/icons/layers-3'
+  import ExternalLink from '@lucide/svelte/icons/external-link'
+  import Layers3 from '@lucide/svelte/icons/layers-3'
   import type { TextMotionSlot } from '@/types/text-motion'
   import type { TextItem, TimelineItem } from '@/types/timeline'
   import type { CanvasSettings } from '@/types/transform'

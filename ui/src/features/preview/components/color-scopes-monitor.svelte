@@ -1,6 +1,6 @@
 <!-- SPDX-License-Identifier: MIT -->
 <script lang="ts">
-  import X from 'lucide-svelte/icons/x'
+  import X from '@lucide/svelte/icons/x'
   import { ColorScopesPanel } from './color-scopes-panel'
   import { EDITOR_LAYOUT_CSS_VALUES } from '@/config/editor-layout'
 

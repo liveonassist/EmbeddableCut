@@ -180,8 +180,8 @@
 </script>
 
 <script lang="ts">
-  import Pipette from 'lucide-svelte/icons/pipette'
-  import RotateCcw from 'lucide-svelte/icons/rotate-ccw'
+  import Pipette from '@lucide/svelte/icons/pipette'
+  import RotateCcw from '@lucide/svelte/icons/rotate-ccw'
   import { Button } from '@/components/ui/button'
   import { usePreviewBridgeStore } from '@/shared/state/preview-bridge'
   import { KeyframeToggle } from '@/features/effects/deps/keyframes-ui-contract'

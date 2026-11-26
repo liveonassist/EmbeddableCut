@@ -1,6 +1,6 @@
 <!-- SPDX-License-Identifier: MIT -->
 <script lang="ts">
-  import Info from 'lucide-svelte/icons/info'
+  import Info from '@lucide/svelte/icons/info'
   import { select } from '$lib/store.svelte'
   import { t } from '$lib/i18n.svelte'
   import TransitionCard from './transition-card.svelte'

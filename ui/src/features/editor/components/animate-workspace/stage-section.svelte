@@ -1,7 +1,7 @@
 <!-- SPDX-License-Identifier: MIT -->
 <script lang="ts">
   import type { Snippet } from 'svelte'
-  import ChevronDown from 'lucide-svelte/icons/chevron-down'
+  import ChevronDown from '@lucide/svelte/icons/chevron-down'
   import { cn } from '@/shared/ui/cn'
   import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
 

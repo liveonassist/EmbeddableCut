@@ -17,8 +17,8 @@
 </script>
 
 <script lang="ts">
-  import Image from 'lucide-svelte/icons/image'
-  import RotateCcw from 'lucide-svelte/icons/rotate-ccw'
+  import Image from '@lucide/svelte/icons/image'
+  import RotateCcw from '@lucide/svelte/icons/rotate-ccw'
   import { t } from '$lib/i18n.svelte'
   import { Button } from '@/components/ui/button'
   import {

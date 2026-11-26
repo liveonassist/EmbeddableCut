@@ -1,8 +1,8 @@
 <!-- SPDX-License-Identifier: MIT -->
 <script lang="ts" module>
-  import Sparkles from 'lucide-svelte/icons/sparkles'
-  import Bug from 'lucide-svelte/icons/bug'
-  import Zap from 'lucide-svelte/icons/zap'
+  import Sparkles from '@lucide/svelte/icons/sparkles'
+  import Bug from '@lucide/svelte/icons/bug'
+  import Zap from '@lucide/svelte/icons/zap'
   import { i18n } from '@/i18n'
   import changelogData from '@/data/changelog.json'
   import type {
@@ -62,7 +62,7 @@
 </script>
 
 <script lang="ts">
-  import ArrowRight from 'lucide-svelte/icons/arrow-right'
+  import ArrowRight from '@lucide/svelte/icons/arrow-right'
   import { t } from '$lib/i18n.svelte'
   import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
   import { ScrollArea } from '@/components/ui/scroll-area'

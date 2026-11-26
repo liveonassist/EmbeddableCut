@@ -110,7 +110,7 @@
 </script>
 
 <script lang="ts">
-  import RotateCcw from 'lucide-svelte/icons/rotate-ccw'
+  import RotateCcw from '@lucide/svelte/icons/rotate-ccw'
   import { Button } from '@/components/ui/button'
   import { PropertyRow } from '@/shared/ui/property-controls'
   import { cn } from '@/shared/ui/cn'

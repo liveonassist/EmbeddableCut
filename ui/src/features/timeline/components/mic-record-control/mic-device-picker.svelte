@@ -1,10 +1,10 @@
 <!-- SPDX-License-Identifier: MIT -->
 <script lang="ts">
-  import Check from 'lucide-svelte/icons/check'
-  import ChevronDown from 'lucide-svelte/icons/chevron-down'
-  import Headphones from 'lucide-svelte/icons/headphones'
-  import Minus from 'lucide-svelte/icons/minus'
-  import Plus from 'lucide-svelte/icons/plus'
+  import Check from '@lucide/svelte/icons/check'
+  import ChevronDown from '@lucide/svelte/icons/chevron-down'
+  import Headphones from '@lucide/svelte/icons/headphones'
+  import Minus from '@lucide/svelte/icons/minus'
+  import Plus from '@lucide/svelte/icons/plus'
   import { t } from '$lib/i18n.svelte'
   import { select } from '$lib/store.svelte'
   import { Button } from '@/components/ui/button'

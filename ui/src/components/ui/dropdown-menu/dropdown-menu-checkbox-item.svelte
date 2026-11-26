@@ -2,7 +2,7 @@
 <script lang="ts">
   import type { Snippet } from 'svelte'
   import { DropdownMenu as DropdownMenuPrimitive } from 'bits-ui'
-  import Check from 'lucide-svelte/icons/check'
+  import Check from '@lucide/svelte/icons/check'
   import { cn } from '$lib/cn'
 
   // Radix renders `children` after an ItemIndicator; bits-ui hands `checked` to a snippet instead.

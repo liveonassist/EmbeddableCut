@@ -1,10 +1,10 @@
 <!-- SPDX-License-Identifier: MIT -->
 <script lang="ts">
-  import AlertCircle from 'lucide-svelte/icons/alert-circle'
-  import CheckCircle2 from 'lucide-svelte/icons/check-circle-2'
-  import Clock from 'lucide-svelte/icons/clock'
-  import Loader2 from 'lucide-svelte/icons/loader-2'
-  import X from 'lucide-svelte/icons/x'
+  import AlertCircle from '@lucide/svelte/icons/alert-circle'
+  import CheckCircle2 from '@lucide/svelte/icons/check-circle-2'
+  import Clock from '@lucide/svelte/icons/clock'
+  import Loader2 from '@lucide/svelte/icons/loader-2'
+  import X from '@lucide/svelte/icons/x'
   import type { RenderJobStatus } from '@/features/export/stores/render-queue-store'
 
   let { status }: { status: RenderJobStatus } = $props()

@@ -22,13 +22,13 @@
    * path forward, while technical details stay available through a copy action
    * instead of taking over the screen.
    */
-  import AlertTriangle from 'lucide-svelte/icons/alert-triangle'
-  import ArrowLeft from 'lucide-svelte/icons/arrow-left'
-  import Check from 'lucide-svelte/icons/check'
-  import Copy from 'lucide-svelte/icons/copy'
-  import FileQuestion from 'lucide-svelte/icons/file-question'
-  import FolderOpen from 'lucide-svelte/icons/folder-open'
-  import RefreshCw from 'lucide-svelte/icons/refresh-cw'
+  import AlertTriangle from '@lucide/svelte/icons/alert-triangle'
+  import ArrowLeft from '@lucide/svelte/icons/arrow-left'
+  import Check from '@lucide/svelte/icons/check'
+  import Copy from '@lucide/svelte/icons/copy'
+  import FileQuestion from '@lucide/svelte/icons/file-question'
+  import FolderOpen from '@lucide/svelte/icons/folder-open'
+  import RefreshCw from '@lucide/svelte/icons/refresh-cw'
   import EmbeddableCutLogo from '@/components/brand/embeddablecut-logo.svelte'
   import { Button } from '@/components/ui/button'
   import {

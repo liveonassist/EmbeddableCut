@@ -142,7 +142,7 @@
 </script>
 
 <script lang="ts">
-  import Diamond from 'lucide-svelte/icons/diamond'
+  import Diamond from '@lucide/svelte/icons/diamond'
   import { t } from '$lib/i18n.svelte'
   import { select, shallow } from '$lib/store.svelte'
   import {

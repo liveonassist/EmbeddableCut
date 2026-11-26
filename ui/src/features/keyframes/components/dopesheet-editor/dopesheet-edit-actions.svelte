@@ -1,8 +1,8 @@
 <!-- SPDX-License-Identifier: MIT -->
 <script lang="ts">
-  import MoveHorizontal from 'lucide-svelte/icons/move-horizontal'
-  import MoveVertical from 'lucide-svelte/icons/move-vertical'
-  import Trash2 from 'lucide-svelte/icons/trash-2'
+  import MoveHorizontal from '@lucide/svelte/icons/move-horizontal'
+  import MoveVertical from '@lucide/svelte/icons/move-vertical'
+  import Trash2 from '@lucide/svelte/icons/trash-2'
   import { t } from '$lib/i18n.svelte'
   import { Button } from '@/components/ui/button'
   import MiniZoomControl from './mini-zoom-control.svelte'

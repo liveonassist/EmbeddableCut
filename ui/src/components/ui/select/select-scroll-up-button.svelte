@@ -1,7 +1,7 @@
 <!-- SPDX-License-Identifier: MIT -->
 <script lang="ts">
   import { Select as SelectPrimitive } from 'bits-ui'
-  import ChevronUp from 'lucide-svelte/icons/chevron-up'
+  import ChevronUp from '@lucide/svelte/icons/chevron-up'
   import { cn } from '$lib/cn'
 
   let {

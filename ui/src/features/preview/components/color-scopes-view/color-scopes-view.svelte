@@ -410,7 +410,7 @@
 <script lang="ts">
   import { untrack } from 'svelte'
   import { select } from '$lib/store.svelte'
-  import Activity from 'lucide-svelte/icons/activity'
+  import Activity from '@lucide/svelte/icons/activity'
   import { getResolvedPlaybackFrame, usePlaybackStore } from '@/shared/state/playback'
   import { usePreviewBridgeStore } from '@/shared/state/preview-bridge'
   import { cn } from '@/shared/ui/cn'

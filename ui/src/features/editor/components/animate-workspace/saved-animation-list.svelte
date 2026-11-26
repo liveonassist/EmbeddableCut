@@ -1,6 +1,6 @@
 <!-- SPDX-License-Identifier: MIT -->
 <script lang="ts">
-  import Trash2 from 'lucide-svelte/icons/trash-2'
+  import Trash2 from '@lucide/svelte/icons/trash-2'
   import type { AnimationPreset } from '@/infrastructure/storage'
   import { Button } from '@/components/ui/button'
   import { Separator } from '@/components/ui/separator'

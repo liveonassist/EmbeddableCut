@@ -10,9 +10,9 @@
 
 <script lang="ts">
   import { t } from '$lib/i18n.svelte'
-  import Music from 'lucide-svelte/icons/music'
-  import RotateCcw from 'lucide-svelte/icons/rotate-ccw'
-  import Volume2 from 'lucide-svelte/icons/volume-2'
+  import Music from '@lucide/svelte/icons/music'
+  import RotateCcw from '@lucide/svelte/icons/rotate-ccw'
+  import Volume2 from '@lucide/svelte/icons/volume-2'
   import { Button } from '@/components/ui/button'
   import type { TimelineItem } from '@/types/timeline'
   import {

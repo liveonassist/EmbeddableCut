@@ -1,7 +1,7 @@
 <!-- SPDX-License-Identifier: MIT -->
 <script lang="ts">
-  import MoreHorizontal from 'lucide-svelte/icons/ellipsis'
-  import Palette from 'lucide-svelte/icons/palette'
+  import MoreHorizontal from '@lucide/svelte/icons/ellipsis'
+  import Palette from '@lucide/svelte/icons/palette'
   import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
   import { cn } from '@/shared/ui/cn'
   import { t } from '$lib/i18n.svelte'

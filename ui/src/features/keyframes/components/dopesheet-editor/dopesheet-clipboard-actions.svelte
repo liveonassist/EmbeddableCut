@@ -1,8 +1,8 @@
 <!-- SPDX-License-Identifier: MIT -->
 <script lang="ts">
-  import ClipboardPaste from 'lucide-svelte/icons/clipboard-paste'
-  import Copy from 'lucide-svelte/icons/copy'
-  import Scissors from 'lucide-svelte/icons/scissors'
+  import ClipboardPaste from '@lucide/svelte/icons/clipboard-paste'
+  import Copy from '@lucide/svelte/icons/copy'
+  import Scissors from '@lucide/svelte/icons/scissors'
   import { t } from '$lib/i18n.svelte'
   import { Button } from '@/components/ui/button'
 

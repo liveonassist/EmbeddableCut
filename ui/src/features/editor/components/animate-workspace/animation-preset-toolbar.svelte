@@ -1,9 +1,9 @@
 <!-- SPDX-License-Identifier: MIT -->
 <script lang="ts">
-  import ListFilter from 'lucide-svelte/icons/list-filter'
-  import Plus from 'lucide-svelte/icons/plus'
-  import Search from 'lucide-svelte/icons/search'
-  import X from 'lucide-svelte/icons/x'
+  import ListFilter from '@lucide/svelte/icons/list-filter'
+  import Plus from '@lucide/svelte/icons/plus'
+  import Search from '@lucide/svelte/icons/search'
+  import X from '@lucide/svelte/icons/x'
   import { Button } from '@/components/ui/button'
   import { Input } from '@/components/ui/input'
   import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'

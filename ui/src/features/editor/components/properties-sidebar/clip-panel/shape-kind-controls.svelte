@@ -1,9 +1,9 @@
 <!-- SPDX-License-Identifier: MIT -->
 <script lang="ts" module>
-  import ChevronDown from 'lucide-svelte/icons/chevron-down'
-  import ChevronLeft from 'lucide-svelte/icons/chevron-left'
-  import ChevronRight from 'lucide-svelte/icons/chevron-right'
-  import ChevronUp from 'lucide-svelte/icons/chevron-up'
+  import ChevronDown from '@lucide/svelte/icons/chevron-down'
+  import ChevronLeft from '@lucide/svelte/icons/chevron-left'
+  import ChevronRight from '@lucide/svelte/icons/chevron-right'
+  import ChevronUp from '@lucide/svelte/icons/chevron-up'
 
   // Triangle direction options
   const DIRECTION_OPTIONS: {

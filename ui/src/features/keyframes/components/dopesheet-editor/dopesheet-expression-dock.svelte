@@ -1,8 +1,8 @@
 <!-- SPDX-License-Identifier: MIT -->
 <script lang="ts">
-  import BookOpenText from 'lucide-svelte/icons/book-open-text'
-  import Braces from 'lucide-svelte/icons/braces'
-  import Trash2 from 'lucide-svelte/icons/trash-2'
+  import BookOpenText from '@lucide/svelte/icons/book-open-text'
+  import Braces from '@lucide/svelte/icons/braces'
+  import Trash2 from '@lucide/svelte/icons/trash-2'
   import { Button } from '@/components/ui/button'
   import { cn } from '@/shared/ui/cn'
   import DopesheetExpressionPresetsMenu from './dopesheet-expression-menus.svelte'

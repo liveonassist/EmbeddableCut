@@ -290,8 +290,8 @@ export default defineConfig({
           ) {
             return 'vendor-ui'
           }
-          // Icons - keep lucide-svelte in separate chunk for better caching
-          if (normalizedId.includes('/node_modules/lucide-svelte/')) {
+          // Icons - keep @lucide/svelte in separate chunk for better caching
+          if (normalizedId.includes('/node_modules/@lucide/svelte/')) {
             return 'vendor-icons'
           }
           return undefined

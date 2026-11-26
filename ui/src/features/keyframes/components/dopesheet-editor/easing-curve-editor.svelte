@@ -154,7 +154,7 @@
 
 <script lang="ts">
   import type { EasingType } from '@/types/keyframe'
-  import ChevronDown from 'lucide-svelte/icons/chevron-down'
+  import ChevronDown from '@lucide/svelte/icons/chevron-down'
   import { t } from '$lib/i18n.svelte'
 
   import { Input } from '@/components/ui/input'

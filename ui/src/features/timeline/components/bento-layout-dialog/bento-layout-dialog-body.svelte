@@ -1,6 +1,6 @@
 <!-- SPDX-License-Identifier: MIT -->
 <script lang="ts">
-  import X from 'lucide-svelte/icons/x'
+  import X from '@lucide/svelte/icons/x'
   import { t } from '$lib/i18n.svelte'
   import { select } from '$lib/store.svelte'
   import {

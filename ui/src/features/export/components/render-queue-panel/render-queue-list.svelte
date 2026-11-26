@@ -4,8 +4,8 @@
    * The render queue: pause/clear controls plus the job list. Presentational —
    * no dialog chrome — so it can be embedded in the Exports dialog's Queue tab.
    */
-  import Pause from 'lucide-svelte/icons/pause'
-  import Play from 'lucide-svelte/icons/play'
+  import Pause from '@lucide/svelte/icons/pause'
+  import Play from '@lucide/svelte/icons/play'
   import { Button } from '@/components/ui/button'
   import { useRenderQueueStore } from '@/features/export/stores/render-queue-store'
   import { select } from '$lib/store.svelte'

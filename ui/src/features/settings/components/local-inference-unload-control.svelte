@@ -8,9 +8,9 @@
 </script>
 
 <script lang="ts">
-  import Check from 'lucide-svelte/icons/check'
-  import Loader2 from 'lucide-svelte/icons/loader-2'
-  import Trash2 from 'lucide-svelte/icons/trash-2'
+  import Check from '@lucide/svelte/icons/check'
+  import Loader2 from '@lucide/svelte/icons/loader-2'
+  import Trash2 from '@lucide/svelte/icons/trash-2'
   import { toast } from 'svelte-sonner'
   import { Button } from '@/components/ui/button'
   import { Label } from '@/components/ui/label'

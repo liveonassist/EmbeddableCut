@@ -1,7 +1,7 @@
 <!-- SPDX-License-Identifier: MIT -->
 <script lang="ts">
-  import ChevronLeft from 'lucide-svelte/icons/chevron-left'
-  import ChevronRight from 'lucide-svelte/icons/chevron-right'
+  import ChevronLeft from '@lucide/svelte/icons/chevron-left'
+  import ChevronRight from '@lucide/svelte/icons/chevron-right'
   import { Button } from '@/components/ui/button'
   import { cn } from '@/shared/ui/cn'
   import type { PropertyRowKeyframeNavProps } from './property-row-keyframe-nav'

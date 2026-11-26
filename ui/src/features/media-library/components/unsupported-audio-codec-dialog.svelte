@@ -10,8 +10,8 @@
     AlertDialogHeader,
     AlertDialogTitle,
   } from '@/components/ui/alert-dialog'
-  import Volume2 from 'lucide-svelte/icons/volume-2'
-  import VolumeX from 'lucide-svelte/icons/volume-x'
+  import Volume2 from '@lucide/svelte/icons/volume-2'
+  import VolumeX from '@lucide/svelte/icons/volume-x'
   import { cn } from '$lib/cn'
   import { t } from '$lib/i18n.svelte'
 

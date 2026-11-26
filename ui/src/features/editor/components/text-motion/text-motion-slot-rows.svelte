@@ -22,7 +22,7 @@
 
 <script lang="ts">
   import type { TextMotionEffect, TextMotionEffectBase } from '@/types/text-motion'
-  import X from 'lucide-svelte/icons/x'
+  import X from '@lucide/svelte/icons/x'
   import { t } from '$lib/i18n.svelte'
   import type { TextItem } from '@/types/timeline'
   import { createTextMotionEffect, getTextMotionPreset } from '@/shared/typography/text-motion'

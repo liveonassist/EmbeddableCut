@@ -1,7 +1,7 @@
 <!-- SPDX-License-Identifier: MIT -->
 <script lang="ts">
   import { Accordion as AccordionPrimitive } from 'bits-ui'
-  import ChevronDown from 'lucide-svelte/icons/chevron-down'
+  import ChevronDown from '@lucide/svelte/icons/chevron-down'
   import { cn } from '$lib/cn'
 
   let {

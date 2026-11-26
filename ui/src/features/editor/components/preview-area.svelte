@@ -23,7 +23,7 @@
 </script>
 
 <script lang="ts">
-  import Columns2 from 'lucide-svelte/icons/columns-2'
+  import Columns2 from '@lucide/svelte/icons/columns-2'
   import { select } from '$lib/store.svelte'
   import { t } from '$lib/i18n.svelte'
   import {

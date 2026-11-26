@@ -1,8 +1,8 @@
 <!-- SPDX-License-Identifier: MIT -->
 <script lang="ts" module>
-  import Rows2 from 'lucide-svelte/icons/rows-2'
-  import Rows3 from 'lucide-svelte/icons/rows-3'
-  import Rows4 from 'lucide-svelte/icons/rows-4'
+  import Rows2 from '@lucide/svelte/icons/rows-2'
+  import Rows3 from '@lucide/svelte/icons/rows-3'
+  import Rows4 from '@lucide/svelte/icons/rows-4'
   import { createLogger } from '@/shared/logging/logger'
 
   const logger = createLogger('Timeline')
@@ -21,11 +21,11 @@
 
 <script lang="ts">
   import { untrack } from 'svelte'
-  import Check from 'lucide-svelte/icons/check'
-  import Minus from 'lucide-svelte/icons/minus'
-  import Plus from 'lucide-svelte/icons/plus'
-  import Video from 'lucide-svelte/icons/video'
-  import AudioLines from 'lucide-svelte/icons/audio-lines'
+  import Check from '@lucide/svelte/icons/check'
+  import Minus from '@lucide/svelte/icons/minus'
+  import Plus from '@lucide/svelte/icons/plus'
+  import Video from '@lucide/svelte/icons/video'
+  import AudioLines from '@lucide/svelte/icons/audio-lines'
   import { t } from '$lib/i18n.svelte'
   import { portalTarget } from '$lib/context'
   import { select } from '$lib/store.svelte'

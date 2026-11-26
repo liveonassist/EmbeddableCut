@@ -1,7 +1,7 @@
 <!-- SPDX-License-Identifier: MIT -->
 <script lang="ts">
-  import Plus from 'lucide-svelte/icons/plus'
-  import Spline from 'lucide-svelte/icons/spline'
+  import Plus from '@lucide/svelte/icons/plus'
+  import Spline from '@lucide/svelte/icons/spline'
   import { select } from '$lib/store.svelte'
   import { t } from '$lib/i18n.svelte'
   import { Button } from '@/components/ui/button'

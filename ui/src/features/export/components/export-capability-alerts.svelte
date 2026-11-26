@@ -4,7 +4,7 @@
    * Capability warnings above the video format fields: the browser probe failed,
    * or it supports none of the container/codec combinations on offer.
    */
-  import AlertCircle from 'lucide-svelte/icons/alert-circle'
+  import AlertCircle from '@lucide/svelte/icons/alert-circle'
   import { Alert, AlertDescription } from '@/components/ui/alert'
   import { t } from '$lib/i18n.svelte'
   import type { ExportCapabilityAlertsProps } from './types'

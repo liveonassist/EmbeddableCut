@@ -1,6 +1,6 @@
 <!-- SPDX-License-Identifier: MIT -->
 <script lang="ts">
-  import Diamond from 'lucide-svelte/icons/diamond'
+  import Diamond from '@lucide/svelte/icons/diamond'
   import { t } from '$lib/i18n.svelte'
   import { cn } from '@/shared/ui/cn'
   import { stopClipIndicatorEvent } from './types'

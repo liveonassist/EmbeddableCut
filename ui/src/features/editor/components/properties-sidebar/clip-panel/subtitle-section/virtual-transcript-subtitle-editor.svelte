@@ -1,7 +1,7 @@
 <!-- SPDX-License-Identifier: MIT -->
 <script lang="ts">
-  import Captions from 'lucide-svelte/icons/captions'
-  import ArrowUpToLine from 'lucide-svelte/icons/arrow-up-to-line'
+  import Captions from '@lucide/svelte/icons/captions'
+  import ArrowUpToLine from '@lucide/svelte/icons/arrow-up-to-line'
   import { toast } from 'svelte-sonner'
   import { Button } from '@/components/ui/button'
   import { importMediaTranscriptionService } from '@/features/editor/deps/media-library'

@@ -1,6 +1,6 @@
 <!-- SPDX-License-Identifier: MIT -->
 <script lang="ts">
-  import Check from 'lucide-svelte/icons/check'
+  import Check from '@lucide/svelte/icons/check'
   import { DropdownMenuItem } from '@/components/ui/dropdown-menu'
 
   /** A menu row that toggles a boolean preference without closing the menu. */

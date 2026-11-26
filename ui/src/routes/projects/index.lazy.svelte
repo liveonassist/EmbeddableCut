@@ -34,11 +34,11 @@
 
 <script lang="ts">
   import { toast } from 'svelte-sonner'
-  import Plus from 'lucide-svelte/icons/plus'
-  import Upload from 'lucide-svelte/icons/upload'
-  import FolderOpen from 'lucide-svelte/icons/folder-open'
-  import FileIcon from 'lucide-svelte/icons/file'
-  import BookOpen from 'lucide-svelte/icons/book-open'
+  import Plus from '@lucide/svelte/icons/plus'
+  import Upload from '@lucide/svelte/icons/upload'
+  import FolderOpen from '@lucide/svelte/icons/folder-open'
+  import FileIcon from '@lucide/svelte/icons/file'
+  import BookOpen from '@lucide/svelte/icons/book-open'
   import { Link, useNavigate } from '$lib/router'
   import { Button } from '@/components/ui/button'
   import { Separator } from '@/components/ui/separator'

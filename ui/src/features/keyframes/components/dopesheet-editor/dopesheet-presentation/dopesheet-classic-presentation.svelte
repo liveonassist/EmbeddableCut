@@ -4,7 +4,7 @@
    * Classic Edit layout: a compact header with the frame inputs, a bordered sheet
    * taking the rest of the panel, and its own scrolling viewport.
    */
-  import Scissors from 'lucide-svelte/icons/scissors'
+  import Scissors from '@lucide/svelte/icons/scissors'
   import { cn } from '@/shared/ui/cn'
   import { Button } from '@/components/ui/button'
   import DopesheetHeaderFrameInputs from '../dopesheet-header-frame-inputs.svelte'

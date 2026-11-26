@@ -1,7 +1,7 @@
 <!-- SPDX-License-Identifier: MIT -->
 <script lang="ts">
-  import ChevronDown from 'lucide-svelte/icons/chevron-down'
-  import ChevronUp from 'lucide-svelte/icons/chevron-up'
+  import ChevronDown from '@lucide/svelte/icons/chevron-down'
+  import ChevronUp from '@lucide/svelte/icons/chevron-up'
   import { Button } from '@/components/ui/button'
   import { t } from '$lib/i18n.svelte'
   import type { EffectMoveProps } from './panel-props'

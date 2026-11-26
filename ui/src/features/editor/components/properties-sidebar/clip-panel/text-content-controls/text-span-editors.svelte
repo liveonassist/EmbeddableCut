@@ -2,8 +2,8 @@
 <script lang="ts">
   import type { TFunction } from 'i18next'
   import { t } from '$lib/i18n.svelte'
-  import Italic from 'lucide-svelte/icons/italic'
-  import Underline from 'lucide-svelte/icons/underline'
+  import Italic from '@lucide/svelte/icons/italic'
+  import Underline from '@lucide/svelte/icons/underline'
   import { Button } from '@/components/ui/button'
   import { Textarea } from '@/components/ui/textarea'
   import {

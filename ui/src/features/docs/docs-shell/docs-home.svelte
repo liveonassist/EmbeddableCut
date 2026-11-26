@@ -1,8 +1,8 @@
 <!-- SPDX-License-Identifier: MIT -->
 <script lang="ts">
-  import ArrowRight from 'lucide-svelte/icons/arrow-right'
-  import BookOpen from 'lucide-svelte/icons/book-open'
-  import Search from 'lucide-svelte/icons/search'
+  import ArrowRight from '@lucide/svelte/icons/arrow-right'
+  import BookOpen from '@lucide/svelte/icons/book-open'
+  import Search from '@lucide/svelte/icons/search'
   import { Button } from '@/components/ui/button'
   import { Link } from '$lib/router'
   import { DOC_PAGES, type DocCategory } from '../docs-content'

@@ -143,10 +143,10 @@
   import { portalTarget } from '$lib/context'
   import { i18n } from '@/i18n'
   import { Button } from '@/components/ui/button'
-  import Trash2 from 'lucide-svelte/icons/trash-2'
-  import Zap from 'lucide-svelte/icons/zap'
-  import RotateCcw from 'lucide-svelte/icons/rotate-ccw'
-  import ChevronDown from 'lucide-svelte/icons/chevron-down'
+  import Trash2 from '@lucide/svelte/icons/trash-2'
+  import Zap from '@lucide/svelte/icons/zap'
+  import RotateCcw from '@lucide/svelte/icons/rotate-ccw'
+  import ChevronDown from '@lucide/svelte/icons/chevron-down'
   import {
     removeTransition,
     updateTransition,

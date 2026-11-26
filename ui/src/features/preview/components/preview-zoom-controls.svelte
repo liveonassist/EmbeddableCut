@@ -1,7 +1,7 @@
 <!-- SPDX-License-Identifier: MIT -->
 <script lang="ts">
   import { t } from '$lib/i18n.svelte'
-  import ZoomIn from 'lucide-svelte/icons/zoom-in'
+  import ZoomIn from '@lucide/svelte/icons/zoom-in'
   import { Button } from '@/components/ui/button'
   import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
   import { EDITOR_LAYOUT_CSS_VALUES } from '@/config/editor-layout'

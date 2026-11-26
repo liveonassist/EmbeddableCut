@@ -18,7 +18,7 @@
 <script lang="ts">
   import { t } from '$lib/i18n.svelte'
   import { select, shallow } from '$lib/store.svelte'
-  import Palette from 'lucide-svelte/icons/palette'
+  import Palette from '@lucide/svelte/icons/palette'
   import { useSelectionStore } from '@/shared/state/selection'
   import { useItemsStore } from '@/features/editor/deps/timeline-store'
   import { KeyframeGraphPanel } from '@/features/editor/deps/timeline-keyframe-ui'

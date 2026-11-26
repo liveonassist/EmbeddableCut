@@ -1,6 +1,6 @@
 <!-- SPDX-License-Identifier: MIT -->
 <script lang="ts">
-  import CheckCircle2 from 'lucide-svelte/icons/circle-check'
+  import CheckCircle2 from '@lucide/svelte/icons/circle-check'
   import { t } from '$lib/i18n.svelte'
   import TtsMiniAudioPlayer from './tts-mini-audio-player.svelte'
 

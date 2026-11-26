@@ -1,6 +1,6 @@
 <!-- SPDX-License-Identifier: MIT -->
 <script lang="ts">
-  import Info from 'lucide-svelte/icons/info'
+  import Info from '@lucide/svelte/icons/info'
   import { Label } from '@/components/ui/label'
   import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
   import {

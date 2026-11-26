@@ -1,8 +1,8 @@
 <!-- SPDX-License-Identifier: MIT -->
 <script lang="ts">
   import { untrack } from 'svelte'
-  import Loader2 from 'lucide-svelte/icons/loader-circle'
-  import Square from 'lucide-svelte/icons/square'
+  import Loader2 from '@lucide/svelte/icons/loader-circle'
+  import Square from '@lucide/svelte/icons/square'
   import {
     Dialog,
     DialogContent,

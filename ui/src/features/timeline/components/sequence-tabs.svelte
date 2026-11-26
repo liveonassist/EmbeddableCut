@@ -1,9 +1,9 @@
 <!-- SPDX-License-Identifier: MIT -->
 <script lang="ts">
-  import Film from 'lucide-svelte/icons/film'
-  import MoreVertical from 'lucide-svelte/icons/ellipsis-vertical'
-  import Plus from 'lucide-svelte/icons/plus'
-  import X from 'lucide-svelte/icons/x'
+  import Film from '@lucide/svelte/icons/film'
+  import MoreVertical from '@lucide/svelte/icons/ellipsis-vertical'
+  import Plus from '@lucide/svelte/icons/plus'
+  import X from '@lucide/svelte/icons/x'
   import { cn } from '@/shared/ui/cn'
   import { select } from '$lib/store.svelte'
   import {

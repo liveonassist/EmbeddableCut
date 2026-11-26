@@ -6,8 +6,8 @@
 </script>
 
 <script lang="ts">
-  import RotateCcw from 'lucide-svelte/icons/rotate-ccw'
-  import SlidersHorizontal from 'lucide-svelte/icons/sliders-horizontal'
+  import RotateCcw from '@lucide/svelte/icons/rotate-ccw'
+  import SlidersHorizontal from '@lucide/svelte/icons/sliders-horizontal'
   import { t } from '$lib/i18n.svelte'
   import { select } from '$lib/store.svelte'
   import { Button } from '@/components/ui/button'

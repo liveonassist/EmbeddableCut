@@ -103,8 +103,8 @@
 <script lang="ts">
   import { untrack } from 'svelte'
   import { createSubscriber } from 'svelte/reactivity'
-  import Check from 'lucide-svelte/icons/check'
-  import MoreHorizontal from 'lucide-svelte/icons/ellipsis'
+  import Check from '@lucide/svelte/icons/check'
+  import MoreHorizontal from '@lucide/svelte/icons/ellipsis'
   import { select } from '$lib/store.svelte'
   import { t } from '$lib/i18n.svelte'
   import {

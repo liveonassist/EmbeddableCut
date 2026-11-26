@@ -1,13 +1,13 @@
 <!-- SPDX-License-Identifier: MIT -->
 <script lang="ts" module>
-  import Layers from 'lucide-svelte/icons/layers'
-  import Play from 'lucide-svelte/icons/play'
-  import Download from 'lucide-svelte/icons/download'
-  import Search from 'lucide-svelte/icons/search'
-  import AudioLines from 'lucide-svelte/icons/audio-lines'
-  import Keyboard from 'lucide-svelte/icons/keyboard'
-  import Palette from 'lucide-svelte/icons/palette'
-  import WandSparkles from 'lucide-svelte/icons/wand-sparkles'
+  import Layers from '@lucide/svelte/icons/layers'
+  import Play from '@lucide/svelte/icons/play'
+  import Download from '@lucide/svelte/icons/download'
+  import Search from '@lucide/svelte/icons/search'
+  import AudioLines from '@lucide/svelte/icons/audio-lines'
+  import Keyboard from '@lucide/svelte/icons/keyboard'
+  import Palette from '@lucide/svelte/icons/palette'
+  import WandSparkles from '@lucide/svelte/icons/wand-sparkles'
 
   const showcaseItems = [
     {
@@ -70,10 +70,10 @@
 </script>
 
 <script lang="ts">
-  import ArrowRight from 'lucide-svelte/icons/arrow-right'
-  import ExternalLink from 'lucide-svelte/icons/external-link'
-  import BookOpen from 'lucide-svelte/icons/book-open'
-  import History from 'lucide-svelte/icons/history'
+  import ArrowRight from '@lucide/svelte/icons/arrow-right'
+  import ExternalLink from '@lucide/svelte/icons/external-link'
+  import BookOpen from '@lucide/svelte/icons/book-open'
+  import History from '@lucide/svelte/icons/history'
   import type { Snippet } from 'svelte'
   import EmbeddableCutLogo from '@/components/brand/embeddablecut-logo.svelte'
   import Trans from '@/components/trans.svelte'

@@ -22,8 +22,8 @@
    * Preflight report shown on the settings step: the worst severity found, the
    * render path the export will take, and the checks worth reading.
    */
-  import AlertCircle from 'lucide-svelte/icons/alert-circle'
-  import CheckCircle2 from 'lucide-svelte/icons/check-circle-2'
+  import AlertCircle from '@lucide/svelte/icons/alert-circle'
+  import CheckCircle2 from '@lucide/svelte/icons/check-circle-2'
   import {
     summarizePreflightSeverity,
     type ExportPreflightResult,

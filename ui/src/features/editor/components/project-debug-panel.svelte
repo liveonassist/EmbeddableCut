@@ -6,7 +6,7 @@
   Visibility is controlled by the parent debug popover.
 -->
 <script lang="ts" module>
-  import type LucideIcon from 'lucide-svelte/icons/bug'
+  import type LucideIcon from '@lucide/svelte/icons/bug'
 
   interface DebugAction {
     label: string
@@ -39,22 +39,22 @@
 </script>
 
 <script lang="ts">
-  import Bug from 'lucide-svelte/icons/bug'
-  import Download from 'lucide-svelte/icons/download'
-  import Upload from 'lucide-svelte/icons/upload'
-  import Clipboard from 'lucide-svelte/icons/clipboard'
-  import ClipboardPaste from 'lucide-svelte/icons/clipboard-paste'
-  import FileJson from 'lucide-svelte/icons/file-json'
-  import Database from 'lucide-svelte/icons/database'
-  import CheckCircle from 'lucide-svelte/icons/circle-check'
-  import XCircle from 'lucide-svelte/icons/circle-x'
-  import ChevronDown from 'lucide-svelte/icons/chevron-down'
-  import FlaskConical from 'lucide-svelte/icons/flask-conical'
-  import Play from 'lucide-svelte/icons/play'
-  import Eye from 'lucide-svelte/icons/eye'
-  import Activity from 'lucide-svelte/icons/activity'
-  import Film from 'lucide-svelte/icons/film'
-  import Layers from 'lucide-svelte/icons/layers'
+  import Bug from '@lucide/svelte/icons/bug'
+  import Download from '@lucide/svelte/icons/download'
+  import Upload from '@lucide/svelte/icons/upload'
+  import Clipboard from '@lucide/svelte/icons/clipboard'
+  import ClipboardPaste from '@lucide/svelte/icons/clipboard-paste'
+  import FileJson from '@lucide/svelte/icons/file-json'
+  import Database from '@lucide/svelte/icons/database'
+  import CheckCircle from '@lucide/svelte/icons/circle-check'
+  import XCircle from '@lucide/svelte/icons/circle-x'
+  import ChevronDown from '@lucide/svelte/icons/chevron-down'
+  import FlaskConical from '@lucide/svelte/icons/flask-conical'
+  import Play from '@lucide/svelte/icons/play'
+  import Eye from '@lucide/svelte/icons/eye'
+  import Activity from '@lucide/svelte/icons/activity'
+  import Film from '@lucide/svelte/icons/film'
+  import Layers from '@lucide/svelte/icons/layers'
   import { select } from '$lib/store.svelte'
   import { Button } from '@/components/ui/button'
   import { createLogger } from '@/shared/logging/logger'

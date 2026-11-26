@@ -1,6 +1,6 @@
 <!-- SPDX-License-Identifier: MIT -->
 <script lang="ts">
-  import X from 'lucide-svelte/icons/x'
+  import X from '@lucide/svelte/icons/x'
 
   let {
     label,

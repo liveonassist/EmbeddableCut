@@ -1,7 +1,7 @@
 <!-- SPDX-License-Identifier: MIT -->
 <script lang="ts">
-  import Timer from 'lucide-svelte/icons/timer'
-  import Waves from 'lucide-svelte/icons/waves'
+  import Timer from '@lucide/svelte/icons/timer'
+  import Waves from '@lucide/svelte/icons/waves'
   import { t } from '$lib/i18n.svelte'
 
   interface DopesheetEmptyStateProps {

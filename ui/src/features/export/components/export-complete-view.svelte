@@ -4,10 +4,10 @@
    * Complete step of the export dialog: the preview player, the success note, the
    * output size and time, and the download/close actions.
    */
-  import CheckCircle2 from 'lucide-svelte/icons/check-circle-2'
-  import Clock from 'lucide-svelte/icons/clock'
-  import Download from 'lucide-svelte/icons/download'
-  import HardDrive from 'lucide-svelte/icons/hard-drive'
+  import CheckCircle2 from '@lucide/svelte/icons/check-circle-2'
+  import Clock from '@lucide/svelte/icons/clock'
+  import Download from '@lucide/svelte/icons/download'
+  import HardDrive from '@lucide/svelte/icons/hard-drive'
   import { Alert, AlertDescription } from '@/components/ui/alert'
   import { Button } from '@/components/ui/button'
   import ContributionIcon from '@/components/contribution-icon.svelte'

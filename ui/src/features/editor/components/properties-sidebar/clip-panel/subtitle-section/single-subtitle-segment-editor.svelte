@@ -1,6 +1,6 @@
 <!-- SPDX-License-Identifier: MIT -->
 <script lang="ts">
-  import Captions from 'lucide-svelte/icons/captions'
+  import Captions from '@lucide/svelte/icons/captions'
   import { select } from '$lib/store.svelte'
   import { i18n } from '@/i18n'
   import { updateItem, useTimelineSettingsStore } from '@/features/editor/deps/timeline-store'

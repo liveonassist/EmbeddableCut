@@ -2,8 +2,8 @@
 <script lang="ts">
   import { t } from '$lib/i18n.svelte'
   import { select } from '$lib/store.svelte'
-  import MapPin from 'lucide-svelte/icons/map-pin'
-  import Trash2 from 'lucide-svelte/icons/trash-2'
+  import MapPin from '@lucide/svelte/icons/map-pin'
+  import Trash2 from '@lucide/svelte/icons/trash-2'
   import {
     clearAllMarkers,
     removeMarker,

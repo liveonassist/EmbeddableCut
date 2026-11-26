@@ -73,12 +73,12 @@
 
 <script lang="ts">
   import { untrack } from 'svelte'
-  import ChevronLeft from 'lucide-svelte/icons/chevron-left'
-  import Plus from 'lucide-svelte/icons/plus'
-  import RotateCcw from 'lucide-svelte/icons/rotate-ccw'
-  import Save from 'lucide-svelte/icons/save'
-  import SlidersHorizontal from 'lucide-svelte/icons/sliders-horizontal'
-  import X from 'lucide-svelte/icons/x'
+  import ChevronLeft from '@lucide/svelte/icons/chevron-left'
+  import Plus from '@lucide/svelte/icons/plus'
+  import RotateCcw from '@lucide/svelte/icons/rotate-ccw'
+  import Save from '@lucide/svelte/icons/save'
+  import SlidersHorizontal from '@lucide/svelte/icons/sliders-horizontal'
+  import X from '@lucide/svelte/icons/x'
   import { toast } from 'svelte-sonner'
   import { t } from '$lib/i18n.svelte'
 

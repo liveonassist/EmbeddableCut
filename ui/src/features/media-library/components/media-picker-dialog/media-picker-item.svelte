@@ -1,8 +1,8 @@
 <!-- SPDX-License-Identifier: MIT -->
 <script lang="ts">
-  import Video from 'lucide-svelte/icons/video'
-  import FileAudio from 'lucide-svelte/icons/file-audio'
-  import ImageIcon from 'lucide-svelte/icons/image'
+  import Video from '@lucide/svelte/icons/video'
+  import FileAudio from '@lucide/svelte/icons/file-audio'
+  import ImageIcon from '@lucide/svelte/icons/image'
   import type { MediaMetadata } from '@/types/storage'
   import { importMediaLibraryService } from '@/features/media-library/services/media-library-service-loader'
   import { getMediaType, formatDuration } from '@/features/media-library/utils/validation'

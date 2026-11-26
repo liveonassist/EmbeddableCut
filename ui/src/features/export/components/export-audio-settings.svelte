@@ -4,7 +4,7 @@
    * Audio side of the export settings: the audio-only note, the file format and
    * the quality the encoder targets.
    */
-  import Music from 'lucide-svelte/icons/music'
+  import Music from '@lucide/svelte/icons/music'
   import { Alert, AlertDescription } from '@/components/ui/alert'
   import { Label } from '@/components/ui/label'
   import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'

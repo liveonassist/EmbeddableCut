@@ -1,13 +1,13 @@
 <!-- SPDX-License-Identifier: MIT -->
 <script lang="ts">
   import type { Snippet } from 'svelte'
-  import ClipboardPaste from 'lucide-svelte/icons/clipboard-paste'
-  import Copy from 'lucide-svelte/icons/copy'
-  import CopyPlus from 'lucide-svelte/icons/copy-plus'
-  import Group from 'lucide-svelte/icons/group'
-  import Pencil from 'lucide-svelte/icons/pencil'
-  import Trash2 from 'lucide-svelte/icons/trash-2'
-  import Ungroup from 'lucide-svelte/icons/ungroup'
+  import ClipboardPaste from '@lucide/svelte/icons/clipboard-paste'
+  import Copy from '@lucide/svelte/icons/copy'
+  import CopyPlus from '@lucide/svelte/icons/copy-plus'
+  import Group from '@lucide/svelte/icons/group'
+  import Pencil from '@lucide/svelte/icons/pencil'
+  import Trash2 from '@lucide/svelte/icons/trash-2'
+  import Ungroup from '@lucide/svelte/icons/ungroup'
   import { t } from '$lib/i18n.svelte'
   import {
     ContextMenu,

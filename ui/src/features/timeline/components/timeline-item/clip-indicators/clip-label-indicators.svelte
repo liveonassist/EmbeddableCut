@@ -1,6 +1,6 @@
 <!-- SPDX-License-Identifier: MIT -->
 <script lang="ts">
-  import WandSparkles from 'lucide-svelte/icons/wand-sparkles'
+  import WandSparkles from '@lucide/svelte/icons/wand-sparkles'
   import { t } from '$lib/i18n.svelte'
   import { EDITOR_LAYOUT_CSS_VALUES } from '@/config/editor-layout'
   import KeyframeIndicator from './keyframe-indicator.svelte'

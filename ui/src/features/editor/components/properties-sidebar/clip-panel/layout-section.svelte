@@ -24,10 +24,10 @@
 </script>
 
 <script lang="ts">
-  import Move from 'lucide-svelte/icons/move'
-  import RotateCcw from 'lucide-svelte/icons/rotate-ccw'
-  import Link2 from 'lucide-svelte/icons/link-2'
-  import Link2Off from 'lucide-svelte/icons/link-2-off'
+  import Move from '@lucide/svelte/icons/move'
+  import RotateCcw from '@lucide/svelte/icons/rotate-ccw'
+  import Link2 from '@lucide/svelte/icons/link-2'
+  import Link2Off from '@lucide/svelte/icons/link-2-off'
   import { t } from '$lib/i18n.svelte'
   import { select } from '$lib/store.svelte'
   import { Button } from '@/components/ui/button'

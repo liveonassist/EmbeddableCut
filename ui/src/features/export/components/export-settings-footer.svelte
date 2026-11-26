@@ -10,8 +10,8 @@
    * whole/segment jobs, and the export button. The queue handlers live in the
    * dialog — this only places the buttons that call them.
    */
-  import ChevronDown from 'lucide-svelte/icons/chevron-down'
-  import ListPlus from 'lucide-svelte/icons/list-plus'
+  import ChevronDown from '@lucide/svelte/icons/chevron-down'
+  import ListPlus from '@lucide/svelte/icons/list-plus'
   import { Button } from '@/components/ui/button'
   import {
     DropdownMenu,
