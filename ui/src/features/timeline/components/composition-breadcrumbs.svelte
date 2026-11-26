@@ -1,6 +1,6 @@
 <!-- SPDX-License-Identifier: MIT -->
 <script lang="ts">
-  import ChevronRight from 'lucide-svelte/icons/chevron-right'
+  import ChevronRight from '@lucide/svelte/icons/chevron-right'
   import { select } from '$lib/store.svelte'
   import { useCompositionNavigationStore } from '@/features/timeline/stores/composition-navigation-store'
 

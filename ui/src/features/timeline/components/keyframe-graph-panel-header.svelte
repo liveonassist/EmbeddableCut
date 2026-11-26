@@ -1,8 +1,8 @@
 <!-- SPDX-License-Identifier: MIT -->
 <script lang="ts">
-  import Maximize2 from 'lucide-svelte/icons/maximize-2'
-  import Minimize2 from 'lucide-svelte/icons/minimize-2'
-  import X from 'lucide-svelte/icons/x'
+  import Maximize2 from '@lucide/svelte/icons/maximize-2'
+  import Minimize2 from '@lucide/svelte/icons/minimize-2'
+  import X from '@lucide/svelte/icons/x'
   import { Button } from '@/components/ui/button'
   import { cn } from '@/shared/ui/cn'
   import { t } from '$lib/i18n.svelte'

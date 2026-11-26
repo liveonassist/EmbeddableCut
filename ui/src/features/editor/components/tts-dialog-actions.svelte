@@ -1,8 +1,8 @@
 <!-- SPDX-License-Identifier: MIT -->
 <script lang="ts">
-  import CheckCircle2 from 'lucide-svelte/icons/circle-check'
-  import Loader2 from 'lucide-svelte/icons/loader-circle'
-  import WandSparkles from 'lucide-svelte/icons/wand-sparkles'
+  import CheckCircle2 from '@lucide/svelte/icons/circle-check'
+  import Loader2 from '@lucide/svelte/icons/loader-circle'
+  import WandSparkles from '@lucide/svelte/icons/wand-sparkles'
   import { Button } from '@/components/ui/button'
   import { t } from '$lib/i18n.svelte'
 

@@ -14,13 +14,13 @@
 </script>
 
 <script lang="ts">
-  import ChevronDown from 'lucide-svelte/icons/chevron-down'
-  import ChevronRight from 'lucide-svelte/icons/chevron-right'
-  import FileJson from 'lucide-svelte/icons/file-json'
-  import Palette from 'lucide-svelte/icons/palette'
-  import RotateCcw from 'lucide-svelte/icons/rotate-ccw'
-  import Sliders from 'lucide-svelte/icons/sliders'
-  import Type from 'lucide-svelte/icons/type'
+  import ChevronDown from '@lucide/svelte/icons/chevron-down'
+  import ChevronRight from '@lucide/svelte/icons/chevron-right'
+  import FileJson from '@lucide/svelte/icons/file-json'
+  import Palette from '@lucide/svelte/icons/palette'
+  import RotateCcw from '@lucide/svelte/icons/rotate-ccw'
+  import Sliders from '@lucide/svelte/icons/sliders'
+  import Type from '@lucide/svelte/icons/type'
   import { t } from '$lib/i18n.svelte'
   import { Button } from '@/components/ui/button'
   import { Switch } from '@/components/ui/switch'

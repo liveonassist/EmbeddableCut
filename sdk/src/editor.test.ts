@@ -10,6 +10,8 @@ import { createEditor, type Editor } from './editor'
 import { EditorError } from './errors'
 import type { Extension } from './extensions'
 import { useSettingsStore } from '@embeddablecut/engine/features/settings/stores/settings-store'
+import { useCompositionsStore } from '@embeddablecut/engine/features/timeline/stores/compositions-store'
+import { createPreComp } from '@embeddablecut/engine/features/timeline/stores/actions/composition-actions'
 
 let editor: Editor | null = null
 
@@ -83,6 +85,44 @@ describe('editor', () => {
     expect(e.timeline.items).toHaveLength(0)
     e.redo()
     expect(e.timeline.items).toHaveLength(2)
+  })
+
+  it('announces an edit once, however many stores it writes', async () => {
+    const e = await newEditor()
+    await e.createProject({ name: 'Demo' })
+    await Promise.resolve()
+    let changes = 0
+    e.on('change', () => changes++)
+
+    e.apply([
+      { op: 'addTrack', kind: 'video' },
+      { op: 'addText', text: 'One' },
+    ])
+    await Promise.resolve()
+
+    expect(changes).toBe(1)
+  })
+
+  it("renders without rewriting the editor's compositions", async () => {
+    const e = await newEditor()
+    await e.createProject({ name: 'Demo' })
+    const [, text] = e.apply([
+      { op: 'addTrack', kind: 'video' },
+      { op: 'addText', text: 'Nested', durationInFrames: 30 },
+    ])
+    expect(createPreComp('Nest', [(text!.detail as { id: string }).id])).not.toBeNull()
+    await Promise.resolve()
+    const compositions = useCompositionsStore.getState().compositions
+    expect(compositions).toHaveLength(1)
+    let changes = 0
+    e.on('change', () => changes++)
+
+    // jsdom can't draw, so the render fails, but only after it has read its inputs.
+    await e.renderFrame({ frame: 0 }).catch(() => {})
+    await Promise.resolve()
+
+    expect(useCompositionsStore.getState().compositions).toBe(compositions)
+    expect(changes).toBe(0)
   })
 
   it('reloads its own documents without loss', async () => {

@@ -14,6 +14,8 @@ import type {
 } from './types'
 
 interface DataTextureCacheEntry {
+  /** EmbeddableCut: names the view in bind group keys; kept while the view is. */
+  id: number
   key: string
   texture: GPUTexture
   view: GPUTextureView
@@ -21,6 +23,9 @@ interface DataTextureCacheEntry {
   height: number
   depth: number
 }
+
+/** EmbeddableCut: distinct LUTs, curves or ramps of one effect kept on the GPU. */
+const MAX_DATA_TEXTURES_PER_EFFECT = 8
 
 interface SharedEffectPipelineState {
   pipelines: Map<string, GPURenderPipeline>
@@ -274,10 +279,12 @@ export class EffectsPipeline {
   private pongView: GPUTextureView | null = null
   // Cached bind groups keyed by "effectId:ping|pong" — invalidated when textures change
   private effectBindGroupCache = new Map<string, GPUBindGroup>()
-  // Auxiliary data textures (curve/color LUTs) keyed by "passIndex:effectType".
-  // Contents are rewritten in place when the build key changes; the texture is
-  // recreated (and bind groups invalidated) only when dimensions change.
-  private dataTextureCache = new Map<string, DataTextureCacheEntry>()
+  // EmbeddableCut: auxiliary data textures (curve/color LUTs) per effect type,
+  // keyed by their data in least-recently-used order. Keying them by pass slot
+  // made two visible items with different LUTs rebuild and re-upload theirs on
+  // every frame.
+  private dataTextureCache = new Map<string, Map<string, DataTextureCacheEntry>>()
+  private dataTextureIds = 0
   // Cached blit bind groups for ping/pong input views
   private blitBindGroupPing: GPUBindGroup | null = null
   private blitBindGroupPong: GPUBindGroup | null = null
@@ -628,18 +635,23 @@ export class EffectsPipeline {
    * texture (invalidating cached bind groups) when dimensions changed.
    */
   private getOrUpdateDataTexture(
-    passIndex: number,
     effect: GpuEffectInstance,
     definition: GpuEffectDefinition,
-  ): GPUTextureView | null {
+  ): DataTextureCacheEntry | null {
     const spec = definition.dataTexture
     if (!spec) return null
 
-    const cacheId = `${passIndex}:${effect.type}`
+    let entries = this.dataTextureCache.get(effect.type)
+    if (!entries) {
+      entries = new Map()
+      this.dataTextureCache.set(effect.type, entries)
+    }
     const key = spec.key(effect.params)
-    const cached = this.dataTextureCache.get(cacheId)
-    if (cached && cached.key === key) {
-      return cached.view
+    const cached = entries.get(key)
+    if (cached) {
+      entries.delete(key)
+      entries.set(key, cached)
+      return cached
     }
 
     let payload: EffectDataTexturePayload
@@ -647,10 +659,11 @@ export class EffectsPipeline {
       payload = spec.build(effect.params)
     } catch (e) {
       getLogger().warn(`Failed to build data texture for ${effect.type}`, e)
-      return cached?.view ?? null
+      return null
     }
 
-    const entry = this.acquireDataTextureEntry(cacheId, effect.type, spec, payload, key, cached)
+    const entry = this.createDataTextureEntry(entries, effect.type, spec, payload, key)
+    entries.set(key, entry)
     this.device.queue.writeTexture(
       { texture: entry.texture },
       payload.data as BufferSource,
@@ -658,30 +671,25 @@ export class EffectsPipeline {
       { width: payload.width, height: payload.height, depthOrArrayLayers: payload.depth },
     )
 
-    return entry.view
+    return entry
   }
 
-  /** Reuse the cached texture when dimensions match; otherwise recreate it. */
-  private acquireDataTextureEntry(
-    cacheId: string,
+  /** Creates a texture for new data, destroying the least recently used past the cap. */
+  private createDataTextureEntry(
+    entries: Map<string, DataTextureCacheEntry>,
     effectType: string,
     spec: EffectDataTextureSpec,
     payload: EffectDataTexturePayload,
     key: string,
-    cached: DataTextureCacheEntry | undefined,
   ): DataTextureCacheEntry {
-    const sameDims =
-      cached !== undefined &&
-      cached.width === payload.width &&
-      cached.height === payload.height &&
-      cached.depth === payload.depth
-
-    if (cached && sameDims) {
-      cached.key = key
-      return cached
+    const oldest = entries.entries().next().value
+    if (oldest && entries.size >= MAX_DATA_TEXTURES_PER_EFFECT) {
+      entries.delete(oldest[0])
+      oldest[1].texture.destroy()
+      // Bind groups reference the destroyed view — rebuild them lazily.
+      this.effectBindGroupCache.clear()
     }
 
-    cached?.texture.destroy()
     const texture = this.device.createTexture({
       label: `effect-${effectType}-data`,
       size: { width: payload.width, height: payload.height, depthOrArrayLayers: payload.depth },
@@ -689,7 +697,8 @@ export class EffectsPipeline {
       format: 'rgba8unorm',
       usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST,
     })
-    const entry: DataTextureCacheEntry = {
+    return {
+      id: ++this.dataTextureIds,
       key,
       texture,
       view: texture.createView({ dimension: spec.dimension }),
@@ -697,10 +706,6 @@ export class EffectsPipeline {
       height: payload.height,
       depth: payload.depth,
     }
-    this.dataTextureCache.set(cacheId, entry)
-    // Bind groups reference the old texture view — rebuild them lazily.
-    this.effectBindGroupCache.clear()
-    return entry
   }
 
   private getOrCreateUniformBuffer(passIndex: number, size: number): GPUBuffer {
@@ -839,13 +844,14 @@ export class EffectsPipeline {
       if (!pipeline || !layout) continue
 
       // Auxiliary data texture (curve/color LUT) — kept current before binding.
-      let dataTextureView: GPUTextureView | null = null
+      let dataTexture: DataTextureCacheEntry | null = null
       if (definition.dataTexture) {
-        dataTextureView = this.getOrUpdateDataTexture(passIndex, effect, definition)
-        if (!dataTextureView) continue
+        dataTexture = this.getOrUpdateDataTexture(effect, definition)
+        if (!dataTexture) continue
       }
+      const dataTextureView = dataTexture?.view ?? null
 
-      const cacheKey = `${passIndex}:${effect.type}:${viewKey}`
+      const cacheKey = `${passIndex}:${effect.type}:${viewKey}:${dataTexture?.id ?? ''}`
       let bindGroup = this.effectBindGroupCache.get(cacheKey)
       if (!bindGroup) {
         const bindEntries: GPUBindGroupEntry[] = [
@@ -1390,8 +1396,8 @@ export class EffectsPipeline {
       buf?.destroy()
     }
     this.uniformBuffers = []
-    for (const entry of this.dataTextureCache.values()) {
-      entry.texture.destroy()
+    for (const entries of this.dataTextureCache.values()) {
+      for (const entry of entries.values()) entry.texture.destroy()
     }
     this.dataTextureCache.clear()
     this.effectBindGroupCache.clear()

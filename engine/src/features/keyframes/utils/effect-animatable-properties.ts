@@ -330,13 +330,21 @@ export function resolveAnimatedGpuEffects(
 
     // Evaluate the audio-pulse envelope once per effect (not once per param).
     const audioPulseValues = evaluateEffectAudioPulse(effectEntry, relativeFrame)
+    const keyframedKeys = getKeyframedEffectParamKeys(effectEntry, itemKeyframes)
+    // EmbeddableCut: only a keyframed or pulse-driven param can take a new
+    // value, so an effect with neither is left as it is. Visiting the rest
+    // cost a registry lookup and a lane search per param, per frame.
+    if (keyframedKeys.length === 0 && !audioPulseValues) {
+      return effectEntry
+    }
 
-    const paramKeys = new Set([
-      ...Object.keys(gpuEffect.params),
-      ...getKeyframedEffectParamKeys(effectEntry, itemKeyframes),
-    ])
+    const paramKeys = new Set([...Object.keys(gpuEffect.params), ...keyframedKeys])
 
     for (const paramKey of paramKeys) {
+      if (!audioPulseValues && !keyframedKeys.includes(paramKey)) {
+        continue
+      }
+
       if (!isAnimatableGpuEffectParam(gpuEffect, paramKey)) {
         continue
       }

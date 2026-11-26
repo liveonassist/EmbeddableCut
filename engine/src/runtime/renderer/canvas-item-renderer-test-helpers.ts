@@ -18,6 +18,7 @@ export function createMockCanvasContext(): OffscreenCanvasRenderingContext2D {
     scale: vi.fn(),
     transform: vi.fn(),
     setTransform: vi.fn(),
+    reset: vi.fn(),
     moveTo: vi.fn(),
     lineTo: vi.fn(),
     fill: vi.fn(),

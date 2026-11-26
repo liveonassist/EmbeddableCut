@@ -7,6 +7,7 @@ export {
   stringTransport,
   type BinaryResult,
   type BridgeActionEvent,
+  type BridgeActionLabel,
   type BridgeActionName,
   type BridgeActions,
   type BridgeEvent,

@@ -8,8 +8,8 @@
    * Export type switch for the export dialog: whether the render carries video
    * (with its container/codec settings) or audio only.
    */
-  import Music from 'lucide-svelte/icons/music'
-  import Video from 'lucide-svelte/icons/video'
+  import Music from '@lucide/svelte/icons/music'
+  import Video from '@lucide/svelte/icons/video'
   import { Label } from '@/components/ui/label'
   import { t } from '$lib/i18n.svelte'
   import type { ExportModeToggleProps } from './types'

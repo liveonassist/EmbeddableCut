@@ -1,7 +1,7 @@
 <!-- SPDX-License-Identifier: MIT -->
 <script lang="ts">
   import type { Snippet } from 'svelte'
-  import Link2 from 'lucide-svelte/icons/link-2'
+  import Link2 from '@lucide/svelte/icons/link-2'
 
   interface Props {
     label: string

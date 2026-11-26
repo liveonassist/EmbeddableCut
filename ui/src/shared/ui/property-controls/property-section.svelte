@@ -1,7 +1,7 @@
 <!-- SPDX-License-Identifier: MIT -->
 <script lang="ts" module>
   import type { Snippet } from 'svelte'
-  import type { Icon as LucideIcon } from 'lucide-svelte'
+  import type { Icon as LucideIcon } from '@lucide/svelte'
 
   interface PropertySectionProps {
     title: string
@@ -16,7 +16,7 @@
 
 <script lang="ts">
   import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
-  import ChevronRight from 'lucide-svelte/icons/chevron-right'
+  import ChevronRight from '@lucide/svelte/icons/chevron-right'
   import { cn } from '@/shared/ui/cn'
 
   /**

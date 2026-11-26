@@ -27,8 +27,8 @@
 </script>
 
 <script lang="ts">
-  import Database from 'lucide-svelte/icons/database'
-  import Trash2 from 'lucide-svelte/icons/trash-2'
+  import Database from '@lucide/svelte/icons/database'
+  import Trash2 from '@lucide/svelte/icons/trash-2'
   import { toast } from 'svelte-sonner'
   import { Button } from '@/components/ui/button'
   import { Progress } from '@/components/ui/progress'

@@ -42,8 +42,8 @@
 </script>
 
 <script lang="ts">
-  import AlertTriangle from 'lucide-svelte/icons/triangle-alert'
-  import RefreshCw from 'lucide-svelte/icons/refresh-cw'
+  import AlertTriangle from '@lucide/svelte/icons/triangle-alert'
+  import RefreshCw from '@lucide/svelte/icons/refresh-cw'
   import { toast } from 'svelte-sonner'
   import { Button } from '@/components/ui/button'
   import { cn } from '@/shared/ui/cn'

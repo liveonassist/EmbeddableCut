@@ -1,14 +1,14 @@
 <!-- SPDX-License-Identifier: MIT -->
 <script lang="ts">
-  import Trash2 from 'lucide-svelte/icons/trash-2'
-  import Loader2 from 'lucide-svelte/icons/loader-circle'
-  import RefreshCw from 'lucide-svelte/icons/refresh-cw'
-  import Zap from 'lucide-svelte/icons/zap'
-  import FileText from 'lucide-svelte/icons/file-text'
-  import Sparkles from 'lucide-svelte/icons/sparkles'
-  import Wind from 'lucide-svelte/icons/wind'
-  import Maximize2 from 'lucide-svelte/icons/maximize-2'
-  import X from 'lucide-svelte/icons/x'
+  import Trash2 from '@lucide/svelte/icons/trash-2'
+  import Loader2 from '@lucide/svelte/icons/loader-circle'
+  import RefreshCw from '@lucide/svelte/icons/refresh-cw'
+  import Zap from '@lucide/svelte/icons/zap'
+  import FileText from '@lucide/svelte/icons/file-text'
+  import Sparkles from '@lucide/svelte/icons/sparkles'
+  import Wind from '@lucide/svelte/icons/wind'
+  import Maximize2 from '@lucide/svelte/icons/maximize-2'
+  import X from '@lucide/svelte/icons/x'
   import {
     ContextMenuItem,
     ContextMenuLabel,

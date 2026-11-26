@@ -1,6 +1,6 @@
 <!-- SPDX-License-Identifier: MIT -->
 <script lang="ts">
-  import Plus from 'lucide-svelte/icons/plus'
+  import Plus from '@lucide/svelte/icons/plus'
   import {
     PROJECT_TEMPLATES,
     getAspectRatio,

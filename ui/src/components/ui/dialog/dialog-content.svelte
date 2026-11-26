@@ -1,7 +1,7 @@
 <!-- SPDX-License-Identifier: MIT -->
 <script lang="ts">
   import { Dialog as DialogPrimitive } from 'bits-ui'
-  import X from 'lucide-svelte/icons/x'
+  import X from '@lucide/svelte/icons/x'
   import { cn } from '$lib/cn'
   import { portalTarget } from '$lib/context'
   import { t } from '$lib/i18n.svelte'

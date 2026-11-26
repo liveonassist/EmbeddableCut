@@ -253,7 +253,14 @@ export function createRemoteFetch(metadata: RemoteRequestMetadata): typeof fetch
         'Range',
         `bytes=${from * REMOTE_BLOCK_SIZE}-${(to + 1) * REMOTE_BLOCK_SIZE - 1}`,
       )
-      const response = await network(target, { ...requestInit, headers: runHeaders })
+      // A run fills the shared cache, so one reader's abort must not discard it:
+      // mediabunny aborts as soon as it has its bytes, often while the stream
+      // is still fetching ahead, and the next reader would download it again.
+      const response = await network(target, {
+        ...requestInit,
+        headers: runHeaders,
+        signal: undefined,
+      })
       if (response.status !== 206) return response
       if (size === null) {
         size = totalFromContentRange(response.headers.get('Content-Range'))
@@ -310,6 +317,10 @@ export function createRemoteFetch(metadata: RemoteRequestMetadata): typeof fetch
         }
         let block = pending.get(next) ?? (await cachedBlock(next))
         if (!block) {
+          if (requestInit.signal?.aborted) {
+            controller.error(requestInit.signal.reason)
+            return
+          }
           const failure = await withBlockLock(cacheKey, next, async () => {
             // Another reader (a worker, another tab) may have fetched it meanwhile.
             const fetchedMeanwhile = await cachedBlock(next)

@@ -1,8 +1,8 @@
 <!-- SPDX-License-Identifier: MIT -->
 <script lang="ts">
-  import Layers from 'lucide-svelte/icons/layers'
-  import Trash2 from 'lucide-svelte/icons/trash-2'
-  import ChevronRight from 'lucide-svelte/icons/chevron-right'
+  import Layers from '@lucide/svelte/icons/layers'
+  import Trash2 from '@lucide/svelte/icons/trash-2'
+  import ChevronRight from '@lucide/svelte/icons/chevron-right'
   import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
   import {
     AlertDialog,

@@ -49,8 +49,8 @@
    *    the migration marker and clears the error file; this component
    *    renders nothing again.
    */
-  import AlertTriangle from 'lucide-svelte/icons/alert-triangle'
-  import RefreshCw from 'lucide-svelte/icons/refresh-cw'
+  import AlertTriangle from '@lucide/svelte/icons/alert-triangle'
+  import RefreshCw from '@lucide/svelte/icons/refresh-cw'
   import { toast } from 'svelte-sonner'
   import { Button } from '@/components/ui/button'
   import { getMigrationErrors, migrateFromLegacyIDB } from '@/infrastructure/storage/legacy-idb'

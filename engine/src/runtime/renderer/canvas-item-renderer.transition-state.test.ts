@@ -1275,6 +1275,19 @@ describe('renderTransitionToGpuTexture', () => {
 
   it('keeps GPU-eligible participants direct when the opposite side falls back from sub-composition GPU resolve', async () => {
     vi.stubGlobal('GPUTextureUsage', { COPY_DST: 2, TEXTURE_BINDING: 4 })
+    vi.stubGlobal(
+      'OffscreenCanvas',
+      class {
+        constructor(
+          public width: number,
+          public height: number,
+        ) {}
+
+        getContext() {
+          return createMockCtx()
+        }
+      },
+    )
     const leftClip: ImageItem = {
       id: 'left-image',
       type: 'image',
@@ -1377,7 +1390,8 @@ describe('renderTransitionToGpuTexture', () => {
 
     expect(rendered).toBe(true)
     expect(gpuMediaPipeline.renderSourceToTexture).toHaveBeenCalledTimes(1)
-    expect(canvasPool.acquire).toHaveBeenCalledTimes(3)
+    // The fallback side's canvas; its sub-comp content comes from the scratch pool.
+    expect(canvasPool.acquire).toHaveBeenCalledTimes(1)
     expect(device.queue.copyExternalImageToTexture).not.toHaveBeenCalled()
     expect(gpuMediaPipeline.renderTextureToTexture).not.toHaveBeenCalled()
     expect(gpuPipeline.applyEffectsToTexture).toHaveBeenCalledWith(

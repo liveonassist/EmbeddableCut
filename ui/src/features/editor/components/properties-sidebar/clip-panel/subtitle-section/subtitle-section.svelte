@@ -1,6 +1,6 @@
 <!-- SPDX-License-Identifier: MIT -->
 <script lang="ts">
-  import Captions from 'lucide-svelte/icons/captions'
+  import Captions from '@lucide/svelte/icons/captions'
   import { i18n } from '@/i18n'
   import { DEFAULT_PROJECT_HEIGHT, DEFAULT_PROJECT_WIDTH } from '@/shared/projects/defaults'
   import type { SubtitleSegmentItem, TimelineItem } from '@/types/timeline'

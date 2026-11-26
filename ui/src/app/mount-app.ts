@@ -7,7 +7,7 @@
  */
 
 import { mount, unmount } from 'svelte'
-import { createEditor, type Editor } from '@embeddablecut/sdk'
+import type { Editor } from '@embeddablecut/sdk'
 import { i18nReady } from '@/i18n'
 import { setWorkspaceRoot } from '@/infrastructure/storage/workspace-fs/root'
 import { createLogger } from '@/shared/logging/logger'
@@ -18,6 +18,10 @@ import { ensureEditorFonts } from '../embed/fonts'
 import App from './app.svelte'
 
 const logger = createLogger('WorkspaceGate')
+
+// The SDK carries the whole engine, which the landing page, docs and
+// changelog never use, so it loads with the first workspace.
+const loadSdk = () => import('@embeddablecut/sdk')
 
 export interface MountedApp {
   /** Removes the app and disposes its editor, so another can be mounted. */
@@ -30,6 +34,9 @@ export interface MountedApp {
  * one app or editor runs in a page at a time.
  */
 export async function mountApp(target: HTMLElement): Promise<MountedApp> {
+  // The gate's workspace routes open the editor at once: fetch it with the
+  // app, not after the gate's storage checks.
+  if (/^\/(projects|editor)/.test(window.location.pathname)) loadSdk().catch(() => {})
   await i18nReady
   ensureEditorFonts()
   const shell = createEditorShell(target, { isolation: 'none', theme: 'dark', layout: 'page' })
@@ -67,6 +74,7 @@ export async function mountApp(target: HTMLElement): Promise<MountedApp> {
     // reconnecting: the editor already on this folder stays.
     if (editor && workspace && (await workspace.isSameEntry(handle))) return
     closeEditor()
+    const { createEditor } = await loadSdk()
     try {
       editor = await createEditor({ workspace: handle })
     } catch (error) {

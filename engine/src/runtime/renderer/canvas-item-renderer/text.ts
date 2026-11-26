@@ -55,9 +55,23 @@ const TEXT_RASTER_CACHE_MAX_BYTES = 256_000_000 // ~256MB
  * frames. Box width/height ARE included because they drive wrapping/layout.
  */
 export function getTextRasterCacheKey(item: TextItem, boxWidth: number, boxHeight: number): string {
+  // EmbeddableCut: an item is replaced, never changed, so its key holds
+  // across the frames it shows unchanged instead of serializing every frame.
+  const w = Math.round(boxWidth)
+  const h = Math.round(boxHeight)
+  const cached = textRasterKeyByItem.get(item)
+  if (cached && cached.w === w && cached.h === h) return cached.key
+  const key = buildTextRasterCacheKey(item, w, h)
+  textRasterKeyByItem.set(item, { w, h, key })
+  return key
+}
+
+const textRasterKeyByItem = new WeakMap<TextItem, { w: number; h: number; key: string }>()
+
+function buildTextRasterCacheKey(item: TextItem, w: number, h: number): string {
   return JSON.stringify({
-    w: Math.round(boxWidth),
-    h: Math.round(boxHeight),
+    w,
+    h,
     text: item.text,
     textSpans: item.textSpans,
     spanLayout: item.spanLayout,

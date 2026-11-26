@@ -1,8 +1,8 @@
 <!-- SPDX-License-Identifier: MIT -->
 <script lang="ts">
-  import FolderOpen from 'lucide-svelte/icons/folder-open'
-  import Loader2 from 'lucide-svelte/icons/loader-2'
-  import RefreshCw from 'lucide-svelte/icons/refresh-cw'
+  import FolderOpen from '@lucide/svelte/icons/folder-open'
+  import Loader2 from '@lucide/svelte/icons/loader-2'
+  import RefreshCw from '@lucide/svelte/icons/refresh-cw'
   import { untrack } from 'svelte'
   import { Button } from '@/components/ui/button'
   import { createLogger } from '@/shared/logging/logger'

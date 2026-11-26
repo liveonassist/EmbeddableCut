@@ -132,9 +132,9 @@
 </script>
 
 <script lang="ts">
-  import Crop from 'lucide-svelte/icons/crop'
-  import RotateCcw from 'lucide-svelte/icons/rotate-ccw'
-  import Video from 'lucide-svelte/icons/video'
+  import Crop from '@lucide/svelte/icons/crop'
+  import RotateCcw from '@lucide/svelte/icons/rotate-ccw'
+  import Video from '@lucide/svelte/icons/video'
   import { t } from '$lib/i18n.svelte'
   import { select, shallow } from '$lib/store.svelte'
   import { Button } from '@/components/ui/button'

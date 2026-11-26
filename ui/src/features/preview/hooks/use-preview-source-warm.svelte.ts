@@ -199,6 +199,15 @@ export function usePreviewSourceWarm(params: () => UsePreviewSourceWarmParams) {
             rafId = null
           }
           refreshWarmSet()
+        } else if (
+          state.isPlaying &&
+          prev.isPlaying &&
+          state.previewFrame === prev.previewFrame &&
+          Math.abs(state.currentFrame - prev.currentFrame) < fps
+        ) {
+          // Steady playback: the tick refreshes often enough for a window
+          // seconds wide, and every frame would recompute the whole set. A
+          // seek while playing still refreshes at once.
         } else {
           if (rafId !== null) {
             cancelAnimationFrame(rafId)

@@ -1,12 +1,12 @@
 <!-- SPDX-License-Identifier: MIT -->
 <script lang="ts">
   import { t } from '$lib/i18n.svelte'
-  import AlignCenter from 'lucide-svelte/icons/align-center'
-  import AlignCenterHorizontal from 'lucide-svelte/icons/align-center-horizontal'
-  import AlignEndHorizontal from 'lucide-svelte/icons/align-end-horizontal'
-  import AlignLeft from 'lucide-svelte/icons/align-left'
-  import AlignRight from 'lucide-svelte/icons/align-right'
-  import AlignStartHorizontal from 'lucide-svelte/icons/align-start-horizontal'
+  import AlignCenter from '@lucide/svelte/icons/align-center'
+  import AlignCenterHorizontal from '@lucide/svelte/icons/align-center-horizontal'
+  import AlignEndHorizontal from '@lucide/svelte/icons/align-end-horizontal'
+  import AlignLeft from '@lucide/svelte/icons/align-left'
+  import AlignRight from '@lucide/svelte/icons/align-right'
+  import AlignStartHorizontal from '@lucide/svelte/icons/align-start-horizontal'
   import { Button } from '@/components/ui/button'
   import type { TextItem } from '@/types/timeline'
   import { PropertyRow } from '../components'

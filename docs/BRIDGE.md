@@ -63,11 +63,11 @@ Every message carries `"protocol": "embeddablecut.bridge"` and `"version": 1`.
 | `settings.setPolicy` | `policy`: `{ "values"?, "locked"?, "hidden"? }` (setting keys), or `null` | `null` |
 | `ui.setTheme` | `theme`: `"dark"`, `"light"`, `"system"`, or `{ "mode", "tokens" }` | `null` |
 | `ui.setFeatures` | `features`: `{ "<feature id>": true \| false \| "locked" }`, replacing the last set ([EMBEDDING.md](EMBEDDING.md#hiding-and-locking-features)) | `null` |
-| `ui.setActions` | `actions`: `{ "save"?, "exportVideo"?, "exportBundle"?, "help"?: true, "deliver"?: { "label", "icon"? } }`, the actions the host takes over, replacing the last set ([Actions](#actions)) | `null` |
+| `ui.setActions` | `actions`: `{ "save"?, "exportVideo"?, "exportBundle"?, "deliver"?, "help"?: true \| { "label"?, "icon"? }, "saveAs"?: { "label", "icon"? } }`, the actions the host takes over, replacing the last set ([Actions](#actions)) | `null` |
 | `ui.runDefaultAction` | `id` of a waiting action | `null`, once the editor's own behavior has run |
 | `ui.completeAction` | `id` of a waiting action, `error?` | `null` |
 
-A **binary result** is `{ "mimeType", "fileName"?, "data", "encoding"? }`. Over a port `data` is an `ArrayBuffer`, transferred; over strings it's base64 and `encoding` is `"base64"`.
+A **binary result** is `{ "mimeType", "fileName"?, "data", "encoding"? }`. Over a port `data` is a `Blob`, which a port carries by reference so the file is never read into memory; over strings it's base64 and `encoding` is `"base64"`.
 
 ### Events
 
@@ -96,6 +96,7 @@ A host can take over saving, exporting, the export dialog's download and help ([
 { "protocol": "embeddablecut.bridge", "version": 1, "id": 42, "method": "ui.completeAction", "params": { "id": 3 } }
 ```
 
-- `action` is `save`, `exportVideo`, `exportBundle`, `deliver` or `help`. A `save` carries its `trigger` (`user`, `auto`, `leave`, `export`); a `deliver` carries the rendered `file` as a binary result, with `subtitles` (`fileName`, `content`) when the export wrote a sidecar.
+- `ui.setActions` takes each action as `true`, or as `{ "label", "icon" }` (a Lucide name) to rename its button or menu entry. `saveAs` always has a `label`: the editor has none of its own to fall back on.
+- `action` is `save`, `saveAs`, `exportVideo`, `exportBundle`, `deliver` or `help`. A `save` carries its `trigger` (`user`, `auto`, `leave`, `export`); a `deliver` carries the rendered `file` as a binary result, with `subtitles` (`fileName`, `content`) when the export wrote a sidecar.
 - Every action waits for its `ui.completeAction`: the Save button spins and the unsaved marker stays until then. `error` fails it as the editor's own failures do.
 - When the host disconnects, the actions it took go back to the editor's own, and those still waiting fail.

@@ -1,11 +1,11 @@
 <!-- SPDX-License-Identifier: MIT -->
 <script lang="ts">
-  import FolderOpen from 'lucide-svelte/icons/folder-open'
-  import FolderX from 'lucide-svelte/icons/folder-x'
-  import Loader2 from 'lucide-svelte/icons/loader-2'
-  import RefreshCw from 'lucide-svelte/icons/refresh-cw'
-  import AlertTriangle from 'lucide-svelte/icons/alert-triangle'
-  import BookOpen from 'lucide-svelte/icons/book-open'
+  import FolderOpen from '@lucide/svelte/icons/folder-open'
+  import FolderX from '@lucide/svelte/icons/folder-x'
+  import Loader2 from '@lucide/svelte/icons/loader-2'
+  import RefreshCw from '@lucide/svelte/icons/refresh-cw'
+  import AlertTriangle from '@lucide/svelte/icons/alert-triangle'
+  import BookOpen from '@lucide/svelte/icons/book-open'
   import { Button } from '@/components/ui/button'
   import EmbeddableCutLogo from '@/components/brand/embeddablecut-logo.svelte'
   import Trans from '@/components/trans.svelte'

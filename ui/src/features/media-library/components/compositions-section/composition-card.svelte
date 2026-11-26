@@ -1,6 +1,6 @@
 <!-- SPDX-License-Identifier: MIT -->
 <script lang="ts">
-  import Layers from 'lucide-svelte/icons/layers'
+  import Layers from '@lucide/svelte/icons/layers'
   import {
     ContextMenu,
     ContextMenuContent,

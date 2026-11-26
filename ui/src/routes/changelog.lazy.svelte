@@ -1,8 +1,8 @@
 <!-- SPDX-License-Identifier: MIT -->
 <script lang="ts" module>
-  import Plus from 'lucide-svelte/icons/plus'
-  import Sparkles from 'lucide-svelte/icons/sparkles'
-  import Wrench from 'lucide-svelte/icons/wrench'
+  import Plus from '@lucide/svelte/icons/plus'
+  import Sparkles from '@lucide/svelte/icons/sparkles'
+  import Wrench from '@lucide/svelte/icons/wrench'
   import changelogData from '@/data/changelog.json'
   import type { ChangelogEntry, ChangelogFile, ChangelogGroup } from '@/data/changelog-types'
 
@@ -62,9 +62,9 @@
 </script>
 
 <script lang="ts">
-  import ArrowLeft from 'lucide-svelte/icons/arrow-left'
-  import ArrowRight from 'lucide-svelte/icons/arrow-right'
-  import CalendarDays from 'lucide-svelte/icons/calendar-days'
+  import ArrowLeft from '@lucide/svelte/icons/arrow-left'
+  import ArrowRight from '@lucide/svelte/icons/arrow-right'
+  import CalendarDays from '@lucide/svelte/icons/calendar-days'
   import EmbeddableCutLogo from '@/components/brand/embeddablecut-logo.svelte'
   import { Button } from '@/components/ui/button'
   import { Link } from '$lib/router'

@@ -1,6 +1,6 @@
 <!-- SPDX-License-Identifier: MIT -->
 <script lang="ts">
-  import ChevronDown from 'lucide-svelte/icons/chevron-down'
+  import ChevronDown from '@lucide/svelte/icons/chevron-down'
   import { Button } from '@/components/ui/button'
   import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
   import { cn } from '@/shared/ui/cn'

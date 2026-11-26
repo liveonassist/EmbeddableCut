@@ -121,18 +121,26 @@ async function awaitFontsApplied(
     return ctx.measureText(PROBE).width
   }
 
+  // EmbeddableCut: every face waits on one shared tick, not one after another
+  // (60ms each at least), and a face once applied is not checked again.
+  const pending = new Map<string, { family: string; weight: number; streak: number }>()
   for (const family of new Set(families)) {
     const bare = family.replace(/^["']|["']$/g, '')
     for (const weight of weights) {
-      if (!(await waitForFaceApplied(measure, bare, weight, deadline))) {
-        unresolved.push(`${bare}:${weight}`)
-      }
+      const key = `${bare}:${weight}`
+      if (!appliedFaces.has(key)) pending.set(key, { family: bare, weight, streak: 0 })
     }
   }
+  if (pending.size === 0) return unresolved
+  await waitForFacesApplied(measure, pending, deadline)
+  unresolved.push(...pending.keys())
   // Let the compositor settle one frame before the first rasterisation.
   await new Promise((resolve) => requestAnimationFrame(() => resolve(undefined)))
   return unresolved
 }
+
+/** Faces `waitForFacesApplied` saw applied; a loaded face stays applied. */
+const appliedFaces = new Set<string>()
 
 // Glyph-rich probe: Latin + Cyrillic + digits, so a family that only ships a
 // partial subset cannot pass on a handful of shared glyphs.
@@ -140,38 +148,41 @@ const PROBE = 'HAMBURGEFONTSIVЖЯЦЩ0123456789'
 const GENERICS = ['monospace', 'serif'] as const
 
 /**
- * True once ONE family+weight measurably differs from the generics it is
- * stacked on, twice in a row.
+ * Removes each family+weight from `pending` once it measurably differs from
+ * the generics it is stacked on, twice in a row; what remains at the deadline
+ * never applied.
  *
  * Two consecutive passes, not one: a single pass flips true the moment the face
  * lands in the font cache while the raster path can still be a beat behind —
  * measured as the switch merely MOVING EARLIER (frame 44 -> ~22) rather than
  * disappearing. Requiring the metric to hold across a gap covers the raster path.
  */
-async function waitForFaceApplied(
+async function waitForFacesApplied(
   measure: (font: string) => number,
-  family: string,
-  weight: number,
+  pending: Map<string, { family: string; weight: number; streak: number }>,
   deadline: number,
-): Promise<boolean> {
+): Promise<void> {
   const STABLE_PASSES = 2
   // A family still falling back measures identically to the generic it is stacked
   // on. Differing from BOTH generics means the face is really in use.
-  const isApplied = (): boolean =>
+  const isApplied = (family: string, weight: number): boolean =>
     GENERICS.every(
       (generic) =>
         measure(`${weight} 100px "${family}", ${generic}`) !==
         measure(`${weight} 100px ${generic}`),
     )
 
-  let streak = 0
-  while (streak < STABLE_PASSES) {
-    streak = isApplied() ? streak + 1 : 0
-    if (streak >= STABLE_PASSES) return true
-    if (Date.now() >= deadline) return false
+  for (;;) {
+    for (const [key, face] of pending) {
+      face.streak = isApplied(face.family, face.weight) ? face.streak + 1 : 0
+      if (face.streak >= STABLE_PASSES) {
+        pending.delete(key)
+        appliedFaces.add(key)
+      }
+    }
+    if (pending.size === 0 || Date.now() >= deadline) return
     await new Promise((resolve) => setTimeout(resolve, 60))
   }
-  return true
 }
 
 /**
@@ -242,6 +253,11 @@ export interface HeadlessTimelineInput {
   strict?: boolean
   /** Load-time validation findings collected by the caller (renderProject). */
   validationWarnings?: HeadlessRenderWarning[]
+  /**
+   * EmbeddableCut: the compositions store already holds these compositions,
+   * live (an SDK render); read them rather than overwrite the editor's.
+   */
+  liveCompositions?: boolean
   /** Defaults to the driver's `__embeddablecutProgress` binding. */
   onProgress?: ProgressSink
   /** Defaults to a download the driver catches. */
@@ -265,6 +281,11 @@ export interface HeadlessProjectInput {
   outputFileName?: string
   /** Fail before rendering if any validation warning was collected. */
   strict?: boolean
+  /**
+   * EmbeddableCut: the compositions store already holds these compositions,
+   * live (an SDK render); read them rather than overwrite the editor's.
+   */
+  liveCompositions?: boolean
   onProgress?: ProgressSink
   deliver?: RenderDelivery
 }
@@ -633,7 +654,7 @@ export async function renderTimeline(input: HeadlessTimelineInput): Promise<Head
   })
 
   // Seed sub-compositions so the engine can resolve compound clips.
-  useCompositionsStore.getState().setCompositions(compositions)
+  if (!input.liveCompositions) useCompositionsStore.getState().setCompositions(compositions)
 
   // Register media URLs (range-streamed by mediabunny) so resolveMediaUrls()
   // and the engine's sub-comp media lookup resolve without the storage layer.
@@ -744,6 +765,7 @@ export async function renderProject(input: HeadlessProjectInput): Promise<Headle
     outputFileName,
     strict: input.strict,
     validationWarnings: projectWarningsToHeadless(projectWarnings),
+    liveCompositions: input.liveCompositions,
     onProgress: input.onProgress,
     deliver: input.deliver,
   })
@@ -769,6 +791,11 @@ export interface HeadlessFrameInput {
   outputFileName?: string
   /** Fail before rendering if any validation warning was collected. */
   strict?: boolean
+  /**
+   * EmbeddableCut: the compositions store already holds these compositions,
+   * live (an SDK render); read them rather than overwrite the editor's.
+   */
+  liveCompositions?: boolean
   deliver?: RenderDelivery
 }
 
@@ -960,7 +987,7 @@ export async function renderFrame(input: HeadlessFrameInput): Promise<HeadlessFr
   ]
   reportValidationWarnings(validationWarnings, input.strict, 'frame')
 
-  useCompositionsStore.getState().setCompositions(view.compositions)
+  if (!input.liveCompositions) useCompositionsStore.getState().setCompositions(view.compositions)
   registerMediaUrls(input.media)
   seedMediaLibrary(input.media)
 

@@ -1,8 +1,8 @@
 <!-- SPDX-License-Identifier: MIT -->
 <script lang="ts">
   import { untrack } from 'svelte'
-  import Link2 from 'lucide-svelte/icons/link-2'
-  import Unlink2 from 'lucide-svelte/icons/unlink-2'
+  import Link2 from '@lucide/svelte/icons/link-2'
+  import Unlink2 from '@lucide/svelte/icons/unlink-2'
   import CompoundPropertyAxisInput from './compound-property-axis-input.svelte'
   import {
     createCompoundAxisCallbacks,

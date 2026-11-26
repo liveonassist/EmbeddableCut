@@ -51,9 +51,9 @@
   import Contribution from '@/components/contribution.svelte'
   import type { PanelContribution, ReplaceableSlot } from '../../../../extensions/contributions'
   import {
+    actionHandler,
     runAction,
-    type ActionHandler,
-    type SaveContext,
+    type ActionContext,
     type SaveTrigger,
   } from '../../../../extensions/actions.svelte'
   import ContributionIcon from '@/components/contribution-icon.svelte'
@@ -74,7 +74,6 @@
     useTimelineShortcuts,
     useTransitionBreakageNotifications,
   } from '@/features/editor/deps/timeline-hooks'
-  import { initTransitionChainSubscription } from '@/features/editor/deps/timeline-subscriptions'
   import { toggleSnap, useTimelineSettingsStore } from '@/features/editor/deps/timeline-store'
   import { useSettingsStore } from '@/features/editor/deps/settings'
   import { useMaskEditorStore } from '@/features/editor/deps/preview'
@@ -137,20 +136,6 @@
   const replacement = (slot: ReplaceableSlot) => contributions?.replacement(slot) ?? null
   const bottomPanels = $derived(contributions?.panels('bottom') ?? [])
   const inspectorPanels = $derived(contributions?.panels('inspector') ?? [])
-
-  // Initialize transition chain subscription (pre-computes chains from timeline data)
-  // This subscription recomputes chains when items/transitions change - deferred to idle
-  // time so it doesn't compete with the initial editor render.
-  $effect(() => {
-    let unsubscribe: (() => void) | undefined
-    const id = requestIdleCallback(() => {
-      unsubscribe = initTransitionChainSubscription()
-    })
-    return () => {
-      cancelIdleCallback(id)
-      unsubscribe?.()
-    }
-  })
 
   // Preload export dialogs during idle time so they open instantly.
   $effect(() => {
@@ -251,19 +236,16 @@
 
   // The host saves instead. The project is clean afterwards only if nothing
   // changed while the host's save was in flight.
-  async function saveThroughHost(handler: ActionHandler<SaveContext>, trigger: SaveTrigger) {
-    const editor = editorUi!.editor
+  async function saveThroughHost(
+    save: (runDefault: ActionContext['runDefault']) => void | Promise<void>,
+  ) {
     let changed = false
-    const stopListening = editor.on('change', () => {
+    const stopListening = editorUi!.editor.on('change', () => {
       changed = true
     })
     try {
-      await handler({
-        editor,
-        trigger,
-        runDefault: async () => {
-          await saveToWorkspace()
-        },
+      await save(async () => {
+        await saveToWorkspace()
       })
     } finally {
       stopListening()
@@ -271,8 +253,31 @@
     if (!changed) useTimelineSettingsStore.getState().markClean()
   }
 
-  // Save the project (with guard against concurrent saves).
+  // Save the project (with guard against concurrent saves). The editor
+  // announces only its own saves: a host's handler knows where it saved, and
+  // says so itself.
   async function handleSave(trigger: SaveTrigger = 'user'): Promise<void> {
+    const action = hostActions?.current.save
+    await guardedSave(async () => {
+      if (!action || !editorUi) return saveToWorkspace()
+      const editor = editorUi.editor
+      await saveThroughHost((runDefault) => actionHandler(action)({ editor, trigger, runDefault }))
+      return false
+    })
+  }
+
+  async function handleSaveAs(): Promise<void> {
+    const action = hostActions?.current.saveAs
+    if (!action || !editorUi) return
+    const editor = editorUi.editor
+    await guardedSave(async () => {
+      await saveThroughHost((runDefault) => action.run({ editor, runDefault }))
+      return false
+    })
+  }
+
+  /** Runs a save unless one is running; `save` resolves whether to announce it. */
+  async function guardedSave(save: () => Promise<boolean>): Promise<void> {
     if (isSaving) {
       return
     }
@@ -280,9 +285,7 @@
     isSaving = true
 
     try {
-      const handler = hostActions?.current.save
-      if (handler && editorUi) await saveThroughHost(handler, trigger)
-      else if (!(await saveToWorkspace())) return
+      if (!(await save())) return
       logger.debug('Project saved successfully')
       toast.success(i18n.t('editor.editor.projectSaved'))
     } catch (error) {
@@ -302,9 +305,9 @@
   function handleExport() {
     // Pause playback when opening export dialog
     usePlaybackStore.getState().pause()
-    const handler = hostActions?.current.exportVideo
-    if (handler && editorUi) {
-      void runAction(handler, {
+    const action = hostActions?.current.exportVideo
+    if (action && editorUi) {
+      void runAction(actionHandler(action), {
         editor: editorUi.editor,
         runDefault: async () => openExportDialog(),
       })
@@ -319,9 +322,9 @@
   }
 
   async function handleExportBundle() {
-    const handler = hostActions?.current.exportBundle
-    if (handler && editorUi) {
-      await runAction(handler, { editor: editorUi.editor, runDefault: exportBundle })
+    const action = hostActions?.current.exportBundle
+    if (action && editorUi) {
+      await runAction(actionHandler(action), { editor: editorUi.editor, runDefault: exportBundle })
       return
     }
     await exportBundle()
@@ -455,6 +458,7 @@
     {projectId}
     {project}
     onSave={handleSave}
+    onSaveAs={hostActions?.current.saveAs ? handleSaveAs : undefined}
     onExport={handleExport}
     onExportBundle={handleExportBundle}
     onOpenRenderQueue={handleOpenRenderQueue}

@@ -1,6 +1,6 @@
 <!-- SPDX-License-Identifier: MIT -->
 <script lang="ts">
-  import Timer from 'lucide-svelte/icons/timer'
+  import Timer from '@lucide/svelte/icons/timer'
   import { Button } from '@/components/ui/button'
   import { cn } from '@/shared/ui/cn'
   import { MINI_ICON_BUTTON_CLASS, MINI_ICON_CLASS } from '../dopesheet-constants'

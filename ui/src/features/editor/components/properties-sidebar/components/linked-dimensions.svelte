@@ -1,8 +1,8 @@
 <!-- SPDX-License-Identifier: MIT -->
 <script lang="ts">
   import { Button } from '@/components/ui/button'
-  import Link2 from 'lucide-svelte/icons/link-2'
-  import Link2Off from 'lucide-svelte/icons/link-2-off'
+  import Link2 from '@lucide/svelte/icons/link-2'
+  import Link2Off from '@lucide/svelte/icons/link-2-off'
   import { NumberInput } from './number-input'
   import { cn } from '@/shared/ui/cn'
   import { t } from '$lib/i18n.svelte'

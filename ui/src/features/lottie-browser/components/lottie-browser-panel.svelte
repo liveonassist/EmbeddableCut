@@ -1,11 +1,11 @@
 <!-- SPDX-License-Identifier: MIT -->
 <script lang="ts">
   import { untrack } from 'svelte'
-  import ChevronLeft from 'lucide-svelte/icons/chevron-left'
-  import ChevronRight from 'lucide-svelte/icons/chevron-right'
-  import Loader2 from 'lucide-svelte/icons/loader-circle'
-  import Search from 'lucide-svelte/icons/search'
-  import X from 'lucide-svelte/icons/x'
+  import ChevronLeft from '@lucide/svelte/icons/chevron-left'
+  import ChevronRight from '@lucide/svelte/icons/chevron-right'
+  import Loader2 from '@lucide/svelte/icons/loader-circle'
+  import Search from '@lucide/svelte/icons/search'
+  import X from '@lucide/svelte/icons/x'
   import { Input } from '@/components/ui/input'
   import { cn } from '@/shared/ui/cn'
   import { t } from '$lib/i18n.svelte'

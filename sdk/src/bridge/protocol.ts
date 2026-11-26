@@ -132,14 +132,25 @@ export interface BridgeMethods {
   'ui.completeAction': { params: { id: number; error?: string }; result: null }
 }
 
-/** The editor actions a host takes over (`EditorActions` in the UI), by name. */
+/** What the host calls an action where the editor offers it: a label, and a Lucide `icon` name. */
+export interface BridgeActionLabel {
+  label?: string
+  icon?: string
+}
+
+/**
+ * The editor actions a host takes over (`EditorActions` in the UI), by name:
+ * `true`, or what to call it.
+ */
 export interface BridgeActions {
-  save?: boolean
-  exportVideo?: boolean
-  exportBundle?: boolean
-  /** Replaces the export dialog's Download with `label` (and a Lucide `icon` name). */
-  deliver?: { label: string; icon?: string }
-  help?: boolean
+  save?: boolean | BridgeActionLabel
+  /** Offered beside Save only when taken, so it needs a `label`. */
+  saveAs?: BridgeActionLabel & { label: string }
+  exportVideo?: boolean | BridgeActionLabel
+  exportBundle?: boolean | BridgeActionLabel
+  /** The export dialog's Download. */
+  deliver?: boolean | BridgeActionLabel
+  help?: boolean | BridgeActionLabel
 }
 
 export type BridgeActionName = keyof BridgeActions
@@ -167,13 +178,15 @@ export interface ProjectSummary {
 }
 
 /**
- * Bytes a method returns. Over a `MessagePort` `data` is an `ArrayBuffer`,
- * transferred; over a string channel it's base64 and `encoding` says so.
+ * Bytes a method returns. Over a `MessagePort` `data` is the `Blob` itself,
+ * which a port carries by reference, so an export or bundle is never read
+ * into memory on the way; over a string channel it's base64 and `encoding`
+ * says so.
  */
 export interface BinaryResult {
   mimeType: string
   fileName?: string
-  data: ArrayBuffer | string
+  data: Blob | string
   encoding?: 'base64'
 }
 

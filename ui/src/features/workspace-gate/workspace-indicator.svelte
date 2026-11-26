@@ -25,11 +25,11 @@
    * the new state. Reload is a sledgehammer but keeps the UX simple and
    * avoids plumbing a workspace-changed signal through every cached store.
    */
-  import Check from 'lucide-svelte/icons/check'
-  import ChevronDown from 'lucide-svelte/icons/chevron-down'
-  import FolderOpen from 'lucide-svelte/icons/folder-open'
-  import Plus from 'lucide-svelte/icons/plus'
-  import Trash2 from 'lucide-svelte/icons/trash-2'
+  import Check from '@lucide/svelte/icons/check'
+  import ChevronDown from '@lucide/svelte/icons/chevron-down'
+  import FolderOpen from '@lucide/svelte/icons/folder-open'
+  import Plus from '@lucide/svelte/icons/plus'
+  import Trash2 from '@lucide/svelte/icons/trash-2'
   import { Button } from '@/components/ui/button'
   import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
   import { cn } from '@/shared/ui/cn'

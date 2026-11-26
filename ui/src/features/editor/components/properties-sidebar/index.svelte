@@ -149,11 +149,11 @@
   import { select } from '$lib/store.svelte'
   import { portalTarget } from '$lib/context'
   import { Button } from '@/components/ui/button'
-  import ChevronDown from 'lucide-svelte/icons/chevron-down'
-  import ChevronLeft from 'lucide-svelte/icons/chevron-left'
-  import ChevronRight from 'lucide-svelte/icons/chevron-right'
-  import ChevronUp from 'lucide-svelte/icons/chevron-up'
-  import Settings2 from 'lucide-svelte/icons/settings-2'
+  import ChevronDown from '@lucide/svelte/icons/chevron-down'
+  import ChevronLeft from '@lucide/svelte/icons/chevron-left'
+  import ChevronRight from '@lucide/svelte/icons/chevron-right'
+  import ChevronUp from '@lucide/svelte/icons/chevron-up'
+  import Settings2 from '@lucide/svelte/icons/settings-2'
   import {
     useCompositionNavigationStore,
     useCompositionsStore,

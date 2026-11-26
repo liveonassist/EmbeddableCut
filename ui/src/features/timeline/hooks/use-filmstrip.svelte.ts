@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 
 import { untrack } from 'svelte'
+import { shallow } from '$lib/store.svelte'
 import {
   filmstripCache,
   type Filmstrip,
@@ -114,12 +115,18 @@ export function useFilmstrip(options: () => UseFilmstripOptions): UseFilmstripRe
 
   // Filmstrip extraction runs at 1fps, so quantize the requested source
   // window to frame indices before passing it to the cache.
+  // The range and indices below keep their last value while it's unchanged: the
+  // windows they come from move on every scroll tick, and the load effect keyed
+  // on them would otherwise re-run, postponing extraction while the user scrolls.
+  let lastPriorityRange: { startIndex: number; endIndex: number } | null = null
   const priorityRange = $derived.by(() => {
     if (!priorityWindow) return null
 
     const startIndex = Math.max(0, Math.floor(priorityWindow.startTime))
     const endIndex = Math.max(startIndex + 1, Math.ceil(priorityWindow.endTime))
-    return { startIndex, endIndex }
+    const next = { startIndex, endIndex }
+    if (!shallow(next, lastPriorityRange)) lastPriorityRange = next
+    return lastPriorityRange
   })
 
   const normalizedTargetFrameCount = $derived.by(() => {
@@ -133,6 +140,7 @@ export function useFilmstrip(options: () => UseFilmstripOptions): UseFilmstripRe
     return Math.max(1, Math.ceil(targetFrameCount))
   })
 
+  let lastTargetFrameIndices: number[] | undefined
   const normalizedTargetFrameIndices = $derived.by(() => {
     if (!Array.isArray(targetFrameIndices) || targetFrameIndices.length === 0) {
       return undefined
@@ -147,7 +155,9 @@ export function useFilmstrip(options: () => UseFilmstripOptions): UseFilmstripRe
     }
 
     const normalized = Array.from(indices).sort((a, b) => a - b)
-    return normalized.length > 0 ? normalized : undefined
+    if (normalized.length === 0) return undefined
+    if (!shallow(normalized, lastTargetFrameIndices)) lastTargetFrameIndices = normalized
+    return lastTargetFrameIndices
   })
 
   // Subscribe to progressive updates. Intentionally does not require blobUrl —

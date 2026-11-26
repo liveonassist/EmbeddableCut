@@ -29,7 +29,7 @@ export default defineConfig({
           ],
           patterns: [
             {
-              group: ['react/*', 'react-dom/*', 'react-*', '@radix-ui/*', 'lucide-*', '@tanstack/react-*', 'zustand/react*', 'svelte/*'],
+              group: ['react/*', 'react-dom/*', 'react-*', '@radix-ui/*', 'lucide-*', '@lucide/*', '@tanstack/react-*', 'zustand/react*', 'svelte/*'],
               message: uiFramework,
             },
           ],

@@ -1,6 +1,6 @@
 <!-- SPDX-License-Identifier: MIT -->
 <script lang="ts">
-  import Link2Off from 'lucide-svelte/icons/link-2-off'
+  import Link2Off from '@lucide/svelte/icons/link-2-off'
   import { t } from '$lib/i18n.svelte'
   import { cn } from '@/shared/ui/cn'
   import ClipLabelIndicators from './clip-label-indicators.svelte'

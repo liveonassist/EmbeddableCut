@@ -3,7 +3,7 @@
 import { usePlaybackStore } from '@/shared/state/playback'
 import { useSelectionStore } from '@/shared/state/selection'
 import { useItemsStore } from '@/features/editor/deps/timeline-store'
-import type { TimelineItem } from '@/types/timeline'
+import type { TimelineItem, TimelineTrack } from '@/types/timeline'
 
 // Lower value wins — grade the actual footage before overlays sharing the frame.
 const GRADE_TYPE_PRIORITY: Record<TimelineItem['type'], number> = {
@@ -23,17 +23,37 @@ function spansFrame(item: TimelineItem, frame: number): boolean {
   return frame >= item.from && frame < item.from + item.durationInFrames
 }
 
-function findGradeTargetAtFrame(frame: number): TimelineItem | null {
-  const { items, tracks } = useItemsStore.getState()
+interface GradeTargetScan {
+  target: TimelineItem | null
+  /** The frames around this one with no candidate starting or ending, so the same answer. */
+  from: number
+  to: number
+}
+
+function findGradeTargetAtFrame(
+  frame: number,
+  items: TimelineItem[],
+  tracks: TimelineTrack[],
+): GradeTargetScan {
   const trackById = new Map(tracks.map((track) => [track.id, track]))
 
   let best: TimelineItem | null = null
   let bestPriority = Number.POSITIVE_INFINITY
   let bestOrder = Number.POSITIVE_INFINITY
+  let from = Number.NEGATIVE_INFINITY
+  let to = Number.POSITIVE_INFINITY
   for (const item of items) {
-    if (item.type === 'audio' || !spansFrame(item, frame)) continue
+    if (item.type === 'audio') continue
     const track = trackById.get(item.trackId)
     if (!track || track.isGroup || !track.visible) continue
+    const end = item.from + item.durationInFrames
+    if (!spansFrame(item, frame)) {
+      if (item.from > frame) to = Math.min(to, item.from)
+      else from = Math.max(from, end)
+      continue
+    }
+    from = Math.max(from, item.from)
+    to = Math.min(to, end)
     const priority = GRADE_TYPE_PRIORITY[item.type]
     if (priority < bestPriority || (priority === bestPriority && track.order < bestOrder)) {
       best = item
@@ -41,7 +61,7 @@ function findGradeTargetAtFrame(frame: number): TimelineItem | null {
       bestOrder = track.order
     }
   }
-  return best
+  return { target: best, from, to }
 }
 
 /**
@@ -54,6 +74,10 @@ function findGradeTargetAtFrame(frame: number): TimelineItem | null {
  */
 export function useColorPlayheadAutoSelect(): void {
   $effect(() => {
+    // The last scan that found nothing, so playing through a gap doesn't scan
+    // every item each frame. Good while the items and tracks are those it saw.
+    let gap: (GradeTargetScan & { items: TimelineItem[]; tracks: TimelineTrack[] }) | null = null
+
     const apply = () => {
       const playback = usePlaybackStore.getState()
       // Defer while a scrub preview is in flight — re-selecting per scrub frame
@@ -70,8 +94,19 @@ export function useColorPlayheadAutoSelect(): void {
       })
       if (hasGradeTargetSelected) return
 
-      const target = findGradeTargetAtFrame(frame)
-      if (target) selection.selectItems([target.id])
+      const { items, tracks } = useItemsStore.getState()
+      if (
+        gap &&
+        gap.items === items &&
+        gap.tracks === tracks &&
+        frame >= gap.from &&
+        frame < gap.to
+      ) {
+        return
+      }
+      const scan = findGradeTargetAtFrame(frame, items, tracks)
+      gap = scan.target ? null : { ...scan, items, tracks }
+      if (scan.target) selection.selectItems([scan.target.id])
     }
 
     apply()

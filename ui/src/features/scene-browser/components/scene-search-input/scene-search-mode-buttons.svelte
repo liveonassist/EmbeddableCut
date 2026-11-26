@@ -1,10 +1,10 @@
 <!-- SPDX-License-Identifier: MIT -->
 <script lang="ts">
-  import Check from 'lucide-svelte/icons/check'
-  import ChevronDown from 'lucide-svelte/icons/chevron-down'
-  import Palette from 'lucide-svelte/icons/palette'
-  import Sparkles from 'lucide-svelte/icons/sparkles'
-  import Type from 'lucide-svelte/icons/type'
+  import Check from '@lucide/svelte/icons/check'
+  import ChevronDown from '@lucide/svelte/icons/chevron-down'
+  import Palette from '@lucide/svelte/icons/palette'
+  import Sparkles from '@lucide/svelte/icons/sparkles'
+  import Type from '@lucide/svelte/icons/type'
   import {
     DropdownMenu,
     DropdownMenuContent,

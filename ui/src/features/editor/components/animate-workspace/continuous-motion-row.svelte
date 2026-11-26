@@ -1,6 +1,6 @@
 <!-- SPDX-License-Identifier: MIT -->
 <script lang="ts">
-  import Trash2 from 'lucide-svelte/icons/trash-2'
+  import Trash2 from '@lucide/svelte/icons/trash-2'
   import type { MotionModifierChannel, MotionModifierChannelGains } from '@/types/motion'
   import { cn } from '@/shared/ui/cn'
   import { Button } from '@/components/ui/button'

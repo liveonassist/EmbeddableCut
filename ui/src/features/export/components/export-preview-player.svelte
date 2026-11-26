@@ -14,12 +14,12 @@
 </script>
 
 <script lang="ts">
-  import Play from 'lucide-svelte/icons/play'
-  import Pause from 'lucide-svelte/icons/pause'
-  import Volume2 from 'lucide-svelte/icons/volume-2'
-  import VolumeX from 'lucide-svelte/icons/volume-x'
-  import Maximize from 'lucide-svelte/icons/maximize'
-  import Minimize from 'lucide-svelte/icons/minimize'
+  import Play from '@lucide/svelte/icons/play'
+  import Pause from '@lucide/svelte/icons/pause'
+  import Volume2 from '@lucide/svelte/icons/volume-2'
+  import VolumeX from '@lucide/svelte/icons/volume-x'
+  import Maximize from '@lucide/svelte/icons/maximize'
+  import Minimize from '@lucide/svelte/icons/minimize'
   import { Button } from '@/components/ui/button'
   import { Slider } from '@/components/ui/slider'
   import { useMediaPlaybackControls } from '@/shared/media/use-media-playback-controls.svelte'

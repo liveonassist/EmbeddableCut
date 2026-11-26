@@ -1,7 +1,7 @@
 <!-- SPDX-License-Identifier: MIT -->
 <script lang="ts">
-  import ChevronDown from 'lucide-svelte/icons/chevron-down'
-  import ChevronRight from 'lucide-svelte/icons/chevron-right'
+  import ChevronDown from '@lucide/svelte/icons/chevron-down'
+  import ChevronRight from '@lucide/svelte/icons/chevron-right'
   import { cn } from '@/shared/ui/cn'
   import { MINI_ICON_CLASS } from '../dopesheet-constants'
   import type { GroupExpandButtonProps } from './types'

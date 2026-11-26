@@ -91,7 +91,7 @@
     })
   })
 
-  let player = $state<PlayerRef | null>(null)
+  let player = $state.raw<PlayerRef | null>(null)
   // Frames the player reports while settling on a seek it was given are not
   // the user's: ignore them until the next frame.
   let ignorePlayerUpdates = false

@@ -2,7 +2,7 @@
 <script lang="ts">
   import { PaneResizer } from 'paneforge'
   import type { ComponentProps } from 'svelte'
-  import GripVertical from 'lucide-svelte/icons/grip-vertical'
+  import GripVertical from '@lucide/svelte/icons/grip-vertical'
   import { cn } from '$lib/cn'
 
   type Props = ComponentProps<typeof PaneResizer> & { withHandle?: boolean }

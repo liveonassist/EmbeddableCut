@@ -8,6 +8,7 @@ import type {
   FlipDirection,
 } from '@/types/transition'
 import { TRANSITION_CONFIGS } from '@/types/transition'
+import { normalizeReusing } from './normalize-reusing'
 
 /**
  * Transitions state - cut transitions between adjacent clips.
@@ -171,7 +172,13 @@ export const useTransitionsStore = create<TransitionsState & TransitionsActions>
   // Bulk setters
   setTransitions: (transitions) =>
     set((state) => {
-      const normalizedTransitions = transitions.map((transition) => normalizeTransition(transition))
+      // EmbeddableCut: keep the transitions the store holds, as items-store's setTracks does.
+      const normalizedTransitions = normalizeReusing(
+        transitions,
+        state.transitions,
+        normalizeTransition,
+      )
+      if (normalizedTransitions === state.transitions) return state
       return withTransitionIndexes(normalizedTransitions, state)
     }),
 

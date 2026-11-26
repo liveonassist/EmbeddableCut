@@ -22,6 +22,14 @@ import {
   scaleResolvedTransformForCanvas,
   scaleShapeItemForCanvas,
 } from './canvas-render-scale'
+import {
+  cacheMaskPath,
+  drawThroughMask,
+  getCachedMaskPath,
+  getRenderedMask,
+  keepRenderedMask,
+} from './mask-cache'
+import { acquireScratchCanvas, releaseScratchCanvas } from './scratch-canvas-pool'
 
 interface MaskEntry {
   mask: ShapeItem
@@ -185,8 +193,10 @@ export function buildPreparedMask(
     }
   }
 
-  // Generate SVG path
-  let svgPath = getShapePath(
+  // Generate SVG path. EmbeddableCut: unless this mask's is kept from a frame
+  // with the same geometry.
+  const cachedPath = getCachedMaskPath(mask, transform, canvas)
+  let svgPath = cachedPath ? '' : getShapePath(
     { ...renderedMask, pathClosed: true },
     {
       x: transform.x,
@@ -203,7 +213,7 @@ export function buildPreparedMask(
   )
 
   // Apply rotation by baking into path
-  if (transform.rotation !== 0) {
+  if (!cachedPath && transform.rotation !== 0) {
     const centerX = canvas.width / 2 + transform.x
     const centerY = canvas.height / 2 + transform.y
     svgPath = rotatePath(svgPath, transform.rotation, centerX, centerY)
@@ -217,7 +227,7 @@ export function buildPreparedMask(
     Math.max(0, Math.min(1, transform.opacity))
 
   return {
-    path: svgPathToPath2D(svgPath),
+    path: cachedPath ?? cacheMaskPath(mask, transform, canvas, svgPathToPath2D(svgPath)),
     inverted: renderedMask.maskInvert ?? false,
     feather,
     opacity,
@@ -304,6 +314,11 @@ function applyAlphaMask(
   opacity: number,
   canvas: MaskCanvasSettings,
 ): void {
+  // EmbeddableCut: the rendered mask depends only on its path and settings,
+  // so the items it covers, and later frames, share one.
+  const renderedMask = getRenderedMask(path, inverted, feather, canvas)
+  if (renderedMask) return drawThroughMask(ctx, contentCanvas, renderedMask, opacity)
+
   // Create mask canvas with ALPHA-based masking
   // Canvas starts transparent (alpha=0), which means "hide" for destination-in
   const maskCanvas = new OffscreenCanvas(canvas.width, canvas.height)
@@ -334,6 +349,7 @@ function applyAlphaMask(
     blurredMaskCtx.drawImage(maskCanvas, 0, 0)
     finalMask = blurredMaskCanvas
   }
+  keepRenderedMask(path, inverted, feather, canvas, finalMask)
 
   // Apply mask using destination-in compositing
   // destination-in: keeps destination (content) only where source (mask) alpha > 0
@@ -355,6 +371,10 @@ function applyBitmapMask(
   canvas: MaskCanvasSettings,
 ): void {
   let finalMask = bitmapMask
+  // EmbeddableCut: as for path masks, when there is a mask to render.
+  const renderedMask =
+    inverted || feather > 0 ? getRenderedMask(bitmapMask, inverted, feather, canvas) : undefined
+  if (renderedMask) return drawThroughMask(ctx, contentCanvas, renderedMask, opacity)
 
   if (inverted || feather > 0) {
     const maskCanvas = new OffscreenCanvas(canvas.width, canvas.height)
@@ -380,6 +400,7 @@ function applyBitmapMask(
     blurredMaskCtx.drawImage(finalMask, 0, 0)
     finalMask = blurredMaskCanvas
   }
+  if (finalMask !== bitmapMask) keepRenderedMask(bitmapMask, inverted, feather, canvas, finalMask)
 
   ctx.drawImage(contentCanvas, 0, 0)
   ctx.globalCompositeOperation = 'destination-in'
@@ -440,10 +461,15 @@ export function applyMasks(
   // Have alpha masks - need compositing approach
   // Process masks one at a time, using intermediate canvases
   let currentContent = contentCanvas
+  // EmbeddableCut: scratch canvases, released once the result is drawn.
+  const intermediates: OffscreenCanvas[] = []
 
   for (const mask of masks) {
-    const outputCanvas = new OffscreenCanvas(canvas.width, canvas.height)
-    const outputCtx = outputCanvas.getContext('2d')!
+    const { canvas: outputCanvas, ctx: outputCtx } = acquireScratchCanvas(
+      canvas.width,
+      canvas.height,
+    )!
+    intermediates.push(outputCanvas)
 
     if (mask.bitmapMask) {
       applyBitmapMask(
@@ -479,6 +505,7 @@ export function applyMasks(
 
   // Draw final result
   ctx.drawImage(currentContent, 0, 0)
+  for (const intermediate of intermediates) releaseScratchCanvas(intermediate)
 }
 
 /**

@@ -1,8 +1,8 @@
 <!-- SPDX-License-Identifier: MIT -->
 <script lang="ts">
-  import CheckCircle2 from 'lucide-svelte/icons/circle-check'
-  import Loader2 from 'lucide-svelte/icons/loader-circle'
-  import XCircle from 'lucide-svelte/icons/circle-x'
+  import CheckCircle2 from '@lucide/svelte/icons/circle-check'
+  import Loader2 from '@lucide/svelte/icons/loader-circle'
+  import XCircle from '@lucide/svelte/icons/circle-x'
   import { Button } from '@/components/ui/button'
   import {
     Dialog,

@@ -411,6 +411,7 @@ restartedService.stdout.on('data', (chunk) => {
 restartedService.stderr.on('data', (chunk) => {
   restartLog += chunk
 })
+let drainedRender
 try {
   let restartedStatus
   for (let attempt = 0; attempt < 80; attempt++) {
@@ -444,6 +445,18 @@ try {
   const restartedFinalRender = (await restartedFinalRenderResponse.json()).operation
   assert.equal(restartedFinalRender.state, 'succeeded')
   assert.deepEqual(restartedFinalRender.artifact.mediaProbe, finalRender.artifact.mediaProbe)
+
+  // Stopping the service mid-render must let the render finish, not close the browser under it.
+  drainedRender = fetch(`http://127.0.0.1:${restartPort}/v1/render`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ project: 'demo', duration: 3, codec: 'vp9' }),
+  })
+  for (let attempt = 0; attempt < 400; attempt++) {
+    const status = await (await fetch(`http://127.0.0.1:${restartPort}/v1/status`)).json()
+    if (status.activeOperation?.kind === 'render' && status.activeOperation.progress) break
+    await new Promise((resolve) => setTimeout(resolve, 10))
+  }
 } finally {
   const exited = new Promise((resolve) => restartedService.once('exit', () => resolve(true)))
   restartedService.kill('SIGTERM')
@@ -451,10 +464,13 @@ try {
     exited,
     new Promise((resolve) => setTimeout(() => resolve(false), 10_000)),
   ])
-  assert.equal(didExit, true, 'restarted service did not exit after SIGTERM')
+  assert.equal(didExit, true, `restarted service did not exit after SIGTERM\n${restartLog}`)
   if (process.platform === 'win32')
     fs.rmSync(path.join(workspace, '.embeddablecut-render', 'writer.lock'), { force: true })
 }
+const drainedResponse = await drainedRender
+assert.equal(drainedResponse.status, 200, restartLog)
+assert.ok((await drainedResponse.arrayBuffer()).byteLength > 0)
 
 try {
   const source = path.join(workspace, 'tone.wav')

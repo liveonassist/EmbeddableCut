@@ -1,7 +1,7 @@
 <!-- SPDX-License-Identifier: MIT -->
 <script lang="ts">
-  import Save from 'lucide-svelte/icons/save'
-  import Trash2 from 'lucide-svelte/icons/trash-2'
+  import Save from '@lucide/svelte/icons/save'
+  import Trash2 from '@lucide/svelte/icons/trash-2'
   import { t } from '$lib/i18n.svelte'
   import {
     AlertDialog,

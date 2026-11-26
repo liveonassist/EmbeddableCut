@@ -18,7 +18,7 @@ const byOrder = <T extends { order?: number }>(a: T, b: T) => (a.order ?? 1000) 
  * installed extensions, kept current as extensions come and go.
  */
 export class ContributionRegistry {
-  private sources = $state<UiContributions[]>([])
+  private sources = $state.raw<UiContributions[]>([])
   private readonly stop: () => void
 
   constructor(

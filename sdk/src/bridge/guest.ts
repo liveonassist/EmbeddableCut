@@ -56,19 +56,11 @@ export function serveBridge(
   transport: BridgeTransport,
   options: ServeBridgeOptions = {},
 ): () => void {
-  const binary = async (
-    blob: Blob,
-    fileName?: string,
-  ): Promise<BinaryResult & { transfer?: ArrayBuffer }> => {
-    const buffer = await blob.arrayBuffer()
+  const binary = async (blob: Blob, fileName?: string): Promise<BinaryResult> => {
+    const named = { mimeType: blob.type, ...(fileName ? { fileName } : {}) }
     return transport.textOnly
-      ? {
-          mimeType: blob.type,
-          ...(fileName ? { fileName } : {}),
-          data: toBase64(buffer),
-          encoding: 'base64',
-        }
-      : { mimeType: blob.type, ...(fileName ? { fileName } : {}), data: buffer, transfer: buffer }
+      ? { ...named, data: toBase64(await blob.arrayBuffer()), encoding: 'base64' }
+      : { ...named, data: blob }
   }
 
   let tookActions = false
@@ -83,18 +75,13 @@ export function serveBridge(
       waitingActions.set(id, { runDefault, resolve, reject })
     })
     const encoded = file ? await binary(file) : null
-    const transfer = encoded?.transfer
-    if (encoded) delete encoded.transfer
     const payload: BridgeActionEvent = {
       id,
       action,
       ...(trigger ? { trigger } : {}),
       ...(encoded ? { file: { ...encoded, ...(subtitles ? { subtitles } : {}) } } : {}),
     }
-    transport.send(
-      { protocol: BRIDGE_PROTOCOL, version: BRIDGE_VERSION, event: 'action', payload },
-      transfer ? [transfer] : [],
-    )
+    transport.send({ protocol: BRIDGE_PROTOCOL, version: BRIDGE_VERSION, event: 'action', payload })
     return done
   }
   const waitingAction = (id: number) => {
@@ -241,11 +228,8 @@ export function serveBridge(
       return
     }
     try {
-      const result = (await handler(request.params)) as { transfer?: ArrayBuffer } | null
-      const transfer =
-        result && typeof result === 'object' && result.transfer ? [result.transfer] : []
-      if (result && typeof result === 'object' && 'transfer' in result) delete result.transfer
-      transport.send({ ...reply, ok: true, result: result ?? null }, transfer)
+      const result = await handler(request.params)
+      transport.send({ ...reply, ok: true, result: result ?? null })
     } catch (error) {
       const code = (error as { code?: unknown }).code
       transport.send({

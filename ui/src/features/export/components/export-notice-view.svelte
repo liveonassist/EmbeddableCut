@@ -4,8 +4,8 @@
    * Terminal step of the export dialog that only reports an outcome: the failure
    * message, or the note that the export was cancelled. Both offer just "Close".
    */
-  import AlertCircle from 'lucide-svelte/icons/alert-circle'
-  import X from 'lucide-svelte/icons/x'
+  import AlertCircle from '@lucide/svelte/icons/alert-circle'
+  import X from '@lucide/svelte/icons/x'
   import { Alert, AlertDescription } from '@/components/ui/alert'
   import { Button } from '@/components/ui/button'
   import { t } from '$lib/i18n.svelte'

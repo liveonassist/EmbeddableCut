@@ -20,7 +20,7 @@ import {
   setRemoteUrlHooks,
   type RemoteRequestMetadata,
 } from '@/infrastructure/remote-media/remote-fetch'
-import { registerKeyframeIndex } from '@/shared/utils/keyframe-index-registry'
+import { clearKeyframeIndex, registerKeyframeIndex } from '@/shared/utils/keyframe-index-registry'
 import { createLogger } from '@/shared/logging/logger'
 import { useMediaLibraryStore } from '../stores/media-library-store'
 
@@ -28,6 +28,18 @@ const logger = createLogger('RemoteMedia')
 
 /** Renew this long before a URL expires, so a read started now finishes on it. */
 const RENEW_MARGIN_MS = 5 * 60_000
+
+/**
+ * The soonest a renewal follows the last. A URL that lives shorter than twice
+ * the margin renews halfway through its life instead; one that is already
+ * expired, or nearly, would otherwise renew back to back.
+ */
+const MIN_RENEW_DELAY_MS = 10_000
+
+function renewDelayFor(expiresAt: number): number {
+  const lifetime = Math.max(0, expiresAt - Date.now())
+  return Math.max(MIN_RENEW_DELAY_MS, lifetime - Math.min(RENEW_MARGIN_MS, lifetime / 2))
+}
 
 /** What the host's resolver returns for a URL asset. */
 export interface RemoteMediaResolution {
@@ -50,7 +62,8 @@ export type RemoteMediaResolver = (
 interface ActiveRemote {
   url: string
   cacheKey: string
-  expiresAt?: number
+  /** When reads stop taking this URL as it is and renew it first. */
+  renewAt?: number
   timer?: ReturnType<typeof setTimeout>
 }
 
@@ -68,7 +81,7 @@ function remoteCacheKeyOf(media: MediaMetadata): string {
 }
 
 function needsRenewal(entry: ActiveRemote | undefined): boolean {
-  return Boolean(entry?.expiresAt && entry.expiresAt - Date.now() < RENEW_MARGIN_MS)
+  return entry?.renewAt !== undefined && Date.now() >= entry.renewAt
 }
 
 /** Whether a URL good until `expiresAt` can be read without renewing it first. */
@@ -102,7 +115,10 @@ function activate(
   }
 
   if (previous?.timer) clearTimeout(previous.timer)
-  if (previous && previous.url !== url) unregisterRemoteUrl(previous.url)
+  if (previous && previous.url !== url) {
+    unregisterRemoteUrl(previous.url)
+    clearKeyframeIndex(previous.url)
+  }
   registerRemoteUrl(url, {
     mediaId: media.id,
     storageType: 'url',
@@ -112,9 +128,10 @@ function activate(
   })
   if (media.keyframeTimestamps?.length) registerKeyframeIndex(url, media.keyframeTimestamps)
 
-  const entry: ActiveRemote = { url, cacheKey, ...(expiresAt === undefined ? {} : { expiresAt }) }
+  const entry: ActiveRemote = { url, cacheKey }
   if (resolver && expiresAt) {
-    const delay = Math.max(0, expiresAt - Date.now() - RENEW_MARGIN_MS)
+    const delay = renewDelayFor(expiresAt)
+    entry.renewAt = Date.now() + delay
     entry.timer = setTimeout(() => {
       const current = useMediaLibraryStore.getState().mediaById[media.id]
       if (current) void renewRemoteMedia(current, 'expiring')
@@ -208,6 +225,7 @@ export function resetRemoteMedia(): void {
   for (const entry of active.values()) {
     if (entry.timer) clearTimeout(entry.timer)
     unregisterRemoteUrl(entry.url)
+    clearKeyframeIndex(entry.url)
   }
   active.clear()
   pending.clear()

@@ -23,20 +23,20 @@
 <script lang="ts">
   import { untrack } from 'svelte'
   import { toast } from 'svelte-sonner'
-  import Captions from 'lucide-svelte/icons/captions'
-  import CircleCheck from 'lucide-svelte/icons/circle-check'
-  import ChevronDown from 'lucide-svelte/icons/chevron-down'
-  import ChevronUp from 'lucide-svelte/icons/chevron-up'
-  import Copy from 'lucide-svelte/icons/copy'
-  import Loader2 from 'lucide-svelte/icons/loader-circle'
-  import RotateCcw from 'lucide-svelte/icons/rotate-ccw'
-  import Scissors from 'lucide-svelte/icons/scissors'
-  import Search from 'lucide-svelte/icons/search'
-  import Trash2 from 'lucide-svelte/icons/trash-2'
-  import Undo2 from 'lucide-svelte/icons/undo-2'
-  import X from 'lucide-svelte/icons/x'
+  import Captions from '@lucide/svelte/icons/captions'
+  import CircleCheck from '@lucide/svelte/icons/circle-check'
+  import ChevronDown from '@lucide/svelte/icons/chevron-down'
+  import ChevronUp from '@lucide/svelte/icons/chevron-up'
+  import Copy from '@lucide/svelte/icons/copy'
+  import Loader2 from '@lucide/svelte/icons/loader-circle'
+  import RotateCcw from '@lucide/svelte/icons/rotate-ccw'
+  import Scissors from '@lucide/svelte/icons/scissors'
+  import Search from '@lucide/svelte/icons/search'
+  import Trash2 from '@lucide/svelte/icons/trash-2'
+  import Undo2 from '@lucide/svelte/icons/undo-2'
+  import X from '@lucide/svelte/icons/x'
   import { t } from '$lib/i18n.svelte'
-  import { select } from '$lib/store.svelte'
+  import { select, shallow } from '$lib/store.svelte'
   import { Button } from '@/components/ui/button'
   import { Input } from '@/components/ui/input'
   import {
@@ -73,6 +73,7 @@
     findActiveTokenIndex,
     getSelectedTokenSlice,
     isTranscriptableItem,
+    type TranscriptableItem,
   } from '@/features/timeline/utils/transcript-edit-model'
   import { isSpanIgnored } from '@/features/timeline/utils/source-range-intervals'
   import { findTranscriptWordMatches } from '@/features/timeline/utils/transcript-fuzzy'
@@ -138,17 +139,25 @@
     return () => setScope(false)
   })
 
+  // Both keep their last array while its contents are unchanged: an edit
+  // elsewhere on the timeline replaces the items arrays, and would otherwise
+  // rebuild every token and reset the word selection below.
+  let lastTranscriptableItems: TranscriptableItem[] = []
   const transcriptableItems = $derived.by(() => {
-    if (scope === 'project') {
-      return allItems.current.filter(isTranscriptableItem).toSorted((a, b) => a.from - b.from)
-    }
-    const byId = itemById.current
-    return selectedItemIds.current.map((id) => byId[id]).filter(isTranscriptableItem)
+    const next =
+      scope === 'project'
+        ? allItems.current.filter(isTranscriptableItem).toSorted((a, b) => a.from - b.from)
+        : selectedItemIds.current.map((id) => itemById.current[id]).filter(isTranscriptableItem)
+    if (!shallow(next, lastTranscriptableItems)) lastTranscriptableItems = next
+    return lastTranscriptableItems
   })
 
-  const uniqueMediaIds = $derived(
-    Array.from(new Set(transcriptableItems.map((item) => item.mediaId))).sort(),
-  )
+  let lastUniqueMediaIds: string[] = []
+  const uniqueMediaIds = $derived.by(() => {
+    const next = Array.from(new Set(transcriptableItems.map((item) => item.mediaId))).sort()
+    if (!shallow(next, lastUniqueMediaIds)) lastUniqueMediaIds = next
+    return lastUniqueMediaIds
+  })
 
   const transcriptsByMediaId = $derived.by(() => {
     const map: Record<string, MediaTranscript | undefined> = {}

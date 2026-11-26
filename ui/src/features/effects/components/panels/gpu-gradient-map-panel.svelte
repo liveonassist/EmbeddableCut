@@ -20,8 +20,8 @@
 </script>
 
 <script lang="ts">
-  import Plus from 'lucide-svelte/icons/plus'
-  import X from 'lucide-svelte/icons/x'
+  import Plus from '@lucide/svelte/icons/plus'
+  import X from '@lucide/svelte/icons/x'
   import { Button } from '@/components/ui/button'
   import {
     Select,

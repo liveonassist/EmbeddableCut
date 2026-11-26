@@ -1,14 +1,14 @@
 <!-- SPDX-License-Identifier: MIT -->
 <script lang="ts">
-  import BrainCircuit from 'lucide-svelte/icons/brain-circuit'
-  import Check from 'lucide-svelte/icons/check'
-  import ChevronDown from 'lucide-svelte/icons/chevron-down'
-  import Filter from 'lucide-svelte/icons/filter'
-  import LayoutGrid from 'lucide-svelte/icons/layout-grid'
-  import List from 'lucide-svelte/icons/list'
-  import Loader2 from 'lucide-svelte/icons/loader-circle'
-  import Sparkles from 'lucide-svelte/icons/sparkles'
-  import Wand2 from 'lucide-svelte/icons/wand-sparkles'
+  import BrainCircuit from '@lucide/svelte/icons/brain-circuit'
+  import Check from '@lucide/svelte/icons/check'
+  import ChevronDown from '@lucide/svelte/icons/chevron-down'
+  import Filter from '@lucide/svelte/icons/filter'
+  import LayoutGrid from '@lucide/svelte/icons/layout-grid'
+  import List from '@lucide/svelte/icons/list'
+  import Loader2 from '@lucide/svelte/icons/loader-circle'
+  import Sparkles from '@lucide/svelte/icons/sparkles'
+  import Wand2 from '@lucide/svelte/icons/wand-sparkles'
   import {
     Select,
     SelectContent,

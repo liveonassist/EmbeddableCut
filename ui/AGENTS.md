@@ -54,7 +54,7 @@ The bar is upstream's editor as it is: same markup, same Tailwind classes, same 
 | `useTranslation()` / `t('key')` | `import { t } from '$lib/i18n.svelte'`; `t('key')` |
 | `useHotkeys(keys, fn, opts)` | `useHotkeys(() => keys, fn, () => opts)` from `$lib/hotkeys.svelte` |
 | `toast` from `sonner` | `toast` from `svelte-sonner` |
-| `lucide-react` icons | `lucide-svelte` at the same 0.468.0: `import Play from 'lucide-svelte/icons/play'` |
+| `lucide-react` icons | `@lucide/svelte` 0.479.0, the nearest to upstream's 0.468.0: `import Play from '@lucide/svelte/icons/play'` |
 | `@radix-ui/*` | `bits-ui`, through the primitives in `$components/ui/` |
 | `react-resizable-panels` | `paneforge` |
 | `@tanstack/react-virtual` | `@tanstack/svelte-virtual` |
@@ -105,7 +105,7 @@ The bar is upstream's editor as it is: same markup, same Tailwind classes, same 
   - bits-ui has no Progress Indicator or Slider Track part: the wrappers render Radix's markup for them.
   - `GlobalTooltip` listens on its own root node: `mouseenter` isn't composed, so the host's document never sees the editor's shadow-root elements.
 - `editor-root.svelte` mounts what upstream's `app.tsx` does: `TooltipProvider` (bits-ui tooltips need one), `GlobalTooltip`, and the kit's `Toaster`.
-- `svelte.config.js` compiles `node_modules` components in their own mode (lucide-svelte is Svelte 4 syntax) with `css: 'injected'`, which Svelte appends to the component's root node, so library styles (svelte-sonner, bits-ui) reach a shadow-root editor.
+- `svelte.config.js` compiles `node_modules` components in their own mode (svelte-sonner and bits-ui among them) with `css: 'injected'`, which Svelte appends to the component's root node, so library styles (svelte-sonner, bits-ui) reach a shadow-root editor.
 
 ## Conventions
 

@@ -2,14 +2,14 @@
 <script lang="ts">
   import { MediaQuery } from 'svelte/reactivity'
   import { Dialog as DialogPrimitive } from 'bits-ui'
-  import AlertTriangle from 'lucide-svelte/icons/alert-triangle'
-  import Download from 'lucide-svelte/icons/download'
-  import Keyboard from 'lucide-svelte/icons/keyboard'
-  import Plus from 'lucide-svelte/icons/plus'
-  import RotateCcw from 'lucide-svelte/icons/rotate-ccw'
-  import Search from 'lucide-svelte/icons/search'
-  import Upload from 'lucide-svelte/icons/upload'
-  import X from 'lucide-svelte/icons/x'
+  import AlertTriangle from '@lucide/svelte/icons/alert-triangle'
+  import Download from '@lucide/svelte/icons/download'
+  import Keyboard from '@lucide/svelte/icons/keyboard'
+  import Plus from '@lucide/svelte/icons/plus'
+  import RotateCcw from '@lucide/svelte/icons/rotate-ccw'
+  import Search from '@lucide/svelte/icons/search'
+  import Upload from '@lucide/svelte/icons/upload'
+  import X from '@lucide/svelte/icons/x'
   import { toast } from 'svelte-sonner'
   import {
     AlertDialog,

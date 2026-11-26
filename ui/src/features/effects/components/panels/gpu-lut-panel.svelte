@@ -10,8 +10,8 @@
 
 <script lang="ts">
   import { fileBackedHandle, pickFilesWithInput } from '@/infrastructure/browser/file-backed-handle'
-  import FileUp from 'lucide-svelte/icons/file-up'
-  import RotateCcw from 'lucide-svelte/icons/rotate-ccw'
+  import FileUp from '@lucide/svelte/icons/file-up'
+  import RotateCcw from '@lucide/svelte/icons/rotate-ccw'
   import { Button } from '@/components/ui/button'
   import {
     parseCubeLut,

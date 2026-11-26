@@ -1,6 +1,6 @@
 <!-- SPDX-License-Identifier: MIT -->
 <script lang="ts">
-  import Shapes from 'lucide-svelte/icons/shapes'
+  import Shapes from '@lucide/svelte/icons/shapes'
   import { t } from '$lib/i18n.svelte'
   import { select } from '$lib/store.svelte'
   import {

@@ -253,6 +253,10 @@ async function main() {
     ...chromeLaunchTarget(),
     headless: !args.head,
     args: chromeLaunchArgs(),
+    // The service drains its queue on these signals, and the drain needs the browser. Playwright's
+    // own handlers would close it at once, failing the render the drain is waiting on.
+    handleSIGINT: false,
+    handleSIGTERM: false,
   })
   const serviceStatus = new ServiceStatus()
   const session = new PageSession({
@@ -1096,6 +1100,8 @@ async function main() {
 
   /** How long a client has to finish reading a response at shutdown. */
   const RESPONSE_GRACE_MS = 2_000
+  /** How long Chrome has to close. Playwright would wait on a hung one forever. */
+  const BROWSER_CLOSE_GRACE_MS = 5_000
   let shuttingDown
   const shutdown = () =>
     (shuttingDown ??= (async () => {
@@ -1107,8 +1113,16 @@ async function main() {
       } catch (error) {
         console.error(error.message)
       } finally {
-        await session.close()
-        await browser.close()
+        const browserClosed = (async () => {
+          await session.close()
+          await browser.close()
+        })().catch((error) => console.error(`Closing the browser failed: ${error.message}`))
+        let browserTimer
+        await Promise.race([
+          browserClosed,
+          new Promise((resolve) => (browserTimer = setTimeout(resolve, BROWSER_CLOSE_GRACE_MS))),
+        ])
+        clearTimeout(browserTimer)
         await closeServers()
         await releaseWriterLock()
         // The queue has drained, so all that's left are responses being read. Without a deadline a
@@ -1118,6 +1132,8 @@ async function main() {
         await serverClosed
         clearTimeout(closeTimer)
         serviceStatus.stopped()
+        // A Chrome that never closed still holds the event loop open. Exiting kills it.
+        process.exit()
       }
     })())
   process.on('SIGINT', shutdown)

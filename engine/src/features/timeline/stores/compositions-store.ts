@@ -6,6 +6,7 @@ import type { ItemKeyframes } from '@/types/keyframe'
 import type { CompositionEditorKind } from '@/types/project'
 import type { CompositionControlSchema } from '@/types/composition-controls'
 import { normalizeSubComposition } from '../utils/sub-composition-normalizer'
+import { normalizeReusing } from './normalize-reusing'
 
 /**
  * Sub-composition data — a self-contained mini-timeline stored independently.
@@ -94,8 +95,12 @@ export const useCompositionsStore = create<CompositionsState & CompositionsActio
     getComposition: (id) => get().compositionById[id],
 
     setCompositions: (compositions) =>
-      set({
-        compositions: compositions.map((composition) => normalizeSubComposition(composition)),
+      set((state) => {
+        // EmbeddableCut: keep the compositions the store holds, as items-store's setTracks does.
+        const normalized = normalizeReusing(compositions, state.compositions, (composition) =>
+          normalizeSubComposition(composition),
+        )
+        return normalized === state.compositions ? state : { compositions: normalized }
       }),
   }),
 )

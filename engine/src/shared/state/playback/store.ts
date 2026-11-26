@@ -1,5 +1,6 @@
 import { create } from '@/shared/state/bound-store'
 import { persist } from 'zustand/middleware'
+import { createUnchangedSkippingStorage } from '@/shared/state/unchanged-skipping-storage'
 import type { PlaybackState, PlaybackActions, PreviewQuality } from './types'
 import { getNextShuttleRate } from './shuttle'
 
@@ -261,6 +262,7 @@ export const usePlaybackStore = create<PlaybackState & PlaybackActions>()(
     }),
     {
       name: 'playback-storage',
+      storage: createUnchangedSkippingStorage(() => localStorage),
       partialize: (state) => ({
         zoom: state.zoom,
         volume: state.volume,

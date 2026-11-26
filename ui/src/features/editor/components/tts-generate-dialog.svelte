@@ -1,7 +1,7 @@
 <!-- SPDX-License-Identifier: MIT -->
 <script lang="ts">
   import { untrack } from 'svelte'
-  import WandSparkles from 'lucide-svelte/icons/wand-sparkles'
+  import WandSparkles from '@lucide/svelte/icons/wand-sparkles'
   import {
     Dialog,
     DialogContent,

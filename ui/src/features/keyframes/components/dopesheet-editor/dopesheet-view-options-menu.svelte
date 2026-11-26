@@ -1,7 +1,7 @@
 <!-- SPDX-License-Identifier: MIT -->
 <script lang="ts">
-  import Check from 'lucide-svelte/icons/check'
-  import MoreHorizontal from 'lucide-svelte/icons/more-horizontal'
+  import Check from '@lucide/svelte/icons/check'
+  import MoreHorizontal from '@lucide/svelte/icons/more-horizontal'
   import { t } from '$lib/i18n.svelte'
   import { cn } from '@/shared/ui/cn'
   import { Button } from '@/components/ui/button'

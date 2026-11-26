@@ -24,8 +24,8 @@
 </script>
 
 <script lang="ts">
-  import Gauge from 'lucide-svelte/icons/gauge'
-  import RotateCcw from 'lucide-svelte/icons/rotate-ccw'
+  import Gauge from '@lucide/svelte/icons/gauge'
+  import RotateCcw from '@lucide/svelte/icons/rotate-ccw'
   import { sampleVectorSpeedGraph } from '@/features/timeline/deps/keyframes'
   import type { TemporalEaseHandle } from '@/types/keyframe'
   import NumberField from './number-field.svelte'

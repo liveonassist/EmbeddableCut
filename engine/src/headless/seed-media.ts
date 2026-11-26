@@ -15,6 +15,9 @@ export function seedMediaLibrary(
     .filter((m): m is MediaMetadata => Boolean(m))
   if (metadatas.length === 0) return
   const existing = useMediaLibraryStore.getState()
+  // EmbeddableCut: an SDK render hands back the editor's own metadata, and
+  // rewriting the library re-renders everything that lists it.
+  if (metadatas.every((meta) => existing.mediaById[meta.id] === meta)) return
   const mediaById = { ...existing.mediaById }
   for (const meta of metadatas) mediaById[meta.id] = meta
   useMediaLibraryStore.setState({ mediaItems: Object.values(mediaById), mediaById })

@@ -1,7 +1,7 @@
 <!-- SPDX-License-Identifier: MIT -->
 <script lang="ts">
   import type { Snippet } from 'svelte'
-  import RotateCcw from 'lucide-svelte/icons/rotate-ccw'
+  import RotateCcw from '@lucide/svelte/icons/rotate-ccw'
   import { cn } from '@/shared/ui/cn'
   import BandFilterCell from './band-filter-cell.svelte'
   import BandTitlePill from './band-title-pill.svelte'

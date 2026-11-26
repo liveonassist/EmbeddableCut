@@ -1,10 +1,10 @@
 <!-- SPDX-License-Identifier: MIT -->
 <script lang="ts">
-  import Eye from 'lucide-svelte/icons/eye'
-  import EyeOff from 'lucide-svelte/icons/eye-off'
-  import Palette from 'lucide-svelte/icons/palette'
-  import RotateCcw from 'lucide-svelte/icons/rotate-ccw'
-  import Trash2 from 'lucide-svelte/icons/trash-2'
+  import Eye from '@lucide/svelte/icons/eye'
+  import EyeOff from '@lucide/svelte/icons/eye-off'
+  import Palette from '@lucide/svelte/icons/palette'
+  import RotateCcw from '@lucide/svelte/icons/rotate-ccw'
+  import Trash2 from '@lucide/svelte/icons/trash-2'
   import { Button } from '@/components/ui/button'
   import { t } from '$lib/i18n.svelte'
   import EffectMoveButtons from '../effect-move-buttons.svelte'

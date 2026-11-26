@@ -1,10 +1,10 @@
 <!-- SPDX-License-Identifier: MIT -->
 <script lang="ts">
-  import Eye from 'lucide-svelte/icons/eye'
-  import MessageSquareText from 'lucide-svelte/icons/message-square-text'
-  import Palette from 'lucide-svelte/icons/palette'
-  import Sparkles from 'lucide-svelte/icons/sparkles'
-  import Type from 'lucide-svelte/icons/type'
+  import Eye from '@lucide/svelte/icons/eye'
+  import MessageSquareText from '@lucide/svelte/icons/message-square-text'
+  import Palette from '@lucide/svelte/icons/palette'
+  import Sparkles from '@lucide/svelte/icons/sparkles'
+  import Type from '@lucide/svelte/icons/type'
   import { cn } from '@/shared/ui/cn'
   import { t } from '$lib/i18n.svelte'
   import type { SceneMatchSignals } from '@/features/scene-browser/utils/rank'

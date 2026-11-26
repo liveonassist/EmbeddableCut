@@ -21,11 +21,11 @@
 </script>
 
 <script lang="ts">
-  import Palette from 'lucide-svelte/icons/palette'
-  import Plus from 'lucide-svelte/icons/plus'
-  import SlidersHorizontal from 'lucide-svelte/icons/sliders-horizontal'
-  import Trash2 from 'lucide-svelte/icons/trash-2'
-  import Type from 'lucide-svelte/icons/type'
+  import Palette from '@lucide/svelte/icons/palette'
+  import Plus from '@lucide/svelte/icons/plus'
+  import SlidersHorizontal from '@lucide/svelte/icons/sliders-horizontal'
+  import Trash2 from '@lucide/svelte/icons/trash-2'
+  import Type from '@lucide/svelte/icons/type'
   import { t } from '$lib/i18n.svelte'
   import { select } from '$lib/store.svelte'
   import { Button } from '@/components/ui/button'

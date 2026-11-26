@@ -9,10 +9,10 @@
 </script>
 
 <script lang="ts">
-  import Download from 'lucide-svelte/icons/download'
-  import FileVideo from 'lucide-svelte/icons/file-video'
-  import Music from 'lucide-svelte/icons/music'
-  import Trash2 from 'lucide-svelte/icons/trash-2'
+  import Download from '@lucide/svelte/icons/download'
+  import FileVideo from '@lucide/svelte/icons/file-video'
+  import Music from '@lucide/svelte/icons/music'
+  import Trash2 from '@lucide/svelte/icons/trash-2'
   import { toast } from 'svelte-sonner'
   import { Button } from '@/components/ui/button'
   import { createLogger } from '@/shared/logging/logger'

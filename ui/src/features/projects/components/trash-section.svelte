@@ -35,10 +35,10 @@
    * the feature discoverable when something's there.
    */
   import { toast } from 'svelte-sonner'
-  import ChevronRight from 'lucide-svelte/icons/chevron-right'
-  import Trash2 from 'lucide-svelte/icons/trash-2'
-  import RotateCcw from 'lucide-svelte/icons/rotate-ccw'
-  import AlertTriangle from 'lucide-svelte/icons/alert-triangle'
+  import ChevronRight from '@lucide/svelte/icons/chevron-right'
+  import Trash2 from '@lucide/svelte/icons/trash-2'
+  import RotateCcw from '@lucide/svelte/icons/rotate-ccw'
+  import AlertTriangle from '@lucide/svelte/icons/alert-triangle'
   import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
   import { Button } from '@/components/ui/button'
   import {

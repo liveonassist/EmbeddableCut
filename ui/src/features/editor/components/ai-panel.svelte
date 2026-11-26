@@ -30,12 +30,12 @@
 
 <script lang="ts">
   import { untrack } from 'svelte'
-  import ChevronDown from 'lucide-svelte/icons/chevron-down'
-  import Info from 'lucide-svelte/icons/info'
-  import Loader2 from 'lucide-svelte/icons/loader-circle'
-  import Trash2 from 'lucide-svelte/icons/trash-2'
-  import WandSparkles from 'lucide-svelte/icons/wand-sparkles'
-  import X from 'lucide-svelte/icons/x'
+  import ChevronDown from '@lucide/svelte/icons/chevron-down'
+  import Info from '@lucide/svelte/icons/info'
+  import Loader2 from '@lucide/svelte/icons/loader-circle'
+  import Trash2 from '@lucide/svelte/icons/trash-2'
+  import WandSparkles from '@lucide/svelte/icons/wand-sparkles'
+  import X from '@lucide/svelte/icons/x'
   import { Button } from '@/components/ui/button'
   import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
   import { Label } from '@/components/ui/label'

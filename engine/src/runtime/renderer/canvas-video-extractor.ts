@@ -15,6 +15,7 @@ import {
 import { ensureProResDecoderRegistered } from '@/infrastructure/browser/register-prores-decoder'
 import { createLogger } from '@/shared/logging/logger'
 import { getAdaptiveStreamStart } from '@/shared/utils/keyframe-index-registry'
+import { acquireScratchCanvas, releaseScratchCanvas } from './scratch-canvas-pool'
 
 const log = createLogger('VideoFrameExtractor')
 
@@ -540,16 +541,20 @@ export class VideoFrameExtractor {
       return this.cloneCurrentVideoFrame()
     }
 
+    if (typeof sample.draw !== 'function') return this.cloneCurrentVideoFrame()
+    // EmbeddableCut: a scratch canvas, not a new one at source size (up to 4K)
+    // for every captured scrub frame.
+    let scratch: ReturnType<typeof acquireScratchCanvas> = null
     try {
-      const canvas = new OffscreenCanvas(width, height)
-      const ctx = canvas.getContext('2d')
-      if (!ctx) return this.cloneCurrentVideoFrame()
-      if (typeof sample.draw !== 'function') return this.cloneCurrentVideoFrame()
-      sample.draw(ctx, 0, 0, width, height)
-      return await createImageBitmap(canvas)
+      scratch = acquireScratchCanvas(width, height)
+      if (!scratch) return this.cloneCurrentVideoFrame()
+      sample.draw(scratch.ctx, 0, 0, width, height)
+      return await createImageBitmap(scratch.canvas)
     } catch (error) {
       this.sampleLoopError = error
       return this.cloneCurrentVideoFrame()
+    } finally {
+      if (scratch) releaseScratchCanvas(scratch.canvas)
     }
   }
 

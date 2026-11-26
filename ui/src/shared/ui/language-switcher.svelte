@@ -12,7 +12,7 @@
 </script>
 
 <script lang="ts">
-  import Check from 'lucide-svelte/icons/check'
+  import Check from '@lucide/svelte/icons/check'
   import { Button } from '@/components/ui/button'
   import {
     DropdownMenu,

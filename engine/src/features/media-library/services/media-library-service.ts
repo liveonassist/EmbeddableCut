@@ -335,6 +335,22 @@ function buildGeneratedVideoMetadata(
   }
 }
 
+// EmbeddableCut: one workspace scan for the files of an import. Each linked
+// file read every media record, so linking 100 files into a workspace of
+// 1,000 spent 18 s re-reading metadata. A batch's files are distinct, so they
+// needn't see each other's new records.
+const workspaceMediaByBatch = new WeakMap<object, Promise<MediaMetadata[]>>()
+
+function getWorkspaceMediaForBatch(batch: object | undefined): Promise<MediaMetadata[]> {
+  if (!batch) return getAllMediaMetadataDB()
+  let scan = workspaceMediaByBatch.get(batch)
+  if (!scan) {
+    scan = getAllMediaMetadataDB()
+    workspaceMediaByBatch.set(batch, scan)
+  }
+  return scan
+}
+
 class MediaLibraryService {
   /**
    * In-memory cache for thumbnail blob URLs to prevent flicker on re-renders.
@@ -962,7 +978,8 @@ class MediaLibraryService {
   async importMediaWithHandle(
     handle: FileSystemFileHandle,
     projectId: string,
-    options?: { storageMode?: 'copy' | 'link' },
+    // EmbeddableCut: `batch` is any object the files of one import share.
+    options?: { storageMode?: 'copy' | 'link'; batch?: object },
   ): Promise<MediaMetadata & { isDuplicate?: boolean; hasUnsupportedCodec?: boolean }> {
     // Stage 1: Get file from handle (instant)
     const hasPermission = await ensureFileHandlePermission(handle)
@@ -1000,7 +1017,7 @@ class MediaLibraryService {
     // is trashed; re-associating into the new project effectively brings
     // those records forward, and the trash sweep's ref-counted delete still
     // keeps the bytes alive because the new project now references them.
-    const workspaceMedia = await getAllMediaMetadataDB()
+    const workspaceMedia = await getWorkspaceMediaForBatch(options?.batch)
     const workspaceDuplicate = workspaceMedia.find(
       (m) =>
         m.fileName === file.name &&

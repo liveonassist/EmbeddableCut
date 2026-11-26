@@ -1,9 +1,9 @@
 <!-- SPDX-License-Identifier: MIT -->
 <script lang="ts">
-  import Loader2 from 'lucide-svelte/icons/loader-circle'
-  import Upload from 'lucide-svelte/icons/upload'
-  import Link from 'lucide-svelte/icons/link'
-  import AlertTriangle from 'lucide-svelte/icons/triangle-alert'
+  import Loader2 from '@lucide/svelte/icons/loader-circle'
+  import Upload from '@lucide/svelte/icons/upload'
+  import Link from '@lucide/svelte/icons/link'
+  import AlertTriangle from '@lucide/svelte/icons/triangle-alert'
   import { createLogger } from '@/shared/logging/logger'
   import { GridMediaCard, ListMediaCard } from '../media-card'
   import { useMediaLibraryStore } from '@/features/media-library/stores/media-library-store'

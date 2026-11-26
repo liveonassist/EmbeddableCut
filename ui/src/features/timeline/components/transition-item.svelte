@@ -134,7 +134,7 @@
 </script>
 
 <script lang="ts">
-  import Trash2 from 'lucide-svelte/icons/trash-2'
+  import Trash2 from '@lucide/svelte/icons/trash-2'
   import type { Transition } from '@/types/transition'
   import { select, shallow } from '$lib/store.svelte'
   import { useTimelineSettingsStore } from '@/features/timeline/stores/timeline-settings-store'

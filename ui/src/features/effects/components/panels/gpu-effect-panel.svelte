@@ -1,6 +1,6 @@
 <!-- SPDX-License-Identifier: MIT -->
 <script lang="ts">
-  import Scan from 'lucide-svelte/icons/scan'
+  import Scan from '@lucide/svelte/icons/scan'
   import { Button } from '@/components/ui/button'
   import {
     Select,

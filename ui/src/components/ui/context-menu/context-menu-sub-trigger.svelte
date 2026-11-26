@@ -1,7 +1,7 @@
 <!-- SPDX-License-Identifier: MIT -->
 <script lang="ts">
   import { ContextMenu as ContextMenuPrimitive } from 'bits-ui'
-  import ChevronRight from 'lucide-svelte/icons/chevron-right'
+  import ChevronRight from '@lucide/svelte/icons/chevron-right'
   import { cn } from '$lib/cn'
 
   type Props = ContextMenuPrimitive.SubTriggerProps & { inset?: boolean }

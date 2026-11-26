@@ -28,7 +28,7 @@
   import { useTimelineViewportStore } from '@/features/timeline/stores/timeline-viewport-store'
   import { useZoomStore } from '@/features/timeline/stores/zoom-store'
   import { CLIP_VISIBILITY_PREFETCH_MARGIN_PX } from '../../hooks/use-clip-visibility.svelte'
-  import { select } from '$lib/store.svelte'
+  import { select, shallow } from '$lib/store.svelte'
 
   interface CompoundClipWaveformProps {
     composition: SubComposition
@@ -60,20 +60,25 @@
   let waveformsByMediaId = $state.raw<Map<string, CachedWaveform>>(new Map())
   let isLoading = $state(false)
   let hasError = $state(false)
-  const mediaById = select(useMediaLibraryStore, (s) => s.mediaById)
   const compositionById = select(useCompositionsStore, (s) => s.compositionById)
 
   $effect(() => {
     return untrack(() => observeParentElementHeight(container, (next) => (height = next)))
   })
 
-  const mediaFpsById = $derived.by<Record<string, number | undefined>>(() => {
-    const byId: Record<string, number | undefined> = {}
-    for (const [mediaId, media] of Object.entries(mediaById.current)) {
-      byId[mediaId] = media?.fps
-    }
-    return byId
-  })
+  // Compared shallowly, so a library change that leaves every frame rate as it
+  // was doesn't re-mix the waveform.
+  const mediaFpsById = select(
+    useMediaLibraryStore,
+    (s) => {
+      const byId: Record<string, number | undefined> = {}
+      for (const [mediaId, media] of Object.entries(s.mediaById)) {
+        byId[mediaId] = media?.fps
+      }
+      return byId
+    },
+    shallow,
+  )
 
   // One derived per input, so the owned sources (and the load effect keyed on
   // them) recompute only on the fields React's useMemo listed, not on every
@@ -90,7 +95,7 @@
       items: compositionItems,
       tracks: compositionTracks,
       fps: compositionFps,
-      mediaFpsById,
+      mediaFpsById: mediaFpsById.current,
       compositionById: compositionById.current,
     }),
   )
@@ -119,8 +124,9 @@
 
   $effect(() => {
     const visible = trackedIsVisible
-    const ids = mediaIds
+    // Keyed on the ids' contents: `mediaIds` is a new array whenever the sources are.
     void mediaIdsKey
+    const ids = untrack(() => mediaIds)
     const duration = trackedSourceDuration
 
     return untrack(() => {

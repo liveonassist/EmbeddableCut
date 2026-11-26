@@ -349,9 +349,12 @@ async function renderTransitionParticipantToTexture(
 
   const { canvas, ctx } = rctx.canvasPool.acquire()
   poolCanvases.push(canvas)
-  canvas.width = rctx.canvasSettings.width
-  canvas.height = rctx.canvasSettings.height
-  ctx.clearRect(0, 0, canvas.width, canvas.height)
+  // EmbeddableCut: the pool hands canvases out cleared at its size, and
+  // setting a canvas's size, even to the same one, resets its bitmap.
+  if (canvas.width !== rctx.canvasSettings.width || canvas.height !== rctx.canvasSettings.height) {
+    canvas.width = rctx.canvasSettings.width
+    canvas.height = rctx.canvasSettings.height
+  }
   await renderItem(
     ctx,
     participant.item,

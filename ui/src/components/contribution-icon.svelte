@@ -21,7 +21,7 @@
     if (typeof icon !== 'string') return
     const name = pascal(icon)
     let active = true
-    void import('lucide-svelte').then(({ icons }) => {
+    void import('@lucide/svelte').then(({ icons }) => {
       if (active) named = ((icons as Record<string, unknown>)[name] as IconComponent) ?? null
     })
     return () => {

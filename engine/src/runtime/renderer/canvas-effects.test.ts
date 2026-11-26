@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vite-plus/test'
 import type { AdjustmentItem } from '@/types/timeline'
 import type { ItemEffect } from '@/types/effects'
+import type { EffectsPipeline } from '@/infrastructure/gpu-effects'
 
 const mockFns = vi.hoisted(() => ({
   applyMasksMock: vi.fn(),
@@ -168,6 +169,31 @@ describe('renderEffectsFromMaskedSource', () => {
       source: effectCanvas,
       poolCanvases: [maskedSourceCanvas, effectCanvas],
     })
+  })
+
+  it('uploads the source itself to a batching pipeline, without copying it first', async () => {
+    const sourceCanvas = { width: 1920, height: 1080 } as OffscreenCanvas
+    const effectCanvas = { width: 1920, height: 1080 } as OffscreenCanvas
+    const gpuOutput = { width: 1920, height: 1080 } as OffscreenCanvas
+    const effectCtx = createMock2dContext(effectCanvas)
+    const pipeline = {
+      isBatching: () => true,
+      applyEffectsToCanvas: vi.fn(() => gpuOutput),
+    } as unknown as EffectsPipeline
+
+    const result = await renderEffectsFromMaskedSource(
+      { acquire: () => ({ canvas: effectCanvas, ctx: effectCtx }) },
+      sourceCanvas,
+      [createGpuEffect('fx-1', 0.5)],
+      [],
+      12,
+      { width: 1920, height: 1080, fps: 30 },
+      pipeline,
+    )
+
+    expect(pipeline.applyEffectsToCanvas).toHaveBeenCalledWith(sourceCanvas, expect.any(Array))
+    expect(effectCtx.drawImage).not.toHaveBeenCalled()
+    expect(result).toEqual({ source: gpuOutput, poolCanvases: [effectCanvas] })
   })
 })
 

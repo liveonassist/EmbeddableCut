@@ -1,7 +1,7 @@
 <!-- SPDX-License-Identifier: MIT -->
 <script lang="ts">
-  import Search from 'lucide-svelte/icons/search'
-  import Loader2 from 'lucide-svelte/icons/loader-circle'
+  import Search from '@lucide/svelte/icons/search'
+  import Loader2 from '@lucide/svelte/icons/loader-circle'
   import { Input } from '@/components/ui/input'
   import { useMediaLibraryStore } from '@/features/media-library/stores/media-library-store'
   import { select } from '$lib/store.svelte'

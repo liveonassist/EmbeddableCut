@@ -225,4 +225,39 @@ describe('remote media fetch', () => {
     expect(response.headers.get('Content-Range')).toBe(`bytes 0-${FILE_SIZE - 1}/${FILE_SIZE}`)
     expect(requests.map((r) => r.range)).toEqual([`bytes=0-${REMOTE_BLOCK_SIZE - 1}`])
   })
+
+  it('keeps a run in flight when its reader aborts, so nobody fetches it again', async () => {
+    let releaseRun!: () => void
+    const runHeld = new Promise<void>((resolve) => (releaseRun = resolve))
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+        const response = serve(input, init)
+        if (requests.length > 1) {
+          await runHeld
+          init?.signal?.throwIfAborted()
+        }
+        return response
+      }),
+    )
+    const remoteFetch = createRemoteFetch({ cacheKey: 'clip' })
+    const controller = new AbortController()
+    const response = await remoteFetch('https://cdn.test/clip.mp4', {
+      headers: { Range: 'bytes=0-' },
+      signal: controller.signal,
+    })
+    const reader = response.body!.getReader()
+    await reader.read()
+    const ahead = reader.read()
+    await vi.waitFor(() => expect(requests).toHaveLength(2))
+    // As mediabunny does once it has its bytes, while the stream reads ahead.
+    controller.abort()
+    releaseRun()
+    await ahead
+    await reader.cancel()
+
+    const { bytes } = await read(remoteFetch, 'https://cdn.test/clip.mp4', 0, FILE_SIZE - 1)
+    expect(sameBytes(bytes, file)).toBe(true)
+    expect(requests).toHaveLength(2)
+  })
 })

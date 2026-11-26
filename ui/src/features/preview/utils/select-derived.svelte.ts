@@ -21,9 +21,15 @@ export function selectDerived<S, U>(
   selector: (state: S) => U,
   equal: (a: U, b: U) => boolean = Object.is,
 ): { readonly current: U } {
-  const track = createSubscriber((update) => store.subscribe(() => update()))
   let hasLast = false
   let last: U
+  // Waking readers re-runs the selector anyway; checking here first keeps a
+  // store that emits every frame from scheduling work for an unchanged slice.
+  const track = createSubscriber((update) =>
+    store.subscribe(() => {
+      if (!hasLast || !equal(last, selector(store.getState()))) update()
+    }),
+  )
   const value = $derived.by(() => {
     track()
     const next = selector(store.getState())

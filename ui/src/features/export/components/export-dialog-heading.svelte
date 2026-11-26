@@ -4,10 +4,10 @@
    * Dialog header for the export dialog: the title and description of the step
    * currently showing.
    */
-  import AlertCircle from 'lucide-svelte/icons/alert-circle'
-  import CheckCircle2 from 'lucide-svelte/icons/check-circle-2'
-  import Loader2 from 'lucide-svelte/icons/loader-2'
-  import X from 'lucide-svelte/icons/x'
+  import AlertCircle from '@lucide/svelte/icons/alert-circle'
+  import CheckCircle2 from '@lucide/svelte/icons/check-circle-2'
+  import Loader2 from '@lucide/svelte/icons/loader-2'
+  import X from '@lucide/svelte/icons/x'
   import { DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
   import { t } from '$lib/i18n.svelte'
   import type { DialogView } from '../hooks/use-export-dialog-view.svelte'

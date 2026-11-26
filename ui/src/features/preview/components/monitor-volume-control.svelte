@@ -2,9 +2,9 @@
 <script lang="ts">
   import { select } from '$lib/store.svelte'
   import { t } from '$lib/i18n.svelte'
-  import Volume1 from 'lucide-svelte/icons/volume-1'
-  import Volume2 from 'lucide-svelte/icons/volume-2'
-  import VolumeX from 'lucide-svelte/icons/volume-x'
+  import Volume1 from '@lucide/svelte/icons/volume-1'
+  import Volume2 from '@lucide/svelte/icons/volume-2'
+  import VolumeX from '@lucide/svelte/icons/volume-x'
   import { Button } from '@/components/ui/button'
   import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
   import { Slider } from '@/components/ui/slider'

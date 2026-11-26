@@ -5,12 +5,12 @@
 
 <script lang="ts">
   import { Portal } from 'bits-ui'
-  import Sparkles from 'lucide-svelte/icons/sparkles'
-  import Plus from 'lucide-svelte/icons/plus'
-  import Eye from 'lucide-svelte/icons/eye'
-  import EyeOff from 'lucide-svelte/icons/eye-off'
-  import Search from 'lucide-svelte/icons/search'
-  import X from 'lucide-svelte/icons/x'
+  import Sparkles from '@lucide/svelte/icons/sparkles'
+  import Plus from '@lucide/svelte/icons/plus'
+  import Eye from '@lucide/svelte/icons/eye'
+  import EyeOff from '@lucide/svelte/icons/eye-off'
+  import Search from '@lucide/svelte/icons/search'
+  import X from '@lucide/svelte/icons/x'
   import { t } from '$lib/i18n.svelte'
   import { select } from '$lib/store.svelte'
   import { portalTarget } from '$lib/context'

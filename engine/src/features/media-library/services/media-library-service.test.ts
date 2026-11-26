@@ -509,6 +509,35 @@ describe('MediaLibraryService', () => {
       expect(result.isDuplicate).toBe(false)
     })
 
+    it('reads the workspace media once for the files of one import', async () => {
+      const existing = ['a.mp4', 'b.mp4'].map((fileName) =>
+        makeMediaMetadata({ id: fileName, fileName, fileSize: 4, fileLastModified: 1234 }),
+      )
+      indexedDbMocks.getAllMedia.mockResolvedValue(existing)
+      indexedDbMocks.getProjectMediaIds.mockResolvedValue([])
+      indexedDbMocks.updateMedia.mockImplementation(async (id: string) =>
+        existing.find((media) => media.id === id),
+      )
+      indexedDbMocks.getAllMediaMetadata.mockClear()
+      const handleFor = (name: string) =>
+        ({
+          name,
+          getFile: vi.fn().mockResolvedValue(new File(['data'], name, { lastModified: 1234 })),
+          queryPermission: vi.fn().mockResolvedValue('granted'),
+          requestPermission: vi.fn().mockResolvedValue('granted'),
+        }) as unknown as FileSystemFileHandle
+
+      const batch = {}
+      const results = await Promise.all(
+        ['a.mp4', 'b.mp4'].map((name) =>
+          mediaLibraryService.importMediaWithHandle(handleFor(name), 'project-2', { batch }),
+        ),
+      )
+
+      expect(results.map((media) => media.id)).toEqual(['a.mp4', 'b.mp4'])
+      expect(indexedDbMocks.getAllMediaMetadata).toHaveBeenCalledTimes(1)
+    })
+
     it('starts preview audio conform in background for custom-decoded imports', async () => {
       const mockFile = new File(['audio'], 'clip.webm', { type: 'video/webm' })
       const mockHandle = makeFileHandle(mockFile)

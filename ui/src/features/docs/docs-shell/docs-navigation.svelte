@@ -1,7 +1,7 @@
 <!-- SPDX-License-Identifier: MIT -->
 <script lang="ts">
-  import BookOpen from 'lucide-svelte/icons/book-open'
-  import Search from 'lucide-svelte/icons/search'
+  import BookOpen from '@lucide/svelte/icons/book-open'
+  import Search from '@lucide/svelte/icons/search'
   import { Link } from '$lib/router'
   import { cn } from '@/shared/ui/cn'
   import { DOC_GROUPS, DOC_PAGES } from '../docs-content'

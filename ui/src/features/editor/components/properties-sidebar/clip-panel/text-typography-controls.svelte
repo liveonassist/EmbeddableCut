@@ -1,9 +1,9 @@
 <!-- SPDX-License-Identifier: MIT -->
 <script lang="ts">
   import { t } from '$lib/i18n.svelte'
-  import Bold from 'lucide-svelte/icons/bold'
-  import Italic from 'lucide-svelte/icons/italic'
-  import Underline from 'lucide-svelte/icons/underline'
+  import Bold from '@lucide/svelte/icons/bold'
+  import Italic from '@lucide/svelte/icons/italic'
+  import Underline from '@lucide/svelte/icons/underline'
   import { Button } from '@/components/ui/button'
   import {
     Select,

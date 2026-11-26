@@ -1,8 +1,8 @@
 <!-- SPDX-License-Identifier: MIT -->
 <script lang="ts">
-  import Palette from 'lucide-svelte/icons/palette'
-  import Search from 'lucide-svelte/icons/search'
-  import X from 'lucide-svelte/icons/x'
+  import Palette from '@lucide/svelte/icons/palette'
+  import Search from '@lucide/svelte/icons/search'
+  import X from '@lucide/svelte/icons/x'
   import { Input } from '@/components/ui/input'
   import { t } from '$lib/i18n.svelte'
   import { select } from '$lib/store.svelte'

@@ -23,25 +23,25 @@
 </script>
 
 <script lang="ts">
-  import ChevronDown from 'lucide-svelte/icons/chevron-down'
-  import ChevronLeft from 'lucide-svelte/icons/chevron-left'
-  import ChevronRight from 'lucide-svelte/icons/chevron-right'
-  import ChevronUp from 'lucide-svelte/icons/chevron-up'
-  import Film from 'lucide-svelte/icons/film'
-  import Layers from 'lucide-svelte/icons/layers'
-  import Type from 'lucide-svelte/icons/type'
-  import Square from 'lucide-svelte/icons/square'
-  import Circle from 'lucide-svelte/icons/circle'
-  import Triangle from 'lucide-svelte/icons/triangle'
-  import Star from 'lucide-svelte/icons/star'
-  import Hexagon from 'lucide-svelte/icons/hexagon'
-  import Heart from 'lucide-svelte/icons/heart'
-  import Pentagon from 'lucide-svelte/icons/pentagon'
-  import Blend from 'lucide-svelte/icons/blend'
-  import Pen from 'lucide-svelte/icons/pen'
-  import Captions from 'lucide-svelte/icons/captions'
-  import Sticker from 'lucide-svelte/icons/sticker'
-  import WandSparkles from 'lucide-svelte/icons/wand-sparkles'
+  import ChevronDown from '@lucide/svelte/icons/chevron-down'
+  import ChevronLeft from '@lucide/svelte/icons/chevron-left'
+  import ChevronRight from '@lucide/svelte/icons/chevron-right'
+  import ChevronUp from '@lucide/svelte/icons/chevron-up'
+  import Film from '@lucide/svelte/icons/film'
+  import Layers from '@lucide/svelte/icons/layers'
+  import Type from '@lucide/svelte/icons/type'
+  import Square from '@lucide/svelte/icons/square'
+  import Circle from '@lucide/svelte/icons/circle'
+  import Triangle from '@lucide/svelte/icons/triangle'
+  import Star from '@lucide/svelte/icons/star'
+  import Hexagon from '@lucide/svelte/icons/hexagon'
+  import Heart from '@lucide/svelte/icons/heart'
+  import Pentagon from '@lucide/svelte/icons/pentagon'
+  import Blend from '@lucide/svelte/icons/blend'
+  import Pen from '@lucide/svelte/icons/pen'
+  import Captions from '@lucide/svelte/icons/captions'
+  import Sticker from '@lucide/svelte/icons/sticker'
+  import WandSparkles from '@lucide/svelte/icons/wand-sparkles'
   import { Button } from '@/components/ui/button'
   import Contribution from '@/components/contribution.svelte'
   import ContributionIcon from '@/components/contribution-icon.svelte'
@@ -137,9 +137,14 @@
   // the tab is first opened; it then stays mounted (state preserved).
   // svelte-ignore state_referenced_locally
   let lottieTabActivated = $state(activeTab.current === 'lottie')
+  // EmbeddableCut: each effect thumbnail renders through the GPU pipeline on
+  // mount, so mount the Effects tab when first opened, not at editor load.
+  // svelte-ignore state_referenced_locally
+  let effectsTabActivated = $state(activeTab.current === 'effects')
   $effect(() => {
     if (activeBuiltInTab === 'ai') aiTabActivated = true
     if (activeBuiltInTab === 'lottie') lottieTabActivated = true
+    if (activeBuiltInTab === 'effects') effectsTabActivated = true
   })
 
   // The collapsed panel stays mounted (clipped to 0 width, see NOTE below), so
@@ -923,6 +928,7 @@
       <div
         class="min-h-0 flex-1 overflow-y-auto p-3 {activeBuiltInTab === 'effects' ? 'block' : 'hidden'}"
       >
+        {#if effectsTabActivated}
         <div class="space-y-3">
           <!-- Blank Adjustment Layer -->
           <button
@@ -1038,6 +1044,7 @@
             </div>
           {/each}
         </div>
+        {/if}
       </div>
 
       <!-- Transitions Tab -->

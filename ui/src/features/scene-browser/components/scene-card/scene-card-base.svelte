@@ -1,8 +1,8 @@
 <!-- SPDX-License-Identifier: MIT -->
 <script lang="ts">
-  import Film from 'lucide-svelte/icons/film'
-  import Palette from 'lucide-svelte/icons/palette'
-  import Search from 'lucide-svelte/icons/search'
+  import Film from '@lucide/svelte/icons/film'
+  import Palette from '@lucide/svelte/icons/palette'
+  import Search from '@lucide/svelte/icons/search'
   import { cn } from '@/shared/ui/cn'
   import { t } from '$lib/i18n.svelte'
   import { select } from '$lib/store.svelte'

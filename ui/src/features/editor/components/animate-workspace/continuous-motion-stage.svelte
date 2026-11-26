@@ -1,6 +1,6 @@
 <!-- SPDX-License-Identifier: MIT -->
 <script lang="ts">
-  import WandSparkles from 'lucide-svelte/icons/wand-sparkles'
+  import WandSparkles from '@lucide/svelte/icons/wand-sparkles'
   import type { MotionModifierType } from '@/types/motion'
   import type { TextItem } from '@/types/timeline'
   import { Button } from '@/components/ui/button'

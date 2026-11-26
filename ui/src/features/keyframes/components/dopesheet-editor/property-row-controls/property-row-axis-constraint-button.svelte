@@ -1,7 +1,7 @@
 <!-- SPDX-License-Identifier: MIT -->
 <script lang="ts">
-  import Link2 from 'lucide-svelte/icons/link-2'
-  import Unlink2 from 'lucide-svelte/icons/unlink-2'
+  import Link2 from '@lucide/svelte/icons/link-2'
+  import Unlink2 from '@lucide/svelte/icons/unlink-2'
   import { Button } from '@/components/ui/button'
   import { cn } from '@/shared/ui/cn'
   import { MINI_ICON_BUTTON_CLASS, MINI_ICON_CLASS } from '../dopesheet-constants'

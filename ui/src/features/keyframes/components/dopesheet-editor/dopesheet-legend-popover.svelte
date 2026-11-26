@@ -1,9 +1,9 @@
 <!-- SPDX-License-Identifier: MIT -->
 <script lang="ts">
-  import HelpCircle from 'lucide-svelte/icons/help-circle'
-  import LineChart from 'lucide-svelte/icons/line-chart'
-  import Lock from 'lucide-svelte/icons/lock'
-  import Timer from 'lucide-svelte/icons/timer'
+  import HelpCircle from '@lucide/svelte/icons/help-circle'
+  import LineChart from '@lucide/svelte/icons/line-chart'
+  import Lock from '@lucide/svelte/icons/lock'
+  import Timer from '@lucide/svelte/icons/timer'
   import { t } from '$lib/i18n.svelte'
   import { Button } from '@/components/ui/button'
   import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'

@@ -1,7 +1,7 @@
 <!-- SPDX-License-Identifier: MIT -->
 <script lang="ts">
-  import Droplet from 'lucide-svelte/icons/droplet'
-  import RotateCcw from 'lucide-svelte/icons/rotate-ccw'
+  import Droplet from '@lucide/svelte/icons/droplet'
+  import RotateCcw from '@lucide/svelte/icons/rotate-ccw'
   import { t } from '$lib/i18n.svelte'
   import { Button } from '@/components/ui/button'
   import {

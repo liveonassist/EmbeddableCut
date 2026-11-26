@@ -22,8 +22,8 @@
 </script>
 
 <script lang="ts">
-  import Eye from 'lucide-svelte/icons/eye'
-  import EyeOff from 'lucide-svelte/icons/eye-off'
+  import Eye from '@lucide/svelte/icons/eye'
+  import EyeOff from '@lucide/svelte/icons/eye-off'
   import { Button } from '@/components/ui/button'
   import { KeyframeToggle } from '@/features/effects/deps/keyframes-ui-contract'
   import { getEffectDefinitionName, getEffectParamLabel } from '@/features/effects/utils/effect-i18n'

@@ -1,6 +1,6 @@
 <!-- SPDX-License-Identifier: MIT -->
 <script lang="ts">
-  import LineChart from 'lucide-svelte/icons/chart-line'
+  import LineChart from '@lucide/svelte/icons/chart-line'
   import { Button } from '@/components/ui/button'
   import { cn } from '@/shared/ui/cn'
   import { MINI_ICON_BUTTON_CLASS, MINI_ICON_CLASS } from '../dopesheet-constants'

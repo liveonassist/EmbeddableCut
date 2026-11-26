@@ -31,8 +31,8 @@
    * Progress step of the export dialog: the bar, the phase (or the renderer's own
    * message), the frame/time counters and the cancel action.
    */
-  import Clock from 'lucide-svelte/icons/clock'
-  import Film from 'lucide-svelte/icons/film'
+  import Clock from '@lucide/svelte/icons/clock'
+  import Film from '@lucide/svelte/icons/film'
   import { Button } from '@/components/ui/button'
   import { Progress } from '@/components/ui/progress'
   import { formatTime } from '@/features/export/utils/export-format'

@@ -96,4 +96,33 @@ describe('useSemanticIndex', () => {
       expect(screen.getByTestId('semantic-index-probe')).toHaveAttribute('data-loading', 'false')
     })
   })
+
+  it('reads embeddings once a pass, though indexing writes each clip back', async () => {
+    useMediaLibraryStore.setState({
+      mediaItems: ['media-1', 'media-2'].map((id) => ({
+        id,
+        aiCaptions: [{ timeSec: 0, text: 'A scene' }],
+      })),
+    })
+    const indexed = new Set<string>()
+    ensureEmbeddingsLoadedMock.mockResolvedValue(undefined)
+    isMediaMissingEmbeddingsMock.mockImplementation((id: string) => !indexed.has(id))
+    isMediaMissingImageEmbeddingsMock.mockReturnValue(false)
+    indexMediaCaptionsMock.mockImplementation(async (mediaId: string) => {
+      indexed.add(mediaId)
+      useMediaLibraryStore.setState((state) => ({
+        mediaItems: state.mediaItems.map((item) =>
+          item.id === mediaId ? { ...item, aiCaptions: [...(item.aiCaptions ?? [])] } : item,
+        ),
+      }))
+    })
+
+    render(SemanticIndexProbe)
+
+    await waitFor(() => {
+      expect(indexMediaCaptionsMock).toHaveBeenCalledTimes(2)
+      expect(screen.getByTestId('semantic-index-probe')).toHaveAttribute('data-total', '0')
+    })
+    expect(ensureEmbeddingsLoadedMock).toHaveBeenCalledTimes(2)
+  })
 })

@@ -4,7 +4,7 @@
    * Export range readout for the export dialog: the in/out frame window the
    * render covers, plus the whole-project switch when a range is set.
    */
-  import Scissors from 'lucide-svelte/icons/scissors'
+  import Scissors from '@lucide/svelte/icons/scissors'
   import { Label } from '@/components/ui/label'
   import { Switch } from '@/components/ui/switch'
   import { formatTimecode, framesToSeconds } from '@/shared/utils/time-utils'

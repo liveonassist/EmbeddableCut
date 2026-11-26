@@ -7,8 +7,8 @@
 
 <script lang="ts">
   import type { Snippet } from 'svelte'
-  import AlertTriangle from 'lucide-svelte/icons/alert-triangle'
-  import RefreshCw from 'lucide-svelte/icons/refresh-cw'
+  import AlertTriangle from '@lucide/svelte/icons/alert-triangle'
+  import RefreshCw from '@lucide/svelte/icons/refresh-cw'
   import { Button } from '@/components/ui/button'
   import { i18n } from '@/i18n'
 

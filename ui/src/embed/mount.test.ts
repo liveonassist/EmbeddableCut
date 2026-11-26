@@ -4,8 +4,10 @@ import { tick } from 'svelte'
 import { fireEvent, screen, waitFor } from '@testing-library/svelte'
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vite-plus/test'
 import type { Editor } from '@embeddablecut/sdk'
+import HardDriveDownload from '@lucide/svelte/icons/hard-drive-download'
+import Upload from '@lucide/svelte/icons/upload'
 import { useTimelineSettingsStore } from '@/features/timeline/stores/timeline-settings-store'
-import type { EditorActions } from '../extensions/actions.svelte'
+import type { ActionHandler, EditorActions, SaveContext } from '../extensions/actions.svelte'
 import { mountEditor, type MountedEditor } from './mount'
 
 let mounted: MountedEditor | null = null
@@ -77,7 +79,7 @@ describe('mountEditor actions', { timeout: 15_000 }, () => {
   const isDirty = () => useTimelineSettingsStore.getState().isDirty
 
   it('saves through the host, and the project is clean once it has', async () => {
-    const save = vi.fn<NonNullable<EditorActions['save']>>()
+    const save = vi.fn<ActionHandler<SaveContext>>()
     const editor = await mountHosting({ save })
     await addTitle(editor)
     expect(isDirty()).toBe(true)
@@ -89,17 +91,68 @@ describe('mountEditor actions', { timeout: 15_000 }, () => {
   })
 
   it('keeps the project dirty when it changed while the host was saving', async () => {
+    let saved = false
     const editor = await mountHosting({
       save: async ({ editor }) => {
         await addTitle(editor, 'Typed during the upload')
+        saved = true
       },
     })
     await addTitle(editor)
 
     await fireEvent.click(screen.getByRole('button', { name: 'Save project' }))
 
-    await waitFor(() => expect(screen.getByText('Project saved')).toBeInTheDocument())
+    await waitFor(() => expect(saved).toBe(true))
+    // Past the save's own continuations, where it would mark the project clean.
+    await new Promise((resolve) => setTimeout(resolve))
     expect(isDirty()).toBe(true)
+  })
+
+  it('names the actions as the host does, and saves elsewhere from beside Save', async () => {
+    const publish = vi.fn()
+    const save = vi.fn<ActionHandler<SaveContext>>()
+    const saveAs = vi.fn()
+    const target = document.createElement('div')
+    document.body.append(target)
+    mounted = await mountEditor(target, {
+      isolation: 'none',
+      // Publishing is the only way out, so it's a button rather than a menu.
+      features: { 'export.bundle': false },
+      actions: {
+        // Components, not names: a named icon loads the whole icon set, which a test environment
+        // compiles icon by icon, for longer than the test runs.
+        save: { label: 'Save to disk', icon: HardDriveDownload, run: save },
+        saveAs: { label: 'Save as a new file', run: saveAs },
+        exportVideo: { label: 'Publish', icon: Upload, run: publish },
+      },
+    })
+    await mounted.editor.createProject({ name: 'Hosted' })
+    await tick()
+    expect(screen.getByRole('button', { name: 'Publish' }).querySelector('svg')).toHaveClass(
+      'lucide-upload',
+    )
+    expect(screen.getByRole('button', { name: 'Save to disk' }).querySelector('svg')).toHaveClass(
+      'lucide-hard-drive-download',
+    )
+
+    await fireEvent.click(screen.getByRole('button', { name: 'Publish' }))
+    expect(publish).toHaveBeenCalledTimes(1)
+    expect(screen.queryByRole('menuitem')).toBeNull()
+
+    await fireEvent.click(screen.getByRole('button', { name: 'Save to disk' }))
+    await waitFor(() =>
+      expect(save).toHaveBeenCalledWith(expect.objectContaining({ trigger: 'user' })),
+    )
+
+    await addTitle(mounted.editor)
+    await fireEvent.keyDown(screen.getByRole('button', { name: 'More ways to save' }), {
+      key: 'Enter',
+    })
+    await fireEvent.click(await screen.findByRole('menuitem', { name: 'Save as a new file' }))
+    await waitFor(() => expect(isDirty()).toBe(false))
+    expect(saveAs).toHaveBeenCalledWith(expect.objectContaining({ editor: mounted.editor }))
+    // The host says how its saves went.
+    expect(screen.queryByText('Project saved')).toBeNull()
   })
 
   it('exports through the host, which can still open the export dialog', async () => {

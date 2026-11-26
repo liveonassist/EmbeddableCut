@@ -1,8 +1,8 @@
 <!-- SPDX-License-Identifier: MIT -->
 <script lang="ts" module>
-  import Layers from 'lucide-svelte/icons/layers'
-  import Palette from 'lucide-svelte/icons/palette'
-  import Scissors from 'lucide-svelte/icons/scissors'
+  import Layers from '@lucide/svelte/icons/layers'
+  import Palette from '@lucide/svelte/icons/palette'
+  import Scissors from '@lucide/svelte/icons/scissors'
   import type { EditorWorkspaceId } from '@/config/editor-workspaces'
 
   const WORKSPACE_ITEMS: readonly {

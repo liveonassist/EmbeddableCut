@@ -23,14 +23,14 @@
 <script lang="ts">
   import type { ExportResult } from '@/features/project-bundle/types/bundle'
   import { untrack } from 'svelte'
-  import Loader2 from 'lucide-svelte/icons/loader-2'
-  import CheckCircle2 from 'lucide-svelte/icons/check-circle-2'
-  import AlertCircle from 'lucide-svelte/icons/alert-circle'
-  import FolderArchive from 'lucide-svelte/icons/folder-archive'
-  import Clock from 'lucide-svelte/icons/clock'
-  import HardDrive from 'lucide-svelte/icons/hard-drive'
-  import FileVideo from 'lucide-svelte/icons/file-video'
-  import Download from 'lucide-svelte/icons/download'
+  import Loader2 from '@lucide/svelte/icons/loader-2'
+  import CheckCircle2 from '@lucide/svelte/icons/check-circle-2'
+  import AlertCircle from '@lucide/svelte/icons/alert-circle'
+  import FolderArchive from '@lucide/svelte/icons/folder-archive'
+  import Clock from '@lucide/svelte/icons/clock'
+  import HardDrive from '@lucide/svelte/icons/hard-drive'
+  import FileVideo from '@lucide/svelte/icons/file-video'
+  import Download from '@lucide/svelte/icons/download'
   import {
     Dialog,
     DialogContent,

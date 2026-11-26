@@ -21,12 +21,12 @@
 </script>
 
 <script lang="ts">
-  import ChevronDown from 'lucide-svelte/icons/chevron-down'
-  import ChevronUp from 'lucide-svelte/icons/chevron-up'
-  import FolderCheck from 'lucide-svelte/icons/folder-check'
-  import RotateCcw from 'lucide-svelte/icons/rotate-ccw'
-  import Trash2 from 'lucide-svelte/icons/trash-2'
-  import X from 'lucide-svelte/icons/x'
+  import ChevronDown from '@lucide/svelte/icons/chevron-down'
+  import ChevronUp from '@lucide/svelte/icons/chevron-up'
+  import FolderCheck from '@lucide/svelte/icons/folder-check'
+  import RotateCcw from '@lucide/svelte/icons/rotate-ccw'
+  import Trash2 from '@lucide/svelte/icons/trash-2'
+  import X from '@lucide/svelte/icons/x'
   import { Button } from '@/components/ui/button'
   import { Progress } from '@/components/ui/progress'
   import { formatBytes } from '@/features/export/deps/renderer'

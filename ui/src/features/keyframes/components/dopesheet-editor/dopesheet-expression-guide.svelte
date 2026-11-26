@@ -1,6 +1,6 @@
 <!-- SPDX-License-Identifier: MIT -->
 <script lang="ts">
-  import ArrowLeft from 'lucide-svelte/icons/arrow-left'
+  import ArrowLeft from '@lucide/svelte/icons/arrow-left'
   import { Button } from '@/components/ui/button'
   import { cn } from '@/shared/ui/cn'
   import type { DirectLinkableProperty } from '@/types/keyframe'

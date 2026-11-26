@@ -112,6 +112,24 @@ describe('useColorPlayheadAutoSelect', () => {
     expect(useSelectionStore.getState().selectedItemIds).toEqual(['a'])
   })
 
+  it('picks up the next clip, or one added under it, after a gap', () => {
+    const clips = [makeClip('a', 't1', 0, 90), makeClip('b', 't1', 150, 90)]
+    seed(clips, [makeTrack('t1', 0)])
+    render(AutoSelectHarness)
+    usePlaybackStore.setState({ currentFrame: 100 })
+    useSelectionStore.getState().selectItems([])
+
+    usePlaybackStore.setState({ currentFrame: 120 })
+    expect(useSelectionStore.getState().selectedItemIds).toEqual([])
+    usePlaybackStore.setState({ currentFrame: 150 })
+    expect(useSelectionStore.getState().selectedItemIds).toEqual(['b'])
+
+    usePlaybackStore.setState({ currentFrame: 120 })
+    useSelectionStore.getState().selectItems([])
+    seed([...clips, makeClip('c', 't1', 100, 40)], [makeTrack('t1', 0)])
+    expect(useSelectionStore.getState().selectedItemIds).toEqual(['c'])
+  })
+
   it('defers selection while scrubbing and catches up on release', () => {
     seed([makeClip('a', 't1', 0, 90), makeClip('b', 't1', 90, 90)], [makeTrack('t1', 0)])
     render(AutoSelectHarness)

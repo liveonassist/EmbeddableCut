@@ -31,6 +31,79 @@ function layeredSourceAliasPlugin(): Plugin {
   }
 }
 
+// EmbeddableCut: what the headless harness shares with the app. `manualChunks`
+// runs as one chunk group, which takes each module's dependencies with it, so
+// these landed in whichever UI chunk reached them first and the harness loaded
+// 780 KB of editor UI for a logger and two caches. Groups ahead of it claim
+// them, apart, so the landing page doesn't load what only rendering uses.
+const sharedChunks = [
+  {
+    name: 'core-shared',
+    modules: [
+      '/src/shared/logging/logger.ts',
+      '/src/infrastructure/browser/blob-url-manager.ts',
+      'vite/preload-helper',
+    ],
+  },
+  {
+    name: 'render-shared',
+    modules: [
+      '/src/shared/utils/media-utils.ts',
+      '/src/features/timeline/services/gif-frame-cache.ts',
+    ],
+  },
+]
+
+const lucideIcons = '/@lucide/svelte/dist/icons/'
+const isPageModule = (id: string) =>
+  /\/ui\/src\/(features\/docs|routes\/docs|routes\/changelog)/.test(id.replaceAll('\\', '/'))
+
+function sharedChunksPlugin(): Plugin {
+  return {
+    name: 'embeddablecut-shared-chunks',
+    apply: 'build',
+    outputOptions(options) {
+      const { manualChunks, ...rest } = options
+      if (typeof manualChunks !== 'function') return null
+      const groups = sharedChunks.map(({ name, modules }) => ({
+        name,
+        priority: 1,
+        // Their dependencies stay where the app puts them.
+        includeDependenciesRecursively: false,
+        test: (id: string) => modules.some((path) => id.replaceAll('\\', '/').includes(path)),
+      }))
+      return {
+        ...rest,
+        codeSplitting: {
+          groups: [
+            ...groups,
+            // The editor's chunks captured the docs' and changelog's icons too,
+            // so a docs page loaded 2 MB of editor for an Info icon. A page
+            // imports `icons/<name>.js`, which imports the component.
+            {
+              name: (id, ctx) => {
+                if (!id.includes(lucideIcons)) return null
+                const importers = ctx.getModuleInfo(id)?.importers ?? []
+                const isPageIcon =
+                  importers.some(isPageModule) ||
+                  importers.some(
+                    (importer) =>
+                      importer.includes(lucideIcons) &&
+                      ctx.getModuleInfo(importer)?.importers.some(isPageModule),
+                  )
+                return isPageIcon ? 'page-icons' : null
+              },
+              priority: 1,
+              includeDependenciesRecursively: false,
+            },
+            { name: manualChunks },
+          ],
+        },
+      }
+    },
+  }
+}
+
 // Stamps public/sw.js with the hashed entry-chunk filename at build time so the service
 // worker's CACHE_VERSION — and the sw.js bytes — change on every deploy. Without this the
 // SW file is byte-identical across deploys, so registration.update() never detects a new
@@ -100,6 +173,7 @@ export default defineConfig({
     svelte({ configFile: fileURLToPath(new URL('../ui/svelte.config.js', import.meta.url)) }),
     tailwindcss(),
     serviceWorkerVersionPlugin(),
+    sharedChunksPlugin(),
   ]),
   resolve: {
     alias: {
@@ -161,7 +235,16 @@ export default defineConfig({
             // primitive must live in the shell. Without this pin, the chunker
             // places it in feature-editing-core (majority importer) and the
             // entire 1.2MB editor chunk loads on the landing page.
-            normalizedId.includes('/src/components/ui/tooltip/')
+            normalizedId.includes('/src/components/ui/tooltip/') ||
+            // EmbeddableCut: the app root mounts the toaster and the theme
+            // shell sets the hotkey scope. A group takes its modules'
+            // dependencies with it, so left unpinned these land in
+            // feature-editing-core and the landing page loads all of it.
+            normalizedId.includes('/src/components/ui/sonner/') ||
+            normalizedId.includes('/node_modules/svelte-sonner/') ||
+            normalizedId.includes('/src/shared/notifications/') ||
+            normalizedId.endsWith('/src/lib/hotkeys.svelte.ts') ||
+            normalizedId.endsWith('/src/app/route-error.svelte')
 
           // Logger must be in its own chunk to avoid circular chunk TDZ errors.
           // Without this, Rollup places it in composition-runtime which has a
@@ -290,10 +373,8 @@ export default defineConfig({
           ) {
             return 'vendor-ui'
           }
-          // Icons - keep lucide-svelte in separate chunk for better caching
-          if (normalizedId.includes('/node_modules/lucide-svelte/')) {
-            return 'vendor-icons'
-          }
+          // EmbeddableCut: no icon chunk. The by-name barrel put all 1,400
+          // icons in it, so one icon on the error screen loaded 660 KB.
           return undefined
         },
       },

@@ -71,6 +71,40 @@ describe('timeline-command-store undo/redo', () => {
     expect(useItemsStore.getState().itemById['audio-1']?.volume).toBe(-9.5)
   })
 
+  it('keeps the clips an undo leaves alone', () => {
+    const track = {
+      id: 'track-a1',
+      name: 'A1',
+      kind: 'audio' as const,
+      height: 80,
+      locked: false,
+      visible: true,
+      muted: false,
+      solo: false,
+      order: 0,
+      items: [],
+    }
+    const clip = (id: string, from: number) => ({
+      id,
+      type: 'audio' as const,
+      trackId: 'track-a1',
+      from,
+      durationInFrames: 90,
+      label: `${id}.wav`,
+      src: 'blob:audio',
+      mediaId: 'media-a1',
+      volume: 0,
+    })
+    setTimelineState({ tracks: [track], items: [clip('audio-1', 0), clip('audio-2', 90)] })
+    const untouched = useItemsStore.getState().itemById['audio-2']
+
+    updateItem('audio-1', { volume: -9.5 })
+    useTimelineCommandStore.getState().undo()
+
+    expect(useItemsStore.getState().itemById['audio-1']?.volume).toBe(0)
+    expect(useItemsStore.getState().itemById['audio-2']).toBe(untouched)
+  })
+
   it('undos and redos current project metadata changes through the shared history', async () => {
     useProjectStore.setState({
       projects: [

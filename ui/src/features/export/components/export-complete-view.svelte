@@ -4,10 +4,10 @@
    * Complete step of the export dialog: the preview player, the success note, the
    * output size and time, and the download/close actions.
    */
-  import CheckCircle2 from 'lucide-svelte/icons/check-circle-2'
-  import Clock from 'lucide-svelte/icons/clock'
-  import Download from 'lucide-svelte/icons/download'
-  import HardDrive from 'lucide-svelte/icons/hard-drive'
+  import CheckCircle2 from '@lucide/svelte/icons/check-circle-2'
+  import Clock from '@lucide/svelte/icons/clock'
+  import Download from '@lucide/svelte/icons/download'
+  import HardDrive from '@lucide/svelte/icons/hard-drive'
   import { Alert, AlertDescription } from '@/components/ui/alert'
   import { Button } from '@/components/ui/button'
   import ContributionIcon from '@/components/contribution-icon.svelte'
@@ -62,18 +62,13 @@
     <Button variant="outline" onclick={onClose}>
       {t('common.close')}
     </Button>
-    {#if deliverAction}
-      <Button onclick={onDownload} disabled={delivering}>
-        {#if deliverAction.icon}
-          <ContributionIcon icon={deliverAction.icon} class="mr-2 h-4 w-4" />
-        {/if}
-        {deliverAction.label}
-      </Button>
-    {:else}
-      <Button onclick={onDownload}>
+    <Button onclick={onDownload} disabled={delivering}>
+      {#if deliverAction?.icon}
+        <ContributionIcon icon={deliverAction.icon} class="mr-2 h-4 w-4" />
+      {:else if !deliverAction?.label}
         <Download class="mr-2 h-4 w-4" />
-        {t('export.complete.download')}
-      </Button>
-    {/if}
+      {/if}
+      {deliverAction?.label ?? t('export.complete.download')}
+    </Button>
   </div>
 </div>

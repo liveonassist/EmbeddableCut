@@ -410,7 +410,7 @@
 <script lang="ts">
   import { untrack } from 'svelte'
   import { select } from '$lib/store.svelte'
-  import Activity from 'lucide-svelte/icons/activity'
+  import Activity from '@lucide/svelte/icons/activity'
   import { getResolvedPlaybackFrame, usePlaybackStore } from '@/shared/state/playback'
   import { usePreviewBridgeStore } from '@/shared/state/preview-bridge'
   import { cn } from '@/shared/ui/cn'
@@ -446,9 +446,9 @@
   const captureFrame = usePreviewBridgeStore.getState().captureFrame
   const isEmbeddedStackLayout = $derived(embedded && embeddedLayout === 'stack')
   const stackShows = (scope: StackScopeView) => !isEmbeddedStackLayout || stackView === scope
-  const showWaveform = stackShows('waveform')
+  const showWaveform = $derived(stackShows('waveform'))
   const showParade = $derived(embedded && stackShows('parade'))
-  const showVectorscope = stackShows('vectorscope')
+  const showVectorscope = $derived(stackShows('vectorscope'))
   const showHistogram = $derived(embedded && stackShows('histogram'))
 
   const waveformCanvasRef: { current: HTMLCanvasElement | null } = { current: null }

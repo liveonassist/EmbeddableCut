@@ -38,8 +38,8 @@
 
 <script lang="ts">
   import { untrack } from 'svelte'
-  import Pipette from 'lucide-svelte/icons/pipette'
-  import RotateCcw from 'lucide-svelte/icons/rotate-ccw'
+  import Pipette from '@lucide/svelte/icons/pipette'
+  import RotateCcw from '@lucide/svelte/icons/rotate-ccw'
   import { Button } from '@/components/ui/button'
   import AppEyedropperOverlay from './app-eyedropper.svelte'
   import HexColorPicker from './hex-color-picker.svelte'

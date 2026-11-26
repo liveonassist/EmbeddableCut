@@ -1,7 +1,7 @@
 <!-- SPDX-License-Identifier: MIT -->
 <script lang="ts">
   import type { TFunction } from 'i18next'
-  import Sparkles from 'lucide-svelte/icons/sparkles'
+  import Sparkles from '@lucide/svelte/icons/sparkles'
   import { t } from '$lib/i18n.svelte'
   import { Button } from '@/components/ui/button'
   import { cn } from '@/shared/ui/cn'

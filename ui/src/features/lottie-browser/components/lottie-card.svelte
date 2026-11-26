@@ -1,10 +1,10 @@
 <!-- SPDX-License-Identifier: MIT -->
 <script lang="ts">
-  import Check from 'lucide-svelte/icons/check'
-  import Film from 'lucide-svelte/icons/film'
-  import Loader2 from 'lucide-svelte/icons/loader-circle'
-  import Plus from 'lucide-svelte/icons/plus'
-  import RotateCcw from 'lucide-svelte/icons/rotate-ccw'
+  import Check from '@lucide/svelte/icons/check'
+  import Film from '@lucide/svelte/icons/film'
+  import Loader2 from '@lucide/svelte/icons/loader-circle'
+  import Plus from '@lucide/svelte/icons/plus'
+  import RotateCcw from '@lucide/svelte/icons/rotate-ccw'
   import { cn } from '@/shared/ui/cn'
   import { t } from '$lib/i18n.svelte'
   import type { LottieFilesAnimation } from '@/features/lottie-browser/services/lottiefiles-api'

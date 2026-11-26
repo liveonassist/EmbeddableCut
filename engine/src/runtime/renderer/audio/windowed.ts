@@ -15,11 +15,12 @@ import {
   createMediabunnyInputSource,
   MEDIA_INPUT_FORMAT_OPTIONS,
 } from '@/infrastructure/browser/mediabunny-input-source'
-import type { AudioSegment, DecodedAudio } from './types'
+import type { AudioProcessingConfig, AudioSegment, DecodedAudio } from './types'
 import { decodeAudioFromSource, decodeAudioRangeFromSink } from './decode'
 import { applyAnimatedVolume, applyVolume, dbToGain, resample } from './dsp'
 import { applyDucking, collectDuckingSources, type DuckingSource } from './ducking'
 import { downmixToOutputChannels, softClipAudioMix } from './mixdown'
+import { processAudioSegment } from './pipeline'
 import { resolveSubCompMediaUrls } from './media-urls'
 import { extractAudioSegments, supportsWindowedAudioSegment } from './planning'
 
@@ -367,6 +368,51 @@ async function mixSegmentIntoAudioWindow(params: {
   )
 }
 
+interface WholeSegment {
+  samples: Float32Array[]
+  startSample: number
+}
+
+/** Mixes the window's slice of a segment processed whole, dropping it after its last. */
+async function mixWholeSegmentIntoAudioWindow(
+  segment: AudioSegment,
+  wholeSegments: Map<AudioSegment, WholeSegment | null>,
+  config: AudioProcessingConfig,
+  duckingSources: readonly DuckingSource[],
+  window: { mixed: Float32Array[]; chunkStart: number; chunkEnd: number },
+): Promise<void> {
+  const { mixed, chunkStart, chunkEnd } = window
+  const startSample = Math.floor((segment.startFrame / config.fps) * config.sampleRate)
+  if (startSample >= chunkEnd) return
+  let whole = wholeSegments.get(segment)
+  if (whole === undefined) {
+    whole = await processAudioSegment(segment, config, duckingSources).then(
+      (processed) => ({
+        samples: downmixToOutputChannels(processed.samples, mixed.length),
+        startSample: processed.startSample,
+      }),
+      (error) => {
+        // As the full-segment mixer does, an undecodable clip is left silent.
+        log.error('Failed to process audio segment', { itemId: segment.itemId, error })
+        return null
+      },
+    )
+    wholeSegments.set(segment, whole)
+  }
+  if (!whole) return
+  const segmentEnd = whole.startSample + (whole.samples[0]?.length ?? 0)
+  if (segmentEnd <= chunkEnd) wholeSegments.delete(segment)
+  const from = Math.max(chunkStart, whole.startSample)
+  const to = Math.min(chunkEnd, segmentEnd)
+  for (let channel = 0; channel < mixed.length; channel++) {
+    const source = whole.samples[channel]!
+    const destination = mixed[channel]!
+    for (let i = from; i < to; i++) {
+      destination[i - chunkStart] = destination[i - chunkStart]! + source[i - whole.startSample]!
+    }
+  }
+}
+
 function applyAudioWindowMasterGain(mixed: Float32Array[], masterGain: number): void {
   for (const channel of mixed) {
     for (let i = 0; i < channel.length; i++) channel[i] = channel[i]! * masterGain
@@ -388,9 +434,7 @@ export async function* processAudioWindows(
   await resolveSubCompMediaUrls(composition)
 
   const segments = extractAudioSegments(composition, fps).filter((segment) => !segment.muted)
-  if (segments.length === 0 || !segments.every(supportsWindowedAudioSegment)) {
-    throw new Error('Audio timeline requires full-segment processing')
-  }
+  if (segments.length === 0) throw new Error('Audio timeline has no audible segments')
 
   if (segments.some((segment) => isAc3AudioCodec(segment.audioCodec))) {
     await ensureAc3DecoderRegistered()
@@ -406,6 +450,16 @@ export async function* processAudioWindows(
       : 1
 
   const duckingSources = collectDuckingSources(composition, fps)
+  // EmbeddableCut: speed, reverse, pitch and EQ carry state across the whole
+  // clip, so such a segment is processed whole when the first window reaches
+  // it and held only until its last; the rest of the timeline stays windowed.
+  const config: AudioProcessingConfig = {
+    sampleRate,
+    channels,
+    fps,
+    totalFrames: durationInFrames,
+  }
+  const wholeSegments = new Map<AudioSegment, WholeSegment | null>()
 
   const decoderPool = await createWindowedAudioDecoderPool()
   try {
@@ -417,6 +471,14 @@ export async function* processAudioWindows(
       const mixed = [new Float32Array(chunkLength), new Float32Array(chunkLength)]
 
       for (const segment of segments) {
+        if (!supportsWindowedAudioSegment(segment)) {
+          await mixWholeSegmentIntoAudioWindow(segment, wholeSegments, config, duckingSources, {
+            mixed,
+            chunkStart,
+            chunkEnd,
+          })
+          continue
+        }
         await mixSegmentIntoAudioWindow({
           segment,
           mixed,

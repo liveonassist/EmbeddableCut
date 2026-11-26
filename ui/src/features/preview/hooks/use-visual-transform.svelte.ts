@@ -70,10 +70,12 @@ export function useVisualTransforms(
   )
   const animationFrame = $derived(frameOverride ?? resolvedPlaybackFrame.current)
 
+  // Its own derived, so a frame change doesn't rebuild it.
+  const itemsById = $derived(new Map(allItems.current.map((item) => [item.id, item])))
+
   const visualTransforms = $derived.by(() => {
     const transforms = new Map<string, ResolvedTransform>()
     const canvas = { width: projectSize.width, height: projectSize.height, fps: fps.current }
-    const itemsById = new Map(allItems.current.map((item) => [item.id, item]))
     const getLocalPreviewTransform = (itemId: string) => preview.current?.[itemId]?.transform
     const activeGizmoLocalPreview =
       activeGizmoItemId.current && gizmoPreviewTransform.current

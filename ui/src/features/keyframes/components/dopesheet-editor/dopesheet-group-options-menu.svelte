@@ -1,6 +1,6 @@
 <!-- SPDX-License-Identifier: MIT -->
 <script lang="ts">
-  import MoreHorizontal from 'lucide-svelte/icons/more-horizontal'
+  import MoreHorizontal from '@lucide/svelte/icons/more-horizontal'
   import { Button } from '@/components/ui/button'
   import {
     DropdownMenu,

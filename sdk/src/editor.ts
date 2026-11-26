@@ -220,7 +220,10 @@ export interface EditorEvents extends Record<string, unknown> {
   project: ProjectInfo
   /** The loaded project's name, canvas, frame rate or background changed, by anyone. */
   projectChange: ProjectInfo
-  /** Anything in the project changed: an edit on the timeline, its settings, undo or redo. */
+  /**
+   * Anything in the project changed: an edit on the timeline, its settings,
+   * undo or redo. Sent once per edit, just after it.
+   */
   change: void
   /** The project gained unsaved changes, or was saved. */
   dirty: boolean
@@ -306,7 +309,17 @@ export class Editor {
         throw new Error(refusalMessage(refusal))
       }),
     )
-    const emitChange = () => this.events.emit('change', undefined)
+    // One edit writes several stores, some more than once (their indexes), and a
+    // load writes them all: hosts that save on `change` should hear it once.
+    let changeQueued = false
+    const emitChange = () => {
+      if (changeQueued) return
+      changeQueued = true
+      queueMicrotask(() => {
+        changeQueued = false
+        if (!this.disposed) this.events.emit('change', undefined)
+      })
+    }
     this.teardown.push(
       useProjectStore.subscribe((state, previous) => {
         const [project, before] = [state.currentProject, previous.currentProject]
@@ -833,13 +846,14 @@ export class Editor {
     let image: Blob | null = null
     await renderFrame({
       project: document.project as unknown as Project,
-      media: await this.renderSources(),
+      media: await this.renderSources(document),
       frame: request.frame ?? (request.atSeconds === undefined ? this.frame : undefined),
       atSeconds: request.atSeconds,
       width: request.width,
       height: request.height,
       format: request.format,
       quality: request.quality,
+      liveCompositions: true,
       deliver: (blob) => {
         image = blob
       },
@@ -864,11 +878,12 @@ export class Editor {
     let output: { blob: Blob; fileName: string } | null = null
     const summary = await renderProject({
       project: document.project as unknown as Project,
-      media: await this.renderSources(),
+      media: await this.renderSources(document),
       settings,
       inPoint: request.inFrame ?? null,
       outPoint: request.outFrame ?? null,
       onProgress: request.onProgress ?? (() => {}),
+      liveCompositions: true,
       deliver: (blob, fileName) => {
         output = { blob, fileName }
       },
@@ -885,9 +900,14 @@ export class Editor {
     }
   }
 
-  /** Fetchable URLs for every media item, as the render path wants them. */
-  private async renderSources(): Promise<HeadlessMediaSource[]> {
-    const media = useMediaLibraryStore.getState().mediaItems
+  /**
+   * Fetchable URLs for the media a document uses, as the render path wants
+   * them. Not the whole library: resolving a URL asset can ask the host's
+   * resolver, and a render shouldn't for media it never reads.
+   */
+  private async renderSources(document: ProjectDocument): Promise<HeadlessMediaSource[]> {
+    const used = new Set(document.assets.map((asset) => asset.id))
+    const media = useMediaLibraryStore.getState().mediaItems.filter((item) => used.has(item.id))
     const sources = await Promise.all(
       media.map(async (metadata: MediaMetadata) => {
         try {

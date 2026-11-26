@@ -3,6 +3,7 @@ import { doesMaskAffectTrack } from '@/shared/utils/mask-scope'
 import type { CanvasPool } from './canvas-pool'
 import type { CanvasSettings } from './canvas-item-renderer'
 import type { GpuPipelineManager } from './gpu-pipeline-manager'
+import { acquireScratchCanvas, releaseScratchCanvas } from './scratch-canvas-pool'
 
 /** A single rendered render-task output: either a pooled canvas or a GPU texture,
  * plus the pool canvases that must be released afterward. */
@@ -27,15 +28,17 @@ export function renderMasksToGpuTexture(
 ): { texture: GPUTexture; view: GPUTextureView } | null {
   const { gpu, canvasSettings, maskSettings } = deps
   if (!gpu.texturePool || masks.length === 0) return null
-  const maskSource = new OffscreenCanvas(canvasSettings.width, canvasSettings.height)
-  const maskSourceCtx = maskSource.getContext('2d')
-  if (!maskSourceCtx) return null
+  // EmbeddableCut: scratch canvases, reused across layers and frames; the
+  // upload snapshots them, so they go back as soon as it is queued.
+  const maskSourceEntry = acquireScratchCanvas(canvasSettings.width, canvasSettings.height)
+  if (!maskSourceEntry) return null
+  const { canvas: maskSource, ctx: maskSourceCtx } = maskSourceEntry
   maskSourceCtx.fillStyle = 'white'
   maskSourceCtx.fillRect(0, 0, maskSource.width, maskSource.height)
 
-  const maskedCanvas = new OffscreenCanvas(canvasSettings.width, canvasSettings.height)
-  const maskedCtx = maskedCanvas.getContext('2d')
-  if (!maskedCtx) return null
+  const maskedEntry = acquireScratchCanvas(canvasSettings.width, canvasSettings.height)
+  if (!maskedEntry) return null
+  const { canvas: maskedCanvas, ctx: maskedCtx } = maskedEntry
   applyMasks(maskedCtx, maskSource, masks, maskSettings)
 
   const texture = gpu.texturePool.acquire(canvasSettings.width, canvasSettings.height)
@@ -46,6 +49,8 @@ export function renderMasksToGpuTexture(
       { texture },
       { width: canvasSettings.width, height: canvasSettings.height },
     )
+  releaseScratchCanvas(maskSource)
+  releaseScratchCanvas(maskedCanvas)
   return { texture, view: texture.createView() }
 }
 

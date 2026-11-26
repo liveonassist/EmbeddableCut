@@ -1,7 +1,7 @@
 <!-- SPDX-License-Identifier: MIT -->
 <script lang="ts">
   import type { ComponentProps } from 'svelte'
-  import RotateCcw from 'lucide-svelte/icons/rotate-ccw'
+  import RotateCcw from '@lucide/svelte/icons/rotate-ccw'
   import { Button } from '@/components/ui/button'
   import { KeyframeToggle } from '@/features/editor/deps/keyframes'
   import type { AnimatableProperty } from '@/types/keyframe'

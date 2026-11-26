@@ -1,7 +1,7 @@
 <!-- SPDX-License-Identifier: MIT -->
 <script lang="ts">
-  import Pause from 'lucide-svelte/icons/pause'
-  import Play from 'lucide-svelte/icons/play'
+  import Pause from '@lucide/svelte/icons/pause'
+  import Play from '@lucide/svelte/icons/play'
   import { Slider } from '@/components/ui/slider'
   import { useMediaPlaybackControls } from '@/shared/media/use-media-playback-controls.svelte'
   import { t } from '$lib/i18n.svelte'

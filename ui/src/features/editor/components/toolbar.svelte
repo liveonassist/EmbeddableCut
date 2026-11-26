@@ -11,18 +11,18 @@
 </script>
 
 <script lang="ts">
-  import ArrowLeft from 'lucide-svelte/icons/arrow-left'
-  import BookOpen from 'lucide-svelte/icons/book-open'
-  import Bug from 'lucide-svelte/icons/bug'
-  import ChevronDown from 'lucide-svelte/icons/chevron-down'
-  import Download from 'lucide-svelte/icons/download'
-  import FolderArchive from 'lucide-svelte/icons/folder-archive'
-  import Keyboard from 'lucide-svelte/icons/keyboard'
-  import ListVideo from 'lucide-svelte/icons/list-video'
-  import Save from 'lucide-svelte/icons/save'
-  import Settings from 'lucide-svelte/icons/settings'
-  import Sparkles from 'lucide-svelte/icons/sparkles'
-  import Video from 'lucide-svelte/icons/video'
+  import ArrowLeft from '@lucide/svelte/icons/arrow-left'
+  import BookOpen from '@lucide/svelte/icons/book-open'
+  import Bug from '@lucide/svelte/icons/bug'
+  import ChevronDown from '@lucide/svelte/icons/chevron-down'
+  import Download from '@lucide/svelte/icons/download'
+  import FolderArchive from '@lucide/svelte/icons/folder-archive'
+  import Keyboard from '@lucide/svelte/icons/keyboard'
+  import ListVideo from '@lucide/svelte/icons/list-video'
+  import Save from '@lucide/svelte/icons/save'
+  import Settings from '@lucide/svelte/icons/settings'
+  import Sparkles from '@lucide/svelte/icons/sparkles'
+  import Video from '@lucide/svelte/icons/video'
   import { select, shallow } from '$lib/store.svelte'
   import { t } from '$lib/i18n.svelte'
   import { Button } from '@/components/ui/button'
@@ -38,7 +38,12 @@
   import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
   import { Separator } from '@/components/ui/separator'
   import type { ToolbarContribution } from '../../../extensions/contributions'
-  import { runAction, type SaveTrigger } from '../../../extensions/actions.svelte'
+  import {
+    actionHandler,
+    actionName,
+    runAction,
+    type SaveTrigger,
+  } from '../../../extensions/actions.svelte'
   import LocalInferenceStatusPill from './local-inference-status-pill.svelte'
   import ProjectDebugPanel from './project-debug-panel.svelte'
   import SettingsDialog from './settings-dialog.svelte'
@@ -62,6 +67,8 @@
     projectId: string
     project: EditorProject
     onSave?: (trigger: SaveTrigger) => Promise<void>
+    /** The host's save-as (`EditorActions.saveAs`), offered beside Save. */
+    onSaveAs?: () => Promise<void>
     onExport?: () => void
     onExportBundle?: () => void
     onOpenRenderQueue?: () => void
@@ -73,6 +80,7 @@
     projectId,
     project,
     onSave,
+    onSaveAs,
     onExport,
     onExportBundle,
     onOpenRenderQueue,
@@ -87,7 +95,17 @@
   const features = useFeatures()
   const exportVideoMode = $derived(features.mode('export.video'))
   const exportBundleMode = $derived(features.mode('export.bundle'))
-  const helpAction = $derived(editorUi?.actions?.current.help)
+  const hostActions = $derived(editorUi?.actions?.current ?? {})
+  const helpAction = $derived(hostActions.help)
+  const helpName = $derived(actionName(helpAction))
+  const saveName = $derived(actionName(hostActions.save))
+  const saveAs = $derived(onSaveAs && hostActions.saveAs)
+  const exportVideoName = $derived(actionName(hostActions.exportVideo))
+  const exportBundleName = $derived(actionName(hostActions.exportBundle))
+  // One way to export is a button of its own, not a menu of one.
+  const soleExport = $derived(
+    exportVideoMode === 'hidden' ? 'bundle' : exportBundleMode === 'hidden' ? 'video' : null,
+  )
 
   // The app's projects page, when the editor runs inside the app; a
   // mounted editor has no pages to go back to.
@@ -147,7 +165,7 @@
 
   function handleHelp() {
     if (!helpAction || !editorUi) return
-    void runAction(helpAction, {
+    void runAction(actionHandler(helpAction), {
       editor: editorUi.editor,
       runDefault: async () => {
         if (router) openUserGuide()
@@ -155,7 +173,11 @@
     })
   }
 
-  async function handleSave(trigger: SaveTrigger = 'user') {
+  function handleSave(trigger: SaveTrigger = 'user') {
+    return animateSave(onSave && (() => onSave(trigger)))
+  }
+
+  async function animateSave(save: (() => Promise<void>) | undefined) {
     const startedAt = performance.now()
     const finishSaveAnimation = () => {
       const remainingMs = Math.max(0, SAVE_ANIMATION_MIN_MS - (performance.now() - startedAt))
@@ -173,9 +195,9 @@
     saveAnimationKey += 1
     isSaveAnimating = true
 
-    if (onSave) {
+    if (save) {
       try {
-        await onSave(trigger)
+        await save()
       } finally {
         finishSaveAnimation()
       }
@@ -366,11 +388,15 @@
         size="icon"
         class="h-7 w-7"
         onclick={handleHelp}
-        data-tooltip="User Guide"
+        data-tooltip={helpName.label ?? 'User Guide'}
         data-tooltip-side="bottom"
-        aria-label="User Guide"
+        aria-label={helpName.label ?? 'User Guide'}
       >
-        <BookOpen class="h-4 w-4" />
+        {#if helpName.icon}
+          <ContributionIcon icon={helpName.icon} class="h-4 w-4" />
+        {:else}
+          <BookOpen class="h-4 w-4" />
+        {/if}
       </Button>
     {:else}
     <Button variant="outline" size="icon" class="h-7 w-7">
@@ -439,12 +465,21 @@
 
     <!-- Actions -->
     <Feature id="toolbar.save">
-    <Button variant="outline" size="sm" class="gap-1.5" onclick={() => handleSave()} aria-label={t('toolbar.saveAria')}>
+    <div class="flex">
+    <Button
+      variant="outline"
+      size="sm"
+      class={cn('cursor-pointer gap-1.5', saveAs && 'rounded-r-none')}
+      onclick={() => handleSave()}
+      aria-label={saveName.label ?? t('toolbar.saveAria')}
+    >
       <div class="relative">
         {#if isSaveAnimating}
           {#key saveAnimationKey}
             {@render saveAnimationIcon('h-5 w-5')}
           {/key}
+        {:else if saveName.icon}
+          <ContributionIcon icon={saveName.icon} class="h-4 w-4" />
         {:else}
           <Save class="h-4 w-4" />
         {/if}
@@ -452,8 +487,36 @@
           <span class="absolute -right-1 -top-1 h-2 w-2 animate-pulse rounded-full bg-primary"></span>
         {/if}
       </div>
-      {t('toolbar.save')}
+      {saveName.label ?? t('toolbar.save')}
     </Button>
+    {#if saveAs}
+      <DropdownMenu>
+        <DropdownMenuTrigger>
+          {#snippet child({ props })}
+            <Button
+              {...props}
+              variant="outline"
+              size="sm"
+              class="w-7 cursor-pointer rounded-l-none border-l-0 px-0"
+              aria-label={t('toolbar.saveMoreOptions')}
+            >
+              <ChevronDown class="h-3 w-3" />
+            </Button>
+          {/snippet}
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <DropdownMenuItem onSelect={() => void animateSave(onSaveAs).catch(() => {})} class="gap-2">
+            {#if saveAs.icon}
+              <ContributionIcon icon={saveAs.icon} class="h-4 w-4" />
+            {:else}
+              <Save class="h-4 w-4" />
+            {/if}
+            {saveAs.label}
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    {/if}
+    </div>
     </Feature>
 
     {#if onOpenRenderQueue}
@@ -479,12 +542,53 @@
       </Feature>
     {/if}
 
+    {#snippet exportVideoIcon()}
+      {#if exportVideoName.icon}
+        <ContributionIcon icon={exportVideoName.icon} class="h-4 w-4" />
+      {:else}
+        <Video class="h-4 w-4" />
+      {/if}
+    {/snippet}
+
+    {#snippet exportBundleIcon()}
+      {#if exportBundleName.icon}
+        <ContributionIcon icon={exportBundleName.icon} class="h-4 w-4" />
+      {:else}
+        <FolderArchive class="h-4 w-4" />
+      {/if}
+    {/snippet}
+
     {#if exportVideoMode !== 'hidden' || exportBundleMode !== 'hidden'}
     <Feature id="export">
+    {#if soleExport === 'video'}
+      <Button
+        size="sm"
+        class="cursor-pointer gap-1.5 glow-primary-sm"
+        onclick={onExport}
+        disabled={exportVideoMode === 'locked'}
+      >
+        {#if exportVideoName.icon}
+          <ContributionIcon icon={exportVideoName.icon} class="h-4 w-4" />
+        {:else}
+          <Download class="h-4 w-4" />
+        {/if}
+        {exportVideoName.label ?? t('toolbar.export')}
+      </Button>
+    {:else if soleExport === 'bundle'}
+      <Button
+        size="sm"
+        class="cursor-pointer gap-1.5 glow-primary-sm"
+        onclick={onExportBundle}
+        disabled={exportBundleMode === 'locked'}
+      >
+        {@render exportBundleIcon()}
+        {exportBundleName.label ?? t('toolbar.downloadProjectZip')}
+      </Button>
+    {:else}
     <DropdownMenu>
       <DropdownMenuTrigger>
         {#snippet child({ props })}
-          <Button {...props} size="sm" class="gap-1.5 glow-primary-sm">
+          <Button {...props} size="sm" class="cursor-pointer gap-1.5 glow-primary-sm">
             <Download class="h-4 w-4" />
             {t('toolbar.export')}
             <ChevronDown class="h-3 w-3" />
@@ -492,20 +596,17 @@
         {/snippet}
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        {#if exportVideoMode !== 'hidden'}
-          <DropdownMenuItem onSelect={onExport} disabled={exportVideoMode === 'locked'} class="gap-2">
-            <Video class="h-4 w-4" />
-            {t('toolbar.exportVideo')}
-          </DropdownMenuItem>
-        {/if}
-        {#if exportBundleMode !== 'hidden'}
-          <DropdownMenuItem onSelect={onExportBundle} disabled={exportBundleMode === 'locked'} class="gap-2">
-            <FolderArchive class="h-4 w-4" />
-            {t('toolbar.downloadProjectZip')}
-          </DropdownMenuItem>
-        {/if}
+        <DropdownMenuItem onSelect={onExport} disabled={exportVideoMode === 'locked'} class="gap-2">
+          {@render exportVideoIcon()}
+          {exportVideoName.label ?? t('toolbar.exportVideo')}
+        </DropdownMenuItem>
+        <DropdownMenuItem onSelect={onExportBundle} disabled={exportBundleMode === 'locked'} class="gap-2">
+          {@render exportBundleIcon()}
+          {exportBundleName.label ?? t('toolbar.downloadProjectZip')}
+        </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
+    {/if}
     </Feature>
     {/if}
 

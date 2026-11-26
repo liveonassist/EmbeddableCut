@@ -24,8 +24,8 @@
 </script>
 
 <script lang="ts">
-  import Download from 'lucide-svelte/icons/download'
-  import X from 'lucide-svelte/icons/x'
+  import Download from '@lucide/svelte/icons/download'
+  import X from '@lucide/svelte/icons/x'
   import { Button } from '@/components/ui/button'
   import { t } from '$lib/i18n.svelte'
 

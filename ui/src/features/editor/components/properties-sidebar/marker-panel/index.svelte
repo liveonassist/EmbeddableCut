@@ -19,8 +19,8 @@
   import { Button } from '@/components/ui/button'
   import { Input } from '@/components/ui/input'
   import { Separator } from '@/components/ui/separator'
-  import MapPin from 'lucide-svelte/icons/map-pin'
-  import Trash2 from 'lucide-svelte/icons/trash-2'
+  import MapPin from '@lucide/svelte/icons/map-pin'
+  import Trash2 from '@lucide/svelte/icons/trash-2'
   import {
     removeMarker,
     updateMarker,

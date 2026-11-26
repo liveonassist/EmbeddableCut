@@ -392,12 +392,15 @@ export function supportsWindowedAudioSegment(segment: AudioSegment): boolean {
  * Long, ordinary clips can be mixed in bounded windows. Stateful DSP paths
  * retain the full-segment implementation so speed/pitch/EQ continuity remains
  * identical to preview.
+ *
+ * EmbeddableCut: the windowed mixer processes those segments whole itself, so
+ * any audible timeline can be windowed.
  */
 export function supportsWindowedAudioProcessing(composition: CompositionInputProps): boolean {
   const segments = extractAudioSegments(composition, composition.fps).filter(
     (segment) => !segment.muted,
   )
-  return segments.length > 0 && segments.every(supportsWindowedAudioSegment)
+  return segments.length > 0
 }
 
 function hasPacketCopyTimingChanges(segment: AudioSegment, durationInFrames: number): boolean {

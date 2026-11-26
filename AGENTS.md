@@ -63,7 +63,7 @@ The editor's design is the default and the bar. [`docs/DESIGN.md`](docs/DESIGN.m
 - The toolchain comes from the Nix flake — enter it with `nix develop` or `direnv`. Never a system `node`. Need a tool? Add it to `flake.nix`, in the group its shell composes from.
 - `just` is the entry point for common tasks: `just` lists every recipe, `just <group>` one group. A command people run more than once gets a recipe.
 - npm workspaces: one `package-lock.json` at the root. Install with `just web install` (`npm install` at the root); add a dependency to the package that imports it, exact-pinned, never `^` or `~`. A lockfile change also refreshes the flake's `npmDepsHash`: `just check npm-hash`.
-- `onnxruntime-web` (a dev build) and `lucide-svelte` (0.468.x, upstream's `lucide-react` version, so the icons match) are pinned deliberately: never routine-bump either.
+- `onnxruntime-web` (a dev build) and `@lucide/svelte` (0.479.0, its first release and the nearest to upstream's `lucide-react` 0.468.0, so the icons match) are pinned deliberately: never routine-bump either.
 - Shell scripts pass `shfmt --indent 2` and `shellcheck`, justfiles `just --fmt`, the flake `alejandra` (`just check tasks`).
 - License is MIT, inherited from upstream. New source files start with an SPDX header (`// SPDX-License-Identifier: MIT`, or the file type's comment equivalent); upstream files stay as upstream has them.
 - Code from elsewhere goes in a commit of its own, keeps its notice, and names its source and license in the message.

@@ -53,7 +53,12 @@
 
     return untrack(() => {
       const restoreCursor = setGlobalCursorStyle('cursor', 'grabbing')
+      const markerFrame = () =>
+        useMarkersStore.getState().markers.find((marker) => marker.id === activeDraggingId)?.frame
+      const startFrame = markerFrame()
 
+      // The drag moves the marker in the store and commits once on release,
+      // so it costs one undo step instead of one per frame it crossed.
       const handleMouseMove = (e: MouseEvent) => {
         const ruler = container?.closest('.timeline-ruler')
         if (!ruler) return
@@ -62,6 +67,13 @@
         const x = e.clientX - rect.left
         const frame = Math.max(0, pixelsToFrameNow(x))
 
+        if (frame !== markerFrame()) useMarkersStore.getState().updateMarker(activeDraggingId, { frame })
+      }
+
+      const commit = () => {
+        const frame = markerFrame()
+        if (startFrame === undefined || frame === undefined || frame === startFrame) return
+        useMarkersStore.getState().updateMarker(activeDraggingId, { frame: startFrame })
         updateMarker(activeDraggingId, { frame })
       }
 
@@ -76,6 +88,7 @@
         document.removeEventListener('mousemove', handleMouseMove)
         document.removeEventListener('mouseup', handleMouseUp)
         restoreCursor()
+        commit()
       }
     })
   })

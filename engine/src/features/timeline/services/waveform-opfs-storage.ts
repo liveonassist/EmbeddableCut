@@ -144,6 +144,31 @@ class WaveformOPFSStorage {
   private rootHandle: FileSystemDirectoryHandle | null = null
   private dirHandle: FileSystemDirectoryHandle | null = null
   private initPromise: Promise<FileSystemDirectoryHandle> | null = null
+  // EmbeddableCut: range files by media, listed once. The directory holds
+  // every media's waveforms, and a visible-range lookup listed all of it.
+  private rangeIndex: Promise<Map<string, RangeIndex[]>> | null = null
+
+  private getRangeIndex(dir: FileSystemDirectoryHandle): Promise<Map<string, RangeIndex[]>> {
+    this.rangeIndex ??= (async () => {
+      const index = new Map<string, RangeIndex[]>()
+      for await (const entry of dir.values()) {
+        const parsed = entry.kind === 'file' ? this.parseRangeFileName(entry.name) : null
+        if (parsed) index.set(parsed.mediaId, [...(index.get(parsed.mediaId) ?? []), parsed])
+      }
+      return index
+    })().catch((error: unknown) => {
+      this.rangeIndex = null
+      throw error
+    })
+    return this.rangeIndex
+  }
+
+  private indexRange(range: RangeIndex): void {
+    void this.rangeIndex?.then((index) => {
+      const ranges = (index.get(range.mediaId) ?? []).filter((r) => r.fileName !== range.fileName)
+      index.set(range.mediaId, [...ranges, range])
+    })
+  }
 
   /**
    * Initialize OPFS directory (with migration)
@@ -548,13 +573,12 @@ class WaveformOPFSStorage {
     })
     uint8.set(new Uint8Array(compactPeaks.buffer), RANGE_HEADER_SIZE)
 
-    const fileHandle = await dir.getFileHandle(
-      this.getRangeFileName(mediaId, range.sampleRate, startSample, sampleCount),
-      { create: true },
-    )
+    const fileName = this.getRangeFileName(mediaId, range.sampleRate, startSample, sampleCount)
+    const fileHandle = await dir.getFileHandle(fileName, { create: true })
     const writable = await fileHandle.createWritable()
     await writable.write(buffer)
     await writable.close()
+    this.indexRange({ mediaId, fileName, sampleRate: range.sampleRate, startSample, sampleCount })
   }
 
   async getCachedRange(
@@ -567,21 +591,12 @@ class WaveformOPFSStorage {
       const dir = await this.ensureDirectory()
       const requestedStartSample = Math.max(0, Math.floor(startTime * sampleRate))
       const requestedEndSample = Math.max(requestedStartSample + 1, Math.ceil(endTime * sampleRate))
-      const candidates: RangeIndex[] = []
-
-      for await (const entry of dir.values()) {
-        if (entry.kind !== 'file') continue
-        const parsed = this.parseRangeFileName(entry.name)
-        if (
-          parsed &&
-          parsed.mediaId === mediaId &&
+      const candidates = ((await this.getRangeIndex(dir)).get(mediaId) ?? []).filter(
+        (parsed) =>
           parsed.sampleRate === sampleRate &&
           parsed.startSample < requestedEndSample &&
-          parsed.startSample + parsed.sampleCount > requestedStartSample
-        ) {
-          candidates.push(parsed)
-        }
-      }
+          parsed.startSample + parsed.sampleCount > requestedStartSample,
+      )
 
       if (candidates.length === 0) return null
       candidates.sort((a, b) => a.startSample - b.startSample)
@@ -638,6 +653,8 @@ class WaveformOPFSStorage {
         peaks,
       }
     } catch (error) {
+      // Another tab may have removed a file the index still lists.
+      this.rangeIndex = null
       logger.warn(`Failed to read cached waveform range for ${mediaId}:`, error)
       return null
     }
@@ -876,6 +893,7 @@ class WaveformOPFSStorage {
     try {
       const dir = await this.ensureDirectory()
       await dir.removeEntry(`${mediaId}.bin`).catch(() => undefined)
+      void this.rangeIndex?.then((index) => index.delete(mediaId))
       for await (const entry of dir.values()) {
         if (entry.kind === 'file' && entry.name.startsWith(`${mediaId}.range.`)) {
           await dir.removeEntry(entry.name).catch(() => undefined)
@@ -939,6 +957,7 @@ class WaveformOPFSStorage {
    * Clear all waveforms
    */
   async clearAll(): Promise<void> {
+    this.rangeIndex = null
     try {
       const dir = await this.ensureDirectory()
       const entries: string[] = []

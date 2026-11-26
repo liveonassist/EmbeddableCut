@@ -1,9 +1,9 @@
 <!-- SPDX-License-Identifier: MIT -->
 <script lang="ts">
-  import Settings2 from 'lucide-svelte/icons/settings-2'
-  import Trash2 from 'lucide-svelte/icons/trash-2'
-  import WandSparkles from 'lucide-svelte/icons/wand-sparkles'
-  import Waves from 'lucide-svelte/icons/waves'
+  import Settings2 from '@lucide/svelte/icons/settings-2'
+  import Trash2 from '@lucide/svelte/icons/trash-2'
+  import WandSparkles from '@lucide/svelte/icons/wand-sparkles'
+  import Waves from '@lucide/svelte/icons/waves'
   import { toast } from 'svelte-sonner'
   import { select } from '$lib/store.svelte'
   import { t } from '$lib/i18n.svelte'

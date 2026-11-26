@@ -708,7 +708,12 @@
   })
 
   // Get visual transforms for all visible items (base + keyframes + preview).
-  const visualTransformsMap = useVisualTransforms(() => visibleItems, () => projectSize, () => itemsWithLiveTransforms, () => frozenFrameRef.current)
+  // The frozen frame is a plain ref, so getters read the key bumped beside each write.
+  const frozenFrame = () => {
+    void frameUpdateKey
+    return frozenFrameRef.current
+  }
+  const visualTransformsMap = useVisualTransforms(() => visibleItems, () => projectSize, () => itemsWithLiveTransforms, frozenFrame)
 
   // Create marquee items with pre-computed bounding rects for collision detection
   // Rects are calculated once when items/coords change, not on every mouse move
@@ -1225,7 +1230,7 @@
           paths={motionPaths}
           width={playerSize.width}
           height={playerSize.height}
-          activeFrame={frozenFrameRef.current}
+          activeFrame={frozenFrame()}
           onKeyframePointerDown={handleMotionPathKeyframePointerDown}
           onTangentPointerDown={handleMotionPathTangentPointerDown}
           onCreateSpatialTangents={handleCreateSpatialTangents}

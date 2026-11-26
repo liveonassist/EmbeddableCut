@@ -20,8 +20,8 @@
 </script>
 
 <script lang="ts">
-  import Maximize2 from 'lucide-svelte/icons/maximize-2'
-  import RotateCcw from 'lucide-svelte/icons/rotate-ccw'
+  import Maximize2 from '@lucide/svelte/icons/maximize-2'
+  import RotateCcw from '@lucide/svelte/icons/rotate-ccw'
   import { t } from '$lib/i18n.svelte'
   import { select } from '$lib/store.svelte'
   import { Button } from '@/components/ui/button'

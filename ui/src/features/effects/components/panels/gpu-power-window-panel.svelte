@@ -14,11 +14,11 @@
 </script>
 
 <script lang="ts">
-  import Circle from 'lucide-svelte/icons/circle'
-  import Eye from 'lucide-svelte/icons/eye'
-  import EyeOff from 'lucide-svelte/icons/eye-off'
-  import Scan from 'lucide-svelte/icons/scan'
-  import Square from 'lucide-svelte/icons/square'
+  import Circle from '@lucide/svelte/icons/circle'
+  import Eye from '@lucide/svelte/icons/eye'
+  import EyeOff from '@lucide/svelte/icons/eye-off'
+  import Scan from '@lucide/svelte/icons/scan'
+  import Square from '@lucide/svelte/icons/square'
   import { Button } from '@/components/ui/button'
   import { KeyframeToggle } from '@/features/effects/deps/keyframes-ui-contract'
   import {

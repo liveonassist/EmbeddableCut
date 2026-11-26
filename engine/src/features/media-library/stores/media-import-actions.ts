@@ -351,6 +351,7 @@ export function createImportActions(
     const results: PromiseSettledResult<CompletedImportTask>[] = new Array(importTasks.length)
     let nextIndex = 0
     const { mediaLibraryService } = await serviceModulePromise
+    const batch = {}
 
     const runNext = async (): Promise<void> => {
       while (nextIndex < importTasks.length) {
@@ -364,6 +365,7 @@ export function createImportActions(
           markImportPreparationRunning(task.tempId)
           const metadata = await mediaLibraryService.importMediaWithHandle(task.handle, projectId, {
             storageMode,
+            batch,
           })
           results[index] = {
             status: 'fulfilled',

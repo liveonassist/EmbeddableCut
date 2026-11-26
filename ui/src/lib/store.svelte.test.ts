@@ -51,3 +51,49 @@ describe('store listeners', () => {
     expect(useCanvasStore.getState().size).toEqual({ width: 1280, height: 1080 })
   })
 })
+
+describe('select', () => {
+  it('holds one subscription while read, and picks up what changed while unread', async () => {
+    let listeners = 0
+    const counted = {
+      getState: useCanvasStore.getState,
+      subscribe: (listener: (state: CanvasState, previous: CanvasState) => void) => {
+        listeners += 1
+        const stop = useCanvasStore.subscribe(listener)
+        return () => {
+          listeners -= 1
+          stop()
+        }
+      },
+    }
+    useCanvasStore.getState().setSize(1, 1)
+    const width = select(counted, (s) => s.size.width)
+    const seen: number[] = []
+    let show = $state(true)
+    const stop = $effect.root(() => {
+      $effect(() => {
+        if (!show) return
+        for (let i = 0; i < 3; i++) void width.current
+        seen.push(width.current)
+      })
+    })
+    flushSync()
+    expect(listeners).toBe(1)
+
+    useCanvasStore.getState().setSize(2, 1)
+    flushSync()
+    expect(seen).toEqual([1, 2])
+
+    show = false
+    flushSync()
+    await Promise.resolve()
+    expect(listeners).toBe(0)
+
+    useCanvasStore.getState().setSize(3, 1)
+    show = true
+    flushSync()
+    expect(seen).toEqual([1, 2, 3])
+    expect(listeners).toBe(1)
+    stop()
+  })
+})

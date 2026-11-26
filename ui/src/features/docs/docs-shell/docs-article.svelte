@@ -1,7 +1,7 @@
 <!-- SPDX-License-Identifier: MIT -->
 <script lang="ts">
-  import ArrowLeft from 'lucide-svelte/icons/arrow-left'
-  import ArrowRight from 'lucide-svelte/icons/arrow-right'
+  import ArrowLeft from '@lucide/svelte/icons/arrow-left'
+  import ArrowRight from '@lucide/svelte/icons/arrow-right'
   import { Button } from '@/components/ui/button'
   import { Link } from '$lib/router'
   import { DOC_PAGES, type DocBlock, type DocPage, type DocSection } from '../docs-content'
