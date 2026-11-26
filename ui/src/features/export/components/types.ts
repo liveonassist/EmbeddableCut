@@ -157,7 +157,8 @@ export interface ExportCompleteViewProps {
   onClose: () => void
   onDownload: () => void
   /** The host's own action in place of Download (`EditorActions.deliver`). */
-  deliverAction?: { label: string; icon?: IconRef }
+  /** What the host calls Download, when it takes the file (`EditorActions.deliver`). */
+  deliverAction?: { label?: string; icon?: IconRef }
   /** While the host takes the file. */
   delivering?: boolean
 }

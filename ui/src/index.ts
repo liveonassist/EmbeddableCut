@@ -53,7 +53,15 @@ export type {
   DeliverContext,
   EditorActions,
   ExportedFile,
+  HostAction,
+  NamedAction,
   SaveContext,
   SaveTrigger,
 } from './extensions/actions.svelte'
-export type { FrameActionContext, FrameActionHandler, FrameActions } from './embed/frame-actions'
+export type {
+  FrameActionContext,
+  FrameActionHandler,
+  FrameActions,
+  FrameHostAction,
+  FrameNamedAction,
+} from './embed/frame-actions'

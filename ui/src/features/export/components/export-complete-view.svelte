@@ -62,18 +62,13 @@
     <Button variant="outline" onclick={onClose}>
       {t('common.close')}
     </Button>
-    {#if deliverAction}
-      <Button onclick={onDownload} disabled={delivering}>
-        {#if deliverAction.icon}
-          <ContributionIcon icon={deliverAction.icon} class="mr-2 h-4 w-4" />
-        {/if}
-        {deliverAction.label}
-      </Button>
-    {:else}
-      <Button onclick={onDownload}>
+    <Button onclick={onDownload} disabled={delivering}>
+      {#if deliverAction?.icon}
+        <ContributionIcon icon={deliverAction.icon} class="mr-2 h-4 w-4" />
+      {:else if !deliverAction?.label}
         <Download class="mr-2 h-4 w-4" />
-        {t('export.complete.download')}
-      </Button>
-    {/if}
+      {/if}
+      {deliverAction?.label ?? t('export.complete.download')}
+    </Button>
   </div>
 </div>

@@ -20,7 +20,7 @@
   } from '@/types/export'
   import { useClientRender } from '../hooks/use-client-render.svelte'
   import { findEditorUi } from '$lib/context'
-  import { runAction } from '../../../extensions/actions.svelte'
+  import { actionHandler, actionName, runAction } from '../../../extensions/actions.svelte'
   import { useExportDialogView } from '../hooks/use-export-dialog-view.svelte'
   import {
     buildRenderJob,
@@ -274,7 +274,7 @@
     const sidecar = result.subtitleSidecar
     delivering = true
     try {
-      await runAction(deliver.run, {
+      await runAction(actionHandler(deliver), {
         editor: editorUi.editor,
         file: {
           blob: result.blob,
@@ -653,7 +653,7 @@
         elapsedSeconds={dialogView.elapsedSeconds}
         onClose={dialogView.handleClose}
         onDownload={deliver ? handleDeliver : clientRender.downloadVideo}
-        deliverAction={deliver}
+        deliverAction={deliver && actionName(deliver)}
         {delivering}
       />
     {/if}

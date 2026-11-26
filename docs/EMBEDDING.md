@@ -119,6 +119,7 @@ const mounted = await mountEditor(target, {
     save: async ({ editor, trigger }) => {
       await api.save(projectId, editor.toDocument())   // trigger: 'user', 'auto', 'leave' or 'export'
     },
+    saveAs: { label: 'Save a copy', icon: 'copy', run: () => api.duplicate(projectId) },
     exportVideo: async ({ editor, runDefault }) => {
       if (await api.canRender()) await api.render(projectId, editor.toDocument())  // a server render, no dialog
       else await runDefault()                                                      // the export dialog after all
@@ -138,16 +139,20 @@ mounted.setActions({ help: () => openHelpPanel() })   // replaces every handler 
 | Action | Replaces | `runDefault()` |
 | --- | --- | --- |
 | `save` | Save, its shortcut, auto-save, saving before leaving for the projects page (`trigger: 'leave'`) and before a project zip (`'export'`) | Writes a workspace project to its workspace; nothing for a project opened from a document |
+| `saveAs` | Nothing: it adds a menu beside Save, with `label` in it | Saves as Save does without a handler |
 | `exportVideo` | Export › Video and its shortcut | Opens the export dialog |
 | `exportBundle` | Export › Project zip | Asks where to save the zip and writes it |
-| `deliver` | The export dialog's Download, which becomes `label` | Downloads the file |
+| `deliver` | The export dialog's Download | Downloads the file |
 | `help` | The toolbar's User Guide | Opens the app's user guide; a mounted editor has none, so it shows the button only with a handler |
 
-- **Saving marks the project clean** once the handler resolves, unless the timeline changed while it ran; a handler that throws leaves it dirty, and the user sees the save fail. Other handlers' errors are shown to the user too.
+- **Name an action** as `{ label, icon, run }` instead of a bare handler, and the editor calls it that wherever it offers it: `exportVideo: { label: 'Publish', icon: 'upload', run }` turns Export into Publish. `deliver`'s does the same for Download.
+- **One way to export is a button, not a menu:** with `export.bundle` off ([features](#hiding-and-locking-features)), Export runs `exportVideo` at a click, under its name.
+- **Saving marks the project clean** once the handler resolves, unless the timeline changed while it ran; a handler that throws leaves it dirty, and the user sees the save fail. Other handlers' errors are shown to the user too. `saveAs` saves the same way.
+- **The editor announces only its own saves.** A host's `save` or `saveAs` says how it went itself; the editor shows only a failure.
 - **Auto-save** runs `save` every `autoSaveInterval` minutes while there are unsaved changes. To save on every edit instead, listen to `editor.on('change')` and save from there.
 - **Saving to disk:** with no backend, write `await editor.toBundle()` (or `JSON.stringify(editor.toDocument())` when all media is at URLs) to a file the user picks, and open it with `editor.loadBundle(file)`. `editor.dirty`, its event and `editor.markSaved()` are for the host's own save UI ([`sdk/README.md`](../sdk/README.md#saving)).
 - A project zip is built from the workspace's copy, so a `save` handler wanting the zip to have the latest edits calls `runDefault()` when `trigger` is `'export'`.
-- In an iframe, `mountEditorFrame(target, { src, actions })` and `framed.setActions(...)` take the same handlers, given `{ editor: RemoteEditor, runDefault }`; `deliver.icon` is a Lucide name. Over the bridge they're `ui.setActions` and the `action` event ([BRIDGE.md](BRIDGE.md#actions)).
+- In an iframe, `mountEditorFrame(target, { src, actions })` and `framed.setActions(...)` take the same handlers, given `{ editor: RemoteEditor, runDefault }`; a named action's `icon` is a Lucide name. Over the bridge they're `ui.setActions` and the `action` event ([BRIDGE.md](BRIDGE.md#actions)).
 
 ## Hiding and locking features
 

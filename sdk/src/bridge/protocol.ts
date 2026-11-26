@@ -122,14 +122,25 @@ export interface BridgeMethods {
   'ui.completeAction': { params: { id: number; error?: string }; result: null }
 }
 
-/** The editor actions a host takes over (`EditorActions` in the UI), by name. */
+/** What the host calls an action where the editor offers it: a label, and a Lucide `icon` name. */
+export interface BridgeActionLabel {
+  label?: string
+  icon?: string
+}
+
+/**
+ * The editor actions a host takes over (`EditorActions` in the UI), by name:
+ * `true`, or what to call it.
+ */
 export interface BridgeActions {
-  save?: boolean
-  exportVideo?: boolean
-  exportBundle?: boolean
-  /** Replaces the export dialog's Download with `label` (and a Lucide `icon` name). */
-  deliver?: { label: string; icon?: string }
-  help?: boolean
+  save?: boolean | BridgeActionLabel
+  /** Offered beside Save only when taken, so it needs a `label`. */
+  saveAs?: BridgeActionLabel & { label: string }
+  exportVideo?: boolean | BridgeActionLabel
+  exportBundle?: boolean | BridgeActionLabel
+  /** The export dialog's Download. */
+  deliver?: boolean | BridgeActionLabel
+  help?: boolean | BridgeActionLabel
 }
 
 export type BridgeActionName = keyof BridgeActions

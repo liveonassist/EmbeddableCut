@@ -52,6 +52,18 @@ export type ActionHandler<C extends ActionContext = ActionContext> = (
   context: C,
 ) => void | Promise<void>
 
+/** A handler, with what the editor calls the action where it offers it. */
+export interface NamedAction<C extends ActionContext = ActionContext> {
+  run: ActionHandler<C>
+  /** Replaces the editor's own name for the action on its button or menu entry. */
+  label?: string
+  /** Replaces the editor's own icon for it. */
+  icon?: IconRef
+}
+
+/** A handler alone, or one named for the editor's UI. */
+export type HostAction<C extends ActionContext = ActionContext> = ActionHandler<C> | NamedAction<C>
+
 export interface EditorActions {
   /**
    * Saving. By default the editor writes a workspace project back to its
@@ -59,21 +71,24 @@ export interface EditorActions {
    * unsaved-changes marker clears once the handler resolves, unless the
    * timeline changed meanwhile.
    */
-  save?: ActionHandler<SaveContext>
-  /** Export › Video and its shortcut. By default it opens the export dialog. */
-  exportVideo?: ActionHandler
-  /** Export › Project zip. By default it asks where to save the zip and writes it. */
-  exportBundle?: ActionHandler
+  save?: HostAction<SaveContext>
   /**
-   * The export dialog's last step: `label` replaces Download, and `run` takes
-   * the file. `runDefault()` downloads it.
+   * Saving somewhere else, from a menu beside Save. The editor has no save-as
+   * of its own, so the menu shows only with a handler, under its `label`;
+   * `runDefault()` saves as Save does without a handler.
    */
-  deliver?: { label: string; icon?: IconRef; run: ActionHandler<DeliverContext> }
+  saveAs?: NamedAction & { label: string }
+  /** Export › Video and its shortcut. By default it opens the export dialog. */
+  exportVideo?: HostAction
+  /** Export › Project zip. By default it asks where to save the zip and writes it. */
+  exportBundle?: HostAction
+  /** The export dialog's last step, Download. `runDefault()` downloads the file. */
+  deliver?: HostAction<DeliverContext>
   /**
    * The toolbar's help button. By default it opens the user guide, which only
    * the app has: a mounted editor shows the button only with a handler.
    */
-  help?: ActionHandler
+  help?: HostAction
 }
 
 export type ActionName = keyof EditorActions
@@ -89,6 +104,19 @@ export class HostActions {
   set(actions: EditorActions): void {
     this.current = actions
   }
+}
+
+/** The handler of a host's action. */
+export function actionHandler<C extends ActionContext>(action: HostAction<C>): ActionHandler<C> {
+  return typeof action === 'function' ? action : action.run
+}
+
+/** What the host calls an action, where it names it. */
+export function actionName(action: HostAction<never> | undefined): {
+  label?: string
+  icon?: IconRef
+} {
+  return action && typeof action !== 'function' ? { label: action.label, icon: action.icon } : {}
 }
 
 /** Runs a host handler, telling the user what it throws as the editor's own failures do. */

@@ -10,7 +10,12 @@ import {
   serveBridge,
   type Editor,
 } from '@embeddablecut/sdk'
-import type { EditorActions, ExportedFile } from '../extensions/actions.svelte'
+import {
+  actionHandler,
+  actionName,
+  type EditorActions,
+  type ExportedFile,
+} from '../extensions/actions.svelte'
 import {
   answerFrameActions,
   bridgedActions,
@@ -44,6 +49,13 @@ describe('frame actions', () => {
         triggers.push(trigger)
         await runDefault()
       },
+      saveAs: {
+        label: 'Save a copy',
+        icon: 'copy',
+        run: () => {
+          triggers.push('copy')
+        },
+      },
       deliver: {
         label: 'Publish',
         run: ({ file }) => {
@@ -56,17 +68,20 @@ describe('frame actions', () => {
     await remote.call('ui.setActions', { actions: toBridgeActions(hostActions) })
 
     expect(installed.exportVideo).toBeUndefined()
-    expect(installed.deliver?.label).toBe('Publish')
+    expect(actionName(installed.save)).toEqual({})
+    expect(actionName(installed.deliver)).toEqual({ label: 'Publish', icon: undefined })
+    expect(actionName(installed.saveAs)).toEqual({ label: 'Save a copy', icon: 'copy' })
 
     const saveToWorkspace = vi.fn(async () => {})
-    await installed.save!({ editor, trigger: 'auto', runDefault: saveToWorkspace })
-    expect(triggers).toEqual(['auto'])
+    await actionHandler(installed.save!)({ editor, trigger: 'auto', runDefault: saveToWorkspace })
+    await installed.saveAs!.run({ editor, runDefault: saveToWorkspace })
+    expect(triggers).toEqual(['auto', 'copy'])
     expect(saveToWorkspace).toHaveBeenCalledTimes(1)
 
     // jsdom's Blob can't be read; the bridge reads the file to send it.
     const blob = new NodeBlob([new Uint8Array([1, 2, 3])], { type: 'video/mp4' })
     await expect(
-      installed.deliver!.run({
+      actionHandler(installed.deliver!)({
         editor,
         file: { blob: blob as unknown as Blob, mimeType: 'video/mp4' },
         runDefault: async () => {},

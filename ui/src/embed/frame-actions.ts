@@ -11,31 +11,55 @@ import {
   RemoteEditor,
   type ActionDispatch,
   type BridgeActionEvent,
+  type BridgeActionLabel,
   type BridgeActions,
 } from '@embeddablecut/sdk'
-import type { EditorActions, ExportedFile, SaveTrigger } from '../extensions/actions.svelte'
+import type {
+  ActionContext,
+  ActionHandler,
+  EditorActions,
+  ExportedFile,
+  SaveTrigger,
+} from '../extensions/actions.svelte'
+
+/** A bridged action named as the host named it. */
+function named<C extends ActionContext>(taken: boolean | BridgeActionLabel, run: ActionHandler<C>) {
+  return typeof taken === 'object' ? { run, label: taken.label, icon: taken.icon } : run
+}
 
 /** In the editor page: handlers forwarding each action the host took. */
 export function bridgedActions(actions: BridgeActions, dispatch: ActionDispatch): EditorActions {
   return {
     ...(actions.save && {
-      save: ({ trigger, runDefault }) => dispatch('save', { trigger }, runDefault),
+      save: named(actions.save, ({ trigger, runDefault }) =>
+        dispatch('save', { trigger }, runDefault),
+      ),
     }),
-    ...(actions.exportVideo && {
-      exportVideo: ({ runDefault }) => dispatch('exportVideo', {}, runDefault),
-    }),
-    ...(actions.exportBundle && {
-      exportBundle: ({ runDefault }) => dispatch('exportBundle', {}, runDefault),
-    }),
-    ...(actions.deliver && {
-      deliver: {
-        label: actions.deliver.label,
-        icon: actions.deliver.icon,
-        run: ({ file, runDefault }) =>
-          dispatch('deliver', { file: file.blob, subtitles: file.subtitles }, runDefault),
+    ...(actions.saveAs && {
+      saveAs: {
+        label: actions.saveAs.label,
+        icon: actions.saveAs.icon,
+        run: ({ runDefault }) => dispatch('saveAs', {}, runDefault),
       },
     }),
-    ...(actions.help && { help: ({ runDefault }) => dispatch('help', {}, runDefault) }),
+    ...(actions.exportVideo && {
+      exportVideo: named(actions.exportVideo, ({ runDefault }) =>
+        dispatch('exportVideo', {}, runDefault),
+      ),
+    }),
+    ...(actions.exportBundle && {
+      exportBundle: named(actions.exportBundle, ({ runDefault }) =>
+        dispatch('exportBundle', {}, runDefault),
+      ),
+    }),
+    ...(actions.deliver && {
+      deliver: named(actions.deliver, ({ file, runDefault }) =>
+        dispatch('deliver', { file: file.blob, subtitles: file.subtitles }, runDefault),
+      ),
+    }),
+    ...(actions.help && {
+      help: named(actions.help, ({ runDefault }) => dispatch('help', {}, runDefault)),
+    }),
   }
 }
 
@@ -49,29 +73,44 @@ export type FrameActionHandler<C extends FrameActionContext = FrameActionContext
   context: C,
 ) => void | Promise<void>
 
+/** `NamedAction` in a frame: `icon` is a Lucide icon's name, since components can't cross to it. */
+export interface FrameNamedAction<C extends FrameActionContext = FrameActionContext> {
+  run: FrameActionHandler<C>
+  label?: string
+  icon?: string
+}
+
+export type FrameHostAction<C extends FrameActionContext = FrameActionContext> =
+  | FrameActionHandler<C>
+  | FrameNamedAction<C>
+
 /** `EditorActions` for an editor in a frame: the same actions, driven over the bridge. */
 export interface FrameActions {
-  save?: FrameActionHandler<FrameActionContext & { trigger: SaveTrigger }>
-  exportVideo?: FrameActionHandler
-  exportBundle?: FrameActionHandler
-  /** `icon` is a Lucide icon's name: components can't cross to the frame. */
-  deliver?: {
-    label: string
-    icon?: string
-    run: FrameActionHandler<FrameActionContext & { file: ExportedFile }>
-  }
-  help?: FrameActionHandler
+  save?: FrameHostAction<FrameActionContext & { trigger: SaveTrigger }>
+  saveAs?: FrameNamedAction & { label: string }
+  exportVideo?: FrameHostAction
+  exportBundle?: FrameHostAction
+  deliver?: FrameHostAction<FrameActionContext & { file: ExportedFile }>
+  help?: FrameHostAction
+}
+
+function frameHandler<C extends FrameActionContext>(action: FrameHostAction<C>) {
+  return typeof action === 'function' ? action : action.run
+}
+
+/** `true` for a handler alone, what to call it for a named one. */
+function taken(action: FrameHostAction<never>): true | BridgeActionLabel {
+  return typeof action === 'function' ? true : { label: action.label, icon: action.icon }
 }
 
 export function toBridgeActions(actions: FrameActions): BridgeActions {
   return {
-    ...(actions.save && { save: true }),
-    ...(actions.exportVideo && { exportVideo: true }),
-    ...(actions.exportBundle && { exportBundle: true }),
-    ...(actions.deliver && {
-      deliver: { label: actions.deliver.label, icon: actions.deliver.icon },
-    }),
-    ...(actions.help && { help: true }),
+    ...(actions.save && { save: taken(actions.save) }),
+    ...(actions.saveAs && { saveAs: { label: actions.saveAs.label, icon: actions.saveAs.icon } }),
+    ...(actions.exportVideo && { exportVideo: taken(actions.exportVideo) }),
+    ...(actions.exportBundle && { exportBundle: taken(actions.exportBundle) }),
+    ...(actions.deliver && { deliver: taken(actions.deliver) }),
+    ...(actions.help && { help: taken(actions.help) }),
   }
 }
 
@@ -88,7 +127,7 @@ export function answerFrameActions(editor: RemoteEditor, actions: () => FrameAct
       switch (action) {
         case 'save':
           return current.save
-            ? current.save({ ...context, trigger: trigger as SaveTrigger })
+            ? frameHandler(current.save)({ ...context, trigger: trigger as SaveTrigger })
             : runDefault()
         case 'deliver': {
           if (!current.deliver || !file) return runDefault()
@@ -97,11 +136,13 @@ export function answerFrameActions(editor: RemoteEditor, actions: () => FrameAct
             mimeType: file.mimeType,
             ...(file.subtitles && { subtitles: file.subtitles }),
           }
-          return current.deliver.run({ ...context, file: delivered })
+          return frameHandler(current.deliver)({ ...context, file: delivered })
         }
+        case 'saveAs':
+          return current.saveAs ? current.saveAs.run(context) : runDefault()
         default: {
           const handler = current[action]
-          return handler ? handler(context) : runDefault()
+          return handler ? frameHandler(handler)(context) : runDefault()
         }
       }
     }
