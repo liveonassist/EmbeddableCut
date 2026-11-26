@@ -42,6 +42,7 @@ import {
   withItemIndexes,
 } from './items-store-indexes'
 import type { ItemsIndexState } from './items-store-indexes'
+import { normalizeReusing } from './normalize-reusing'
 
 function getLog() {
   return createLogger('ItemsStore')
@@ -155,7 +156,9 @@ export const useItemsStore = create<ItemsState & ItemsActions>()((set, get) => (
   // Bulk setters
   setItems: (items) =>
     set((state) => {
-      const normalizedItems = items.map((item) => normalizeFrameFields(item))
+      // EmbeddableCut: keep the items the store holds, as setTracks does.
+      const normalizedItems = normalizeReusing(items, state.items, normalizeFrameFields)
+      if (normalizedItems === state.items) return state
       return withItemIndexes(normalizedItems, state)
     }),
   setTracks: (tracks) =>
