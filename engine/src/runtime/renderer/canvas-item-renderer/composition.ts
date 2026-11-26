@@ -27,6 +27,7 @@ import { log } from './shared'
 import { drawContainedMediaSource } from './media-draw'
 import { resolveSubCompRenderDataForInstance } from './composition-instance'
 import { getCanvasRenderScale } from '../canvas-render-scale'
+import { acquireScratchCanvas, releaseScratchCanvas } from '../scratch-canvas-pool'
 
 /**
  * Render a CompositionItem by rendering all its sub-composition items to an
@@ -80,19 +81,19 @@ export async function renderCompositionItem(
     return
   }
 
-  // Create an offscreen canvas at the sub-comp dimensions
-  const { canvas: subContentCanvas, ctx: subContentCtx } = rctx.canvasPool.acquire()
+  const renderScale = getCanvasRenderScale(rctx.canvasSettings)
+  const subRenderWidth = Math.max(2, Math.round(item.compositionWidth * renderScale.x))
+  const subRenderHeight = Math.max(2, Math.round(item.compositionHeight * renderScale.y))
+  // EmbeddableCut: canvases at the sub-comp's size come from the scratch pool,
+  // which keeps them at it. Frame-sized pool canvases were resized to it and
+  // back each frame, each resize reallocating and clearing the bitmap.
+  const subContent = acquireScratchCanvas(subRenderWidth, subRenderHeight)
+  if (!subContent) return
+  const { canvas: subContentCanvas, ctx: subContentCtx } = subContent
 
   try {
-    const renderScale = getCanvasRenderScale(rctx.canvasSettings)
-    const subRenderWidth = Math.max(2, Math.round(item.compositionWidth * renderScale.x))
-    const subRenderHeight = Math.max(2, Math.round(item.compositionHeight * renderScale.y))
     // Use the sub-composition's authored dimensions for canvas settings
     // so transforms and positioning inside the sub-composition are correct.
-    // The pooled canvas may be at main canvas size, so we resize it to match.
-    subContentCanvas.width = subRenderWidth
-    subContentCanvas.height = subRenderHeight
-    subContentCtx.clearRect(0, 0, subContentCanvas.width, subContentCanvas.height)
     const subCanvasSettings: CanvasSettings = {
       width: subRenderWidth,
       height: subRenderHeight,
@@ -224,11 +225,10 @@ export async function renderCompositionItem(
         if (!hasEffects && applicableMasks.length === 0) {
           await rctx.renderItem(subContentCtx, subItem, subItemTransform, localFrame, subRctx)
         } else if (!hasEffects) {
-          const { canvas: maskedItemCanvas, ctx: maskedItemCtx } = rctx.canvasPool.acquire()
+          const maskedItem = acquireScratchCanvas(subRenderWidth, subRenderHeight)
+          if (!maskedItem) continue
+          const { canvas: maskedItemCanvas, ctx: maskedItemCtx } = maskedItem
           try {
-            maskedItemCanvas.width = subRenderWidth
-            maskedItemCanvas.height = subRenderHeight
-            maskedItemCtx.clearRect(0, 0, maskedItemCanvas.width, maskedItemCanvas.height)
             await rctx.renderItem(
               maskedItemCtx,
               subItem,
@@ -245,13 +245,12 @@ export async function renderCompositionItem(
               applyMasks(subContentCtx, maskedItemCanvas, applicableMasks, subMaskSettings)
             }
           } finally {
-            rctx.canvasPool.release(maskedItemCanvas)
+            releaseScratchCanvas(maskedItemCanvas)
           }
         } else {
-          const { canvas: itemCanvas, ctx: itemCtx } = rctx.canvasPool.acquire()
-          itemCanvas.width = subRenderWidth
-          itemCanvas.height = subRenderHeight
-          itemCtx.clearRect(0, 0, itemCanvas.width, itemCanvas.height)
+          const effectSource = acquireScratchCanvas(subRenderWidth, subRenderHeight)
+          if (!effectSource) continue
+          const { canvas: itemCanvas, ctx: itemCtx } = effectSource
           try {
             await rctx.renderItem(
               itemCtx,
@@ -277,7 +276,7 @@ export async function renderCompositionItem(
               rctx.canvasPool.release(poolCanvas)
             }
           } finally {
-            rctx.canvasPool.release(itemCanvas)
+            releaseScratchCanvas(itemCanvas)
           }
         }
         renderedSubItems++
@@ -309,7 +308,7 @@ export async function renderCompositionItem(
       'fill',
     )
   } finally {
-    rctx.canvasPool.release(subContentCanvas)
+    releaseScratchCanvas(subContentCanvas)
   }
 }
 

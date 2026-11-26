@@ -18,6 +18,13 @@ const mockFns = vi.hoisted(() => ({
   renderShapeMock: vi.fn(),
   getShapePathMock: vi.fn(() => 'M 0 0 L 10 0 L 10 10 Z'),
   rotatePathMock: vi.fn((path: string) => path),
+  acquireScratchCanvasMock: vi.fn(),
+}))
+
+// Canvases at the sub-comp's size come from the same queue as the pool's.
+vi.mock('./scratch-canvas-pool', () => ({
+  acquireScratchCanvas: mockFns.acquireScratchCanvasMock,
+  releaseScratchCanvas: vi.fn(),
 }))
 
 vi.mock('./canvas-masks', () => ({
@@ -74,6 +81,7 @@ function createCompositionMaskRenderHarness(params: {
     acquire: vi.fn(() => acquireQueue.shift()),
     release: vi.fn(),
   }
+  mockFns.acquireScratchCanvasMock.mockImplementation(() => acquireQueue.shift())
   const rootCtx = createMockCtx()
   const rctx: ItemRenderContext = {
     fps: 30,
