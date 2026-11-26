@@ -810,6 +810,7 @@ export class Editor {
       height: request.height,
       format: request.format,
       quality: request.quality,
+      liveCompositions: true,
       deliver: (blob) => {
         image = blob
       },
@@ -839,6 +840,7 @@ export class Editor {
       inPoint: request.inFrame ?? null,
       outPoint: request.outFrame ?? null,
       onProgress: request.onProgress ?? (() => {}),
+      liveCompositions: true,
       deliver: (blob, fileName) => {
         output = { blob, fileName }
       },

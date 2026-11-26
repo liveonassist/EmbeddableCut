@@ -242,6 +242,11 @@ export interface HeadlessTimelineInput {
   strict?: boolean
   /** Load-time validation findings collected by the caller (renderProject). */
   validationWarnings?: HeadlessRenderWarning[]
+  /**
+   * EmbeddableCut: the compositions store already holds these compositions,
+   * live (an SDK render); read them rather than overwrite the editor's.
+   */
+  liveCompositions?: boolean
   /** Defaults to the driver's `__embeddablecutProgress` binding. */
   onProgress?: ProgressSink
   /** Defaults to a download the driver catches. */
@@ -265,6 +270,11 @@ export interface HeadlessProjectInput {
   outputFileName?: string
   /** Fail before rendering if any validation warning was collected. */
   strict?: boolean
+  /**
+   * EmbeddableCut: the compositions store already holds these compositions,
+   * live (an SDK render); read them rather than overwrite the editor's.
+   */
+  liveCompositions?: boolean
   onProgress?: ProgressSink
   deliver?: RenderDelivery
 }
@@ -633,7 +643,7 @@ export async function renderTimeline(input: HeadlessTimelineInput): Promise<Head
   })
 
   // Seed sub-compositions so the engine can resolve compound clips.
-  useCompositionsStore.getState().setCompositions(compositions)
+  if (!input.liveCompositions) useCompositionsStore.getState().setCompositions(compositions)
 
   // Register media URLs (range-streamed by mediabunny) so resolveMediaUrls()
   // and the engine's sub-comp media lookup resolve without the storage layer.
@@ -744,6 +754,7 @@ export async function renderProject(input: HeadlessProjectInput): Promise<Headle
     outputFileName,
     strict: input.strict,
     validationWarnings: projectWarningsToHeadless(projectWarnings),
+    liveCompositions: input.liveCompositions,
     onProgress: input.onProgress,
     deliver: input.deliver,
   })
@@ -769,6 +780,11 @@ export interface HeadlessFrameInput {
   outputFileName?: string
   /** Fail before rendering if any validation warning was collected. */
   strict?: boolean
+  /**
+   * EmbeddableCut: the compositions store already holds these compositions,
+   * live (an SDK render); read them rather than overwrite the editor's.
+   */
+  liveCompositions?: boolean
   deliver?: RenderDelivery
 }
 
@@ -960,7 +976,7 @@ export async function renderFrame(input: HeadlessFrameInput): Promise<HeadlessFr
   ]
   reportValidationWarnings(validationWarnings, input.strict, 'frame')
 
-  useCompositionsStore.getState().setCompositions(view.compositions)
+  if (!input.liveCompositions) useCompositionsStore.getState().setCompositions(view.compositions)
   registerMediaUrls(input.media)
   seedMediaLibrary(input.media)
 
