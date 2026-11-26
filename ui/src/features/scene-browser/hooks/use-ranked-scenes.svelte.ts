@@ -65,6 +65,13 @@ export interface RankedScenesResult {
 }
 
 /**
+ * How long typing pauses before a query is embedded. The embedding workers
+ * run every job they are sent, aborted or not, so each keystroke would queue
+ * a text and a four-template CLIP inference ahead of the one that matters.
+ */
+const QUERY_EMBED_DELAY_MS = 200
+
+/**
  * Build the ranked scene list for the Scene Browser. The hook owns all
  * joining between media metadata and caption records so components can
  * treat each row as a self-contained record (filename, timestamp, thumb path).
@@ -102,25 +109,30 @@ export function useRankedScenes(): { readonly current: RankedScenesResult } {
     }
     let cancelled = false
     queryTextState = 'embedding'
-    void embeddingsProvider
-      .embed(currentQuery.trim())
-      .then((vector) => {
-        if (cancelled) return
-        queryEmbedding = vector
-        queryTextState = 'ready'
-      })
-      .catch((error) => {
-        if (!cancelled) {
-          log.warn('Query text embedding failed — falling back to keyword', {
-            query: currentQuery,
-            error,
+    const timer = setTimeout(
+      () =>
+        void embeddingsProvider
+          .embed(currentQuery.trim())
+          .then((vector) => {
+            if (cancelled) return
+            queryEmbedding = vector
+            queryTextState = 'ready'
           })
-          queryEmbedding = null
-          queryTextState = 'idle'
-        }
-      })
+          .catch((error) => {
+            if (!cancelled) {
+              log.warn('Query text embedding failed — falling back to keyword', {
+                query: currentQuery,
+                error,
+              })
+              queryEmbedding = null
+              queryTextState = 'idle'
+            }
+          }),
+      QUERY_EMBED_DELAY_MS,
+    )
     return () => {
       cancelled = true
+      clearTimeout(timer)
     }
   })
 
@@ -144,29 +156,34 @@ export function useRankedScenes(): { readonly current: RankedScenesResult } {
     // wrapped in natural-sentence templates before embedding — CLIP is
     // badly behaved on bare tokens and the averaged vector materially
     // reduces false positives like "a tower matches fighting".
-    void clipProvider
-      .embedQueryForImages(currentQuery.trim())
-      .then((vector) => {
-        if (cancelled) return
-        if (vector) {
-          queryImageEmbedding = vector
-          queryImageState = 'ready'
-        } else {
-          queryImageState = 'idle'
-        }
-      })
-      .catch((error) => {
-        if (!cancelled) {
-          log.warn('CLIP query embedding failed — skipping visual ranking', {
-            query: currentQuery,
-            error,
+    const timer = setTimeout(
+      () =>
+        void clipProvider
+          .embedQueryForImages(currentQuery.trim())
+          .then((vector) => {
+            if (cancelled) return
+            if (vector) {
+              queryImageEmbedding = vector
+              queryImageState = 'ready'
+            } else {
+              queryImageState = 'idle'
+            }
           })
-          queryImageEmbedding = null
-          queryImageState = 'idle'
-        }
-      })
+          .catch((error) => {
+            if (!cancelled) {
+              log.warn('CLIP query embedding failed — skipping visual ranking', {
+                query: currentQuery,
+                error,
+              })
+              queryImageEmbedding = null
+              queryImageState = 'idle'
+            }
+          }),
+      QUERY_EMBED_DELAY_MS,
+    )
     return () => {
       cancelled = true
+      clearTimeout(timer)
     }
   })
 
