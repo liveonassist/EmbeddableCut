@@ -7,6 +7,8 @@
   let { timeViewport }: { timeViewport: MotionTimeViewport } = $props()
 
   let playhead: HTMLDivElement | null = $state(null)
+  // Measured on resize: reading it per frame forces a layout after the frame's DOM writes.
+  let parentWidth: number | null = null
 
   // Positioned straight from the store so playback never re-renders the timeline.
   function updatePosition() {
@@ -20,7 +22,7 @@
       return
     }
     element.hidden = false
-    const width = element.parentElement?.clientWidth ?? 0
+    const width = parentWidth ?? element.parentElement?.clientWidth ?? 0
     const visibleFrameRange = Math.max(1, viewport.endFrame - viewport.startFrame)
     const x = ((displayFrame - viewport.startFrame) / visibleFrameRange) * width
     element.style.transform = `translate3d(${x}px, 0, 0)`
@@ -30,6 +32,20 @@
     void timeViewport
     void playhead
     updatePosition()
+  })
+
+  $effect(() => {
+    const parent = playhead?.parentElement
+    if (!parent || typeof ResizeObserver === 'undefined') return
+    const observer = new ResizeObserver(() => {
+      parentWidth = parent.clientWidth
+      updatePosition()
+    })
+    observer.observe(parent)
+    return () => {
+      observer.disconnect()
+      parentWidth = null
+    }
   })
 
   $effect(() =>
