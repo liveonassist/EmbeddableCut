@@ -182,6 +182,35 @@ describe('SharedVideoExtractorPool', () => {
     expect(pool.getStats().sourceEvictions).toBe(2)
   })
 
+  it('keeps open every source the last frames read, past the bound', async () => {
+    const pool = new SharedVideoExtractorPool({ maxActiveSources: 2 })
+    const sources = ['blob:first', 'blob:second', 'blob:third'].map((src, index) =>
+      pool.getOrCreateItemExtractor(`item-${index}`, src),
+    )
+    const ctx = {} as CanvasRenderingContext2D
+    const renderFrame = async (frame: number, shown: typeof sources) => {
+      pool.beginFrame()
+      for (const source of shown) await source.drawFrame(ctx, frame / 30, 0, 0, 1, 1)
+    }
+
+    // Drawn in turn, as the preview's tasks are: the bound alone would close
+    // and reopen a source on every draw.
+    for (let frame = 0; frame < 5; frame++) await renderFrame(frame, sources)
+    expect(extractorState.instances).toHaveLength(3)
+    expect(pool.getStats()).toEqual(
+      expect.objectContaining({ initializedSources: 3, sourceEvictions: 0 }),
+    )
+
+    // Once a source leaves the frames, the pool trims back to the bound.
+    for (let frame = 5; frame < 8; frame++) await renderFrame(frame, sources.slice(0, 2))
+    expect(pool.getStats()).toEqual(
+      expect.objectContaining({ initializedSources: 2, sourceEvictions: 1 }),
+    )
+    expect(
+      extractorState.instances.find((instance) => instance.src === 'blob:third')?.dispose,
+    ).toHaveBeenCalled()
+  })
+
   it('shares preview bindings across renderer leases until the final consumer releases them', async () => {
     const firstLease = acquireSharedPreviewVideoExtractorPool()
     const secondLease = acquireSharedPreviewVideoExtractorPool()
