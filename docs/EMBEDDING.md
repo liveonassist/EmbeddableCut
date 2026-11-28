@@ -41,6 +41,7 @@ await mounted.unmount()
 - **Isolation:** in a shadow root, the editor's stylesheet stays inside and the host's styles stay out; dialogs, menus and tooltips portal inside the editor. Keyboard shortcuts only see keys typed inside it. Two things can't live in a shadow root and go on the host's document, once: the IBM Plex fonts and the stylesheet's `@property` rules (Tailwind's `--tw-*` defaults).
 - **Showing it all:** `editor.zoomToFit()` zooms the timeline until all of it shows. Asked while the editor is hidden (a host laying out a project first), it happens once it has a size.
 - **Opening a project:** `document` (a project document) or `projectId` with a `workspace` in the options open one while mounting; `editor.loadDocument`, `openProject` and `createProject` do it any time.
+- **Browsers:** in Firefox the workspace is always private storage, imported files are copied into it, and storage can be evicted until it's made persistent. Read `getPlatformSupport()` and `editor.workspaceKind`, and call `editor.requestPersistentStorage()` from a user gesture where projects live in the browser ([`BROWSERS.md`](BROWSERS.md)).
 
 ## The editor in an iframe
 

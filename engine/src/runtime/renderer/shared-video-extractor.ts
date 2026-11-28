@@ -73,6 +73,8 @@ interface SourceState {
   sourceInitAttempted: boolean
   sourceReady: boolean
   lastUsed: number
+  /** EmbeddableCut: the frame (`beginFrame`) that last read it; 0 before any. */
+  lastFrame: number
   activeOperations: number
   dimensions: { width: number; height: number }
   duration: number
@@ -284,6 +286,8 @@ export class SharedVideoExtractorPool {
   private peakInitializedSources = 0
   private sourceEvictions = 0
   private lanesCreated = 0
+  /** EmbeddableCut: the frame being rendered, once a renderer marks frames. */
+  private currentFrame = 0
 
   constructor(options: SharedVideoExtractorPoolOptions = {}) {
     this.maxLanesPerSource = Math.max(1, options?.maxLanesPerSource ?? DEFAULT_MAX_LANES_PER_SOURCE)
@@ -309,6 +313,17 @@ export class SharedVideoExtractorPool {
     this.itemRefCounts.set(key, 1)
     this.notifyStatsChanged()
     return wrapper
+  }
+
+  /**
+   * EmbeddableCut: starts a rendered frame. From then on, a source read in this
+   * frame or the one before isn't evicted for the cap: a frame showing more
+   * sources than the cap would otherwise close some and reopen them every
+   * frame, each reopen decoding from a keyframe. The previous frame counts too,
+   * so a frame whose reads run in turn doesn't evict the ones it hasn't reached.
+   */
+  beginFrame(): void {
+    this.currentFrame += 1
   }
 
   async initSource(src: string): Promise<boolean> {
@@ -566,6 +581,7 @@ export class SharedVideoExtractorPool {
         sourceInitAttempted: false,
         sourceReady: false,
         lastUsed: performance.now(),
+        lastFrame: 0,
         activeOperations: 0,
         dimensions: { width: DEFAULT_PROJECT_WIDTH, height: DEFAULT_PROJECT_HEIGHT },
         duration: 0,
@@ -755,6 +771,7 @@ export class SharedVideoExtractorPool {
   private async withSourceOperation<T>(state: SourceState, run: () => Promise<T>): Promise<T> {
     state.activeOperations += 1
     this.touchSource(state)
+    state.lastFrame = this.currentFrame
     this.notifyStatsChanged()
     try {
       return await run()
@@ -773,7 +790,10 @@ export class SharedVideoExtractorPool {
     const candidates = active
       .filter(
         (state) =>
-          state.src !== excludeSrc && state.activeOperations === 0 && !state.sourceInitPromise,
+          state.src !== excludeSrc &&
+          state.activeOperations === 0 &&
+          !state.sourceInitPromise &&
+          !this.isInRecentFrame(state),
       )
       .sort((a, b) => a.lastUsed - b.lastUsed)
 
@@ -784,6 +804,10 @@ export class SharedVideoExtractorPool {
       this.sourceEvictions += 1
       activeCount -= 1
     }
+  }
+
+  private isInRecentFrame(state: SourceState): boolean {
+    return state.lastFrame > 0 && state.lastFrame >= this.currentFrame - 1
   }
 
   private disposeSourceLanes(state: SourceState): void {

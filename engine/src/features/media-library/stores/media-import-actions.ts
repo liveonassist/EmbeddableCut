@@ -1,4 +1,5 @@
 import type { MediaLibraryState, MediaLibraryActions, UnsupportedCodecFile } from '../types'
+import { isFileBackedHandle } from '@/infrastructure/browser/file-backed-handle'
 import type { MediaAttribution, MediaMetadata } from '@/types/storage'
 import { loadMediaLibraryService } from './media-library-service-access'
 import { proxyService } from '../services/proxy-service'
@@ -321,7 +322,12 @@ export function createImportActions(
         continue
       }
 
-      const tempItem = buildOptimisticMediaItem(handle, file, tempId, storageMode)
+      const tempItem = buildOptimisticMediaItem(
+        handle,
+        file,
+        tempId,
+        isFileBackedHandle(handle) ? 'copy' : storageMode,
+      )
 
       set((state) => ({
         mediaItems: [tempItem, ...state.mediaItems],

@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 
 import { SCHEMA_VERSIONS } from '@embeddablecut/engine/schema/index'
+import { getPlatformSupport } from '@embeddablecut/engine/infrastructure/browser/platform-support'
 import type { Editor, ExportRequest, FrameRequest } from '../editor'
 import { EditorError } from '../errors'
 import { SDK_VERSION } from '../version'
@@ -95,7 +96,11 @@ export function serveBridge(
       bridgeVersion: BRIDGE_VERSION,
       schemaVersions: { ...SCHEMA_VERSIONS },
       operations: editor.operations,
+      platform: getPlatformSupport(),
+      workspace: editor.workspaceKind,
     }),
+    'editor.storagePersisted': () => editor.storagePersisted(),
+    'editor.requestPersistentStorage': () => editor.requestPersistentStorage(),
     'project.create': (params) => editor.createProject(params),
     'project.load': async ({ document }) => {
       const { project, migrated, warnings } = await editor.loadDocument(document)

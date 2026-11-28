@@ -77,4 +77,15 @@ Don't break these without an architecture discussion in the PR description.
 - `createCompositionRenderer()` takes a plain `CompositionInputProps` snapshot, so the same engine serves preview overlays, export, thumbnails and the headless harness. Sub-compositions and media still come from `useCompositionsStore` and the media library, which is why a worker export with compositions falls back to the main thread (`WORKER_REQUIRES_MAIN_THREAD:composition`).
 - GPU effect and transition pipelines compile every registry entry at init (`effects-pipeline.ts`, `transition-pipeline.ts`).
 - **A source shown twice at one moment is decoded once**, as a clip and its blurred copy are. `SharedVideoExtractorPool` picks an item's lane by the source time it asks for, so items at the same frame read one lane; on the DOM player, `resolveVideoTwins` finds clips that always show another's frame, and `TwinPreviewVideo` paints and registers that clip's `<video>` for them.
+- **An export keeps 8 video sources open, or every source the last two frames read if that's more** (`SharedVideoExtractorPool.beginFrame`). A capped pool that evicts a source a frame still shows reopens it every frame, from its keyframe: 12 stacked clips exported 2.5× slower.
 - Export uses WebCodecs through mediabunny; the renderer's output must match the preview frame for frame.
+
+### Browsers
+
+Firefox is a target beside Chromium; [`docs/BROWSERS.md`](../docs/BROWSERS.md) has the differences.
+
+- **Decide by capability, never by user agent:** `getPlatformSupport()` (`infrastructure/browser/platform-support.ts`), or a probe of the API itself.
+- **Every `copyExternalImageToTexture` that may get a `<video>` or `VideoFrame` goes through `uploadExternalImage`** (`infrastructure/gpu-media/external-image-upload.ts`): Firefox refuses frames there. Chromium's path through it is the plain copy.
+- `importExternalTexture` existing doesn't mean it works (Firefox on Linux throws): check `canImportExternalFrames(device)`.
+- **A handle may wrap a `File`** (`isFileBackedHandle`, Firefox's pickers and drops): copy its bytes, never link or persist it. Check permissions with `queryHandlePermission`/`requestHandlePermission` from `storage/handles-db.ts`, which hold where there's no permission API.
+- **A codec only the media element decodes** (HEVC in Firefox) decodes on the main thread only: work in a worker must fall back to the main thread for it, as export (`WORKER_REQUIRES_MAIN_THREAD:video-fallback`) and filmstrips do.

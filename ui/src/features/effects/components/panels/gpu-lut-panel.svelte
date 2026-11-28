@@ -9,6 +9,7 @@
 </script>
 
 <script lang="ts">
+  import { fileBackedHandle, pickFilesWithInput } from '@/infrastructure/browser/file-backed-handle'
   import FileUp from '@lucide/svelte/icons/file-up'
   import RotateCcw from '@lucide/svelte/icons/rotate-ccw'
   import { Button } from '@/components/ui/button'
@@ -79,22 +80,21 @@
   const resetFileLabel = $derived(`${t('effects.panel.resetToDefaults')}: ${fileLabel}`)
 
   const handleImport = async () => {
-    if (typeof window.showOpenFilePicker !== 'function') {
-      importError = t('effects.lut.unsupportedBrowser')
-      return
-    }
-
     let handles: FileSystemFileHandle[]
     try {
-      handles = await window.showOpenFilePicker({
-        multiple: false,
-        types: [
-          {
-            description: '3D LUT',
-            accept: { 'application/octet-stream': ['.cube'] },
-          },
-        ],
-      })
+      // EmbeddableCut: a file input stands in for the picker where there's none (Firefox).
+      handles =
+        typeof window.showOpenFilePicker === 'function'
+          ? await window.showOpenFilePicker({
+              multiple: false,
+              types: [
+                {
+                  description: '3D LUT',
+                  accept: { 'application/octet-stream': ['.cube'] },
+                },
+              ],
+            })
+          : (await pickFilesWithInput({ accept: '.cube' })).map(fileBackedHandle)
     } catch {
       return // user cancelled the picker
     }

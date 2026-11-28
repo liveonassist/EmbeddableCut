@@ -739,7 +739,8 @@ export async function createCompositionRenderer(
       maxLanesPerSource: 4,
       // EmbeddableCut: each open source holds a decoder and its frames, about
       // 25 MB at 720p, so a montage of 150 sources held 4 GB for the whole
-      // export. An evicted source reopens on its next draw.
+      // export. An evicted source reopens on its next draw. A frame that shows
+      // more keeps them all open (`beginFrame` in `renderFrame`).
       maxActiveSources: EXPORT_MAX_ACTIVE_SOURCES,
       logFrameFailuresAsDebug: false,
     })
@@ -2337,6 +2338,9 @@ export async function createCompositionRenderer(
     },
 
     async renderFrame(frame: number) {
+      // EmbeddableCut: so the export's pool keeps every source a frame shows.
+      // The preview's pool is shared by several renderers and keeps its cap.
+      if (!sharedPreviewExtractorLease) sharedVideoExtractors.beginFrame()
       await frameRenderPass.run(frame)
     },
 

@@ -30,21 +30,37 @@ const page = {
       blocks: [
         {
           kind: 'paragraph',
-          text: 'EmbeddableCut relies on modern web APIs, so a recent Chromium browser is the supported path.',
+          text: 'EmbeddableCut relies on modern web APIs. Chromium browsers have all of them; Firefox has nearly all.',
         },
         {
           kind: 'table',
           headers: ['Browser', 'Status'],
           rows: [
             ['Chrome / Edge 113+', 'Fully supported'],
-            ['Brave', 'Works after enabling the File System Access API flag'],
-            ['Safari / Firefox', 'Not yet supported for the full workflow'],
+            [
+              'Firefox 141+ on Windows, 147+ on Apple Silicon Macs',
+              'Supported. Projects live in the browser instead of a folder, and HEVC footage decodes more slowly',
+            ],
+            [
+              'Firefox on Linux and Intel Macs',
+              'Supported without GPU effects, color and AI tools: Firefox has WebGPU off there',
+            ],
+            [
+              'Brave',
+              'Supported. Enable the File System Access API flag to keep projects in a folder',
+            ],
+            ['Safari', 'Not yet supported'],
           ],
         },
         {
           kind: 'note',
           tone: 'info',
-          text: 'EmbeddableCut uses the File System Access API (workspace folders), WebCodecs (decode and export), WebGPU (effects, color, AI), and OPFS (caches). Keep hardware acceleration on and GPU drivers current.',
+          text: 'EmbeddableCut uses WebCodecs (decode and export), WebGPU (effects, color, AI), OPFS (caches, and projects where there are no folders), and the File System Access API (workspace folders). Keep hardware acceleration on and GPU drivers current.',
+        },
+        {
+          kind: 'note',
+          tone: 'warning',
+          text: 'Firefox cannot open folders on disk, so projects and the media you import are stored in the browser. Clearing site data deletes them: keep backups with **Export → Download Project**, and choose **Keep storage** when asked so the browser does not clear them to free space.',
         },
         {
           kind: 'note',

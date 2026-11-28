@@ -3,6 +3,7 @@
 import { i18n } from '@/i18n'
 import type { MediaMetadata } from '@/types/storage'
 import { FileAccessError } from '@/features/media-library/services/file-access'
+import { requestHandlePermission } from '@/infrastructure/storage/handles-db'
 import { importMediaLibraryService } from '@/features/media-library/services/media-library-service-loader'
 import { getMediaType } from '@/features/media-library/utils/validation'
 import { useMediaLibraryStore } from '@/features/media-library/stores/media-library-store'
@@ -52,7 +53,7 @@ export async function requestSubtitleSourcePermission(media: MediaMetadata): Pro
   }
 
   try {
-    return (await media.fileHandle.requestPermission({ mode: 'read' })) === 'granted'
+    return (await requestHandlePermission(media.fileHandle, 'read')) === 'granted'
   } catch {
     return false
   }

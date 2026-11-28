@@ -62,6 +62,7 @@
   import { onPermissionLost, setWorkspaceRoot } from '@/infrastructure/storage/workspace-fs/root'
   import { t } from '$lib/i18n.svelte'
   import WorkspaceGateSplash from './workspace-gate-splash.svelte'
+  import { openPrivateWorkspaceFallback, showPrivateWorkspaceNotice } from './private-workspace'
   import { usePathname } from './use-pathname.svelte'
   import type { GateStatus } from './types'
 
@@ -99,7 +100,15 @@
     let cancelled = false
     ;(async () => {
       if (!isFileSystemAccessSupported()) {
-        if (!cancelled) status = { kind: 'unavailable' }
+        // EmbeddableCut: without folder access (Firefox), the workspace is private storage.
+        const privateRoot = await openPrivateWorkspaceFallback()
+        if (cancelled) return
+        if (!privateRoot) {
+          status = { kind: 'unavailable' }
+          return
+        }
+        await activate(privateRoot)
+        void showPrivateWorkspaceNotice()
         return
       }
       // Promote any legacy `workspace:current` into a proper known-workspace

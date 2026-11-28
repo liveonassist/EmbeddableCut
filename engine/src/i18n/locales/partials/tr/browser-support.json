@@ -1,0 +1,13 @@
+{
+  "browserSupport": {
+    "privateWorkspace": {
+      "title": "Projeler bu tarayıcıda saklanıyor",
+      "description": "Bu tarayıcı diskteki bir klasörü açamadığı için projeler ve içe aktardığınız medya tarayıcının özel depolamasında tutulur. Site verilerini temizlemek bunları siler: yedek için proje paketlerini dışa aktarın.",
+      "keep": "Depolamayı koru",
+      "notPersisted": "Tarayıcı depolamayı kalıcı yapmadı. Disk alanı azaldığında projeleri silebilir."
+    },
+    "storageUnavailable": "Depolama kullanılamıyor",
+    "storageUnavailableDescription": "{{productName}} projeleri diskteki bir klasörde veya tarayıcının özel depolamasında tutar; bu pencere ikisine de izin vermiyor. Gizli pencereler depolamayı sıklıkla engeller: {{productName}} uygulamasını normal bir pencerede açın.",
+    "bundleIntoPrivateStorage": "Proje ve medyası bu tarayıcıda saklanacak."
+  }
+}

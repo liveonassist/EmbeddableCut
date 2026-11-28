@@ -18,8 +18,12 @@ const page = {
           headers: ['Symptom', 'Fix'],
           rows: [
             [
-              'Unsupported browser, or no workspace picker',
-              'Use Chrome or Edge 113+, which support the APIs EmbeddableCut needs.',
+              'No workspace folder picker',
+              'Firefox and Safari cannot open folders on disk: projects are stored in the browser. Back them up with **Export → Download Project**, or use Chrome or Edge to keep them in a folder.',
+            ],
+            [
+              'Storage unavailable',
+              'Private windows often block browser storage. Open EmbeddableCut in a regular window.',
             ],
             [
               'Brave cannot pick a folder',

@@ -2,6 +2,8 @@
 
 import { useMediaLibraryStore } from '@/runtime/composition-runtime/deps/stores'
 import { createLogger } from '@/shared/logging/logger'
+import { hasNativeHlsPlayback } from '@/infrastructure/browser/platform-support'
+import { isHlsMimeType } from '@/shared/utils/media-mime'
 
 export const videoLog = createLogger('NativePreviewVideo')
 export const contentLog = createLogger('VideoContent')
@@ -24,7 +26,11 @@ export function shouldUseLiveDecodeForMedia(mediaId: string | undefined): boolea
   // "Media not loaded" while it re-resolves and falls back. Older media without the flag
   // (undefined) keep the error-driven fallback path.
   const media = useMediaLibraryStore.getState().mediaById[mediaId]
-  if (media?.videoCodecSupported === false) {
+  // EmbeddableCut: HLS too, where the browser doesn't play playlists (Firefox).
+  if (
+    media?.videoCodecSupported === false ||
+    (media && isHlsMimeType(media.mimeType) && !hasNativeHlsPlayback())
+  ) {
     liveDecodeMediaIds.add(mediaId)
     return true
   }

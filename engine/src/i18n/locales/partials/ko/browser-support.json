@@ -1,0 +1,13 @@
+{
+  "browserSupport": {
+    "privateWorkspace": {
+      "title": "프로젝트가 이 브라우저에 저장됩니다",
+      "description": "이 브라우저는 디스크의 폴더를 열 수 없어 프로젝트와 가져온 미디어가 브라우저의 비공개 저장소에 보관됩니다. 사이트 데이터를 지우면 삭제되므로 프로젝트 번들을 내보내 백업하세요.",
+      "keep": "저장소 유지",
+      "notPersisted": "브라우저가 저장소를 영구 저장소로 만들지 않았습니다. 디스크 공간이 부족하면 프로젝트가 지워질 수 있습니다."
+    },
+    "storageUnavailable": "저장소를 사용할 수 없음",
+    "storageUnavailableDescription": "{{productName}}은(는) 프로젝트를 디스크의 폴더나 브라우저의 비공개 저장소에 보관하지만, 이 창에서는 둘 다 사용할 수 없습니다. 비공개 창은 저장소를 차단하는 경우가 많으니 일반 창에서 {{productName}}을(를) 여세요.",
+    "bundleIntoPrivateStorage": "프로젝트와 미디어가 이 브라우저에 저장됩니다."
+  }
+}

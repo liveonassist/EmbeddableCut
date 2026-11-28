@@ -52,6 +52,12 @@ import { resolveMediaUrl } from '@embeddablecut/engine/features/media-library/ut
 import { blobUrlManager } from '@embeddablecut/engine/infrastructure/browser/blob-url-manager'
 import { bootstrapWorkspace } from '@embeddablecut/engine/infrastructure/storage/workspace-fs/bootstrap'
 import {
+  isPrivateWorkspace,
+  isStoragePersisted,
+  openPrivateWorkspace,
+  requestStoragePersistence,
+} from '@embeddablecut/engine/infrastructure/storage/workspace-fs/private-workspace'
+import {
   getWorkspaceRoot,
   setWorkspaceRoot,
 } from '@embeddablecut/engine/infrastructure/storage/workspace-fs/root'
@@ -99,6 +105,9 @@ import {
 } from '@embeddablecut/engine/features/settings/stores/settings-policy'
 import { toast } from '@embeddablecut/engine/shared/notifications/index'
 
+/** Where an editor keeps projects and media: see {@link Editor.workspaceKind}. */
+export type WorkspaceKind = 'folder' | 'private' | 'none'
+
 export interface EditorOptions {
   /**
    * Where projects' media and caches live. A directory the user picked keeps
@@ -106,7 +115,8 @@ export interface EditorOptions {
    * has it) uses the origin's private storage, so nothing is asked of the
    * user and filmstrips, waveforms and thumbnails survive a reload. `'none'`
    * keeps nothing: every cache is rebuilt each session, and only URL media
-   * and documents can be opened.
+   * and documents can be opened. Only Chromium can give a folder: elsewhere
+   * the workspace is `'opfs'` or `'none'` ({@link getPlatformSupport}).
    */
   workspace?: FileSystemDirectoryHandle | 'opfs' | 'none'
   /**
@@ -255,6 +265,7 @@ export class Editor {
   private refusal: RefusedEdit | null = null
   /** Set while the loaded project is the workspace's own, which `save` writes back. */
   private workspaceProjectId: string | null = null
+  private workspaceKindValue: WorkspaceKind = 'none'
   private disposed = false
 
   /** @internal Use {@link createEditor}. */
@@ -348,9 +359,41 @@ export class Editor {
     if (workspace === 'none') return
     const root = workspace && workspace !== 'opfs' ? workspace : await openOpfsWorkspace(workspace)
     if (!root) return
+    this.workspaceKindValue =
+      workspace && workspace !== 'opfs' && !(await isPrivateWorkspace(root)) ? 'folder' : 'private'
     setWorkspaceRoot(root)
     this.teardown.push(() => setWorkspaceRoot(null))
     await bootstrapWorkspace(root)
+  }
+
+  /**
+   * Where projects and media are kept: a folder on disk, the origin's private
+   * storage, or nowhere (`'none'`, or private storage refused, as in some
+   * private windows). Browsers without folder access (Firefox) only have
+   * `'private'`, and copy imported files into it; {@link getPlatformSupport}
+   * says which the browser has.
+   */
+  get workspaceKind(): WorkspaceKind {
+    return this.workspaceKindValue
+  }
+
+  /**
+   * Whether the browser keeps the origin's storage under disk pressure, or
+   * `null` where it can't say. Best-effort storage can be evicted, and
+   * Firefox caps it at 10 GiB: a private workspace holding copied media
+   * should be persisted.
+   */
+  storagePersisted(): Promise<boolean | null> {
+    return isStoragePersisted()
+  }
+
+  /**
+   * Asks the browser to make the origin's storage persistent. Firefox asks
+   * the user, so call it from a user gesture; Chromium decides by itself.
+   * Resolves `true` once it is.
+   */
+  requestPersistentStorage(): Promise<boolean> {
+    return requestStoragePersistence()
   }
 
   /** Which media sources the host lets this editor use, so a UI can offer only those. */
@@ -926,8 +969,7 @@ async function openOpfsWorkspace(
   requested: 'opfs' | undefined,
 ): Promise<FileSystemDirectoryHandle | null> {
   try {
-    const storage = await navigator.storage.getDirectory()
-    return await storage.getDirectoryHandle('embeddablecut', { create: true })
+    return await openPrivateWorkspace()
   } catch (error) {
     if (requested) throw error
     return null

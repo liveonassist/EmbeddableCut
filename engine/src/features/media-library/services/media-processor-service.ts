@@ -7,6 +7,7 @@
 
 import { createLogger } from '@/shared/logging/logger'
 import { createManagedWorker, rejectAndDeletePendingRequests } from '@/shared/utils/managed-worker'
+import { completeElementDecodedProbe } from './element-decoded-media'
 import type {
   RemoteProbeFile,
   ProcessMediaRequest,
@@ -149,7 +150,8 @@ class MediaProcessorService {
       }
 
       worker.postMessage(request)
-    })
+      // EmbeddableCut: the worker can't ask the media element; that finishes here.
+    }).then((result) => completeElementDecodedProbe(result, file))
   }
 
   /**

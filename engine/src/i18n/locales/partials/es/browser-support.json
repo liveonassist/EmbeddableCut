@@ -1,0 +1,13 @@
+{
+  "browserSupport": {
+    "privateWorkspace": {
+      "title": "Los proyectos se guardan en este navegador",
+      "description": "Este navegador no puede abrir una carpeta del disco, así que los proyectos y los medios que importes se guardan en su almacenamiento privado. Borrar los datos del sitio los elimina: exporta paquetes de proyecto como copia de seguridad.",
+      "keep": "Conservar almacenamiento",
+      "notPersisted": "El navegador no hizo persistente el almacenamiento. Puede borrar proyectos cuando quede poco espacio en disco."
+    },
+    "storageUnavailable": "Almacenamiento no disponible",
+    "storageUnavailableDescription": "{{productName}} guarda los proyectos en una carpeta del disco o en el almacenamiento privado del navegador, y esta ventana no permite ninguno de los dos. Las ventanas privadas suelen bloquear el almacenamiento: abre {{productName}} en una ventana normal.",
+    "bundleIntoPrivateStorage": "El proyecto y sus medios se guardarán en este navegador."
+  }
+}

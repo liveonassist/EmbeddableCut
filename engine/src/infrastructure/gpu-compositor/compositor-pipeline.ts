@@ -17,6 +17,7 @@ import { createLogger } from '@/shared/logging/logger'
 import { BLEND_MODES_WGSL } from '@/infrastructure/gpu-shared/blend-modes'
 import { drawFullscreenCanvasPass } from '@/infrastructure/gpu-shared/fullscreen-canvas-pass'
 import { FULLSCREEN_QUAD_WGSL } from '@/infrastructure/gpu-shared/fullscreen-quad'
+import { canImportExternalFrames } from '@/infrastructure/gpu-media/external-image-upload'
 
 const logger = createLogger('CompositorPipeline')
 
@@ -334,6 +335,9 @@ export class CompositorPipeline {
 
     // External composite pipeline (texture_external layer — zero-copy video)
     try {
+      // EmbeddableCut: skipped where frames can't be imported (Firefox on Linux),
+      // whose shader compiler refuses texture_external there.
+      if (!canImportExternalFrames(this.device)) throw new Error('No external textures')
       const module = this.device.createShaderModule({
         label: 'compositor-external',
         code: VERTEX_SHADER + COMPOSITE_EXTERNAL_FRAGMENT,

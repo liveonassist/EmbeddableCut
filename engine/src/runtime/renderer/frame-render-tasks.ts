@@ -24,6 +24,7 @@ import {
   type CanvasSettings,
   type ItemRenderContext,
 } from './canvas-item-renderer'
+import { importsPlainVideo } from './canvas-item-renderer/imported-video'
 import type { GpuPipelineManager } from './gpu-pipeline-manager'
 import type { RenderedTaskResult } from './frame-mask-helpers'
 
@@ -192,7 +193,8 @@ export async function renderItemWithEffects(
     itemRenderContext.gpuPipeline &&
     itemRenderContext.gpuMediaPipeline &&
     renderMasks.length === 0 &&
-    combinedEffects.length > 0 &&
+    // EmbeddableCut: plain video too, where a 2D canvas would read it back (Firefox).
+    (combinedEffects.length > 0 || importsPlainVideo(effectiveItem, itemRenderContext)) &&
     combinedEffects.every((effect) => effect.enabled && effect.effect.type === 'gpu-effect') &&
     (effectiveItem.type === 'video' || effectiveItem.type === 'image')
   if (canRenderDirectGpuEffects && gpu.texturePool) {

@@ -233,6 +233,14 @@
   height: 0;
 }
 
+/* EmbeddableCut: Firefox can't hide one axis, and the timeline draws its own
+   horizontal indicator; its vertical scrollbar goes too. */
+@supports (-moz-appearance: none) {
+  .timeline-container {
+    scrollbar-width: none;
+  }
+}
+
 /* Hide native section scrollbars; the timeline renders a viewport-edge
    indicator because these section scrollers span the full timeline width. */
 [data-track-section-scroll] {

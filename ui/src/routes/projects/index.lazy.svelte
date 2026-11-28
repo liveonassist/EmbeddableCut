@@ -69,10 +69,14 @@
   import LegacyMigrationErrors from '@/features/projects/components/legacy-migration-errors.svelte'
   import TrashSection from '@/features/projects/components/trash-section.svelte'
   import { WorkspaceIndicator } from '@/features/workspace-gate'
+  import { getPlatformSupport } from '@/infrastructure/browser/platform-support'
+  import { openPrivateImportDirectory } from '@/infrastructure/storage/workspace-fs/private-workspace'
   import LanguageSwitcher from '@/shared/ui/language-switcher.svelte'
   import { t } from '$lib/i18n.svelte'
 
   const navigate = useNavigate()
+  // EmbeddableCut: without folder access (Firefox), a bundle's media goes to private storage.
+  const folderAccess = getPlatformSupport().workspaceFolders
   let editingProject = $state.raw<Project | null>(null)
   let isSubmitting = $state(false)
 
@@ -108,7 +112,7 @@
   }
 
   // Step 1: File selected - show destination selection dialog
-  function handleFileSelect(event: Event & { currentTarget: HTMLInputElement }) {
+  async function handleFileSelect(event: Event & { currentTarget: HTMLInputElement }) {
     const file = event.currentTarget.files?.[0]
     if (!file) return
 
@@ -131,6 +135,10 @@
     importProgress = null
     isImporting = false
     importDialogOpen = true
+    if (!folderAccess) {
+      useProjectsFolder = false
+      destinationDir = await openPrivateImportDirectory()
+    }
   }
 
   // Step 2: User clicks to select destination folder (fresh user gesture!)
@@ -276,7 +284,9 @@
 
         <Separator orientation="vertical" class="h-6" />
 
-        <WorkspaceIndicator />
+        {#if folderAccess}
+          <WorkspaceIndicator />
+        {/if}
         <Button variant="outline" size="lg" class="gap-2 px-4" onclick={handleImportClick}>
           <Upload class="w-4 h-4" />
           {t('projects.importProject')}
@@ -386,7 +396,11 @@
             : t('projects.import.importTitle')}
       </DialogTitle>
       {#if !importError && !isImporting && pendingImportFile}
-        <DialogDescription>{t('projects.import.selectWhereToExtract')}</DialogDescription>
+        <DialogDescription>
+          {folderAccess
+            ? t('projects.import.selectWhereToExtract')
+            : t('browserSupport.bundleIntoPrivateStorage')}
+        </DialogDescription>
       {/if}
       {#if !importError && isImporting && importProgress}
         <DialogDescription>
@@ -440,7 +454,7 @@
         </div>
 
         <!-- Destination selection -->
-        <div class="space-y-3">
+        <div class="space-y-3" class:hidden={!folderAccess}>
           <div class="flex items-center justify-between">
             <p class="text-sm font-medium">{t('projects.import.destinationFolder')}</p>
             {#if !destinationDir}

@@ -46,10 +46,10 @@
       <div class="space-y-3">
         <div class="flex items-center justify-center gap-2 text-destructive">
           <FolderX class="h-5 w-5" />
-          <span class="font-medium">{t('projects.workspaceGate.unsupportedBrowser')}</span>
+          <span class="font-medium">{t('browserSupport.storageUnavailable')}</span>
         </div>
         <p class="text-sm text-muted-foreground">
-          {t('projects.workspaceGate.unsupportedBrowserDescription')}
+          {t('browserSupport.storageUnavailableDescription')}
         </p>
         <Button variant="outline" size="sm" class="gap-2">
           {#snippet child({ props })}

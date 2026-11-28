@@ -1,4 +1,5 @@
 import { getMediaType, getMimeType, validateMediaFileContent } from './validation'
+import { fileBackedHandle, filesFromDataTransfer } from '@/infrastructure/browser/file-backed-handle'
 
 export interface ExtractedMediaFileEntry {
   handle: FileSystemFileHandle
@@ -31,25 +32,35 @@ export function formatMediaDropRejectionMessage(errors: string[]): string {
 export async function extractValidMediaFileEntriesFromDataTransfer(
   dataTransfer: DataTransfer,
 ): Promise<ExtractedMediaFileDropResult> {
-  if (!supportsFileSystemDragDrop(dataTransfer)) {
-    return {
-      supported: false,
-      entries: [],
-      errors: [],
-    }
-  }
-
-  const items = Array.from(dataTransfer.items)
-  const handlePromises: Promise<FileSystemHandle | null>[] = []
-  for (const item of items) {
-    if ('getAsFileSystemHandle' in item) {
-      handlePromises.push(item.getAsFileSystemHandle())
-    }
-  }
-
-  const rawHandles = await Promise.all(handlePromises)
   const entries: ExtractedMediaFileEntry[] = []
   const errors: string[] = []
+  let rawHandles: (FileSystemHandle | null)[]
+
+  if (!supportsFileSystemDragDrop(dataTransfer)) {
+    // EmbeddableCut: without drop handles (Firefox), wrap the dropped Files.
+    const { files, folders } = filesFromDataTransfer(dataTransfer)
+    if (files.length === 0 && folders.length === 0) {
+      return {
+        supported: false,
+        entries: [],
+        errors: [],
+      }
+    }
+    for (const name of folders) {
+      errors.push(`${name}: folders are not supported yet. Drop media files directly.`)
+    }
+    rawHandles = files.map(fileBackedHandle)
+  } else {
+    const items = Array.from(dataTransfer.items)
+    const handlePromises: Promise<FileSystemHandle | null>[] = []
+    for (const item of items) {
+      if ('getAsFileSystemHandle' in item) {
+        handlePromises.push(item.getAsFileSystemHandle())
+      }
+    }
+
+    rawHandles = await Promise.all(handlePromises)
+  }
 
   for (const handle of rawHandles) {
     if (!handle) {

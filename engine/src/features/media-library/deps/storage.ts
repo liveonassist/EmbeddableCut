@@ -38,3 +38,5 @@ export {
   updateMedia,
   writeMediaSource,
 } from '@/infrastructure/storage'
+// EmbeddableCut: permission checks that hold where the browser has no permission API (Firefox).
+export { queryHandlePermission } from '@/infrastructure/storage/handles-db'

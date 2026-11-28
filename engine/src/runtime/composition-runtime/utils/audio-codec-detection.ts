@@ -1,3 +1,6 @@
+import { hasNativeHlsPlayback } from '@/infrastructure/browser/platform-support'
+import { isHlsMimeType } from '@/shared/utils/media-mime'
+
 /**
  * Detects whether a media item's audio codec requires custom decoding
  * for preview playback (browser can't natively decode it).
@@ -60,5 +63,7 @@ export function isNonNativeAudioContainer(
 ): boolean {
   if (mimeType && MATROSKA_MIME_PATTERN.test(mimeType)) return true
   if (fileName && MATROSKA_EXTENSION_PATTERN.test(fileName.trim())) return true
+  // EmbeddableCut: an HLS playlist is a container only some browsers play (not Firefox).
+  if (mimeType && isHlsMimeType(mimeType) && !hasNativeHlsPlayback()) return true
   return false
 }

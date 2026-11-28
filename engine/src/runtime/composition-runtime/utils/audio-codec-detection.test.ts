@@ -1,6 +1,6 @@
 // @vitest-environment node
 
-import { describe, expect, it } from 'vite-plus/test'
+import { describe, expect, it, vi } from 'vite-plus/test'
 import { isNonNativeAudioContainer, needsCustomAudioDecoder } from './audio-codec-detection'
 
 describe('needsCustomAudioDecoder', () => {
@@ -53,5 +53,23 @@ describe('isNonNativeAudioContainer', () => {
     expect(isNonNativeAudioContainer('video/mp4', 'clip.mp4')).toBe(false)
     expect(isNonNativeAudioContainer('video/webm', 'clip.webm')).toBe(false)
     expect(isNonNativeAudioContainer('audio/mpeg', 'song.mp3')).toBe(false)
+  })
+
+  it('flags HLS only where the browser cannot play playlists', async () => {
+    const detectWith = async (canPlay: string) => {
+      vi.resetModules()
+      vi.stubGlobal('document', {
+        createElement: () => ({ canPlayType: () => canPlay }),
+      })
+      try {
+        const detection = await import('./audio-codec-detection')
+        return detection.isNonNativeAudioContainer('application/vnd.apple.mpegurl', 'stream.m3u8')
+      } finally {
+        vi.unstubAllGlobals()
+      }
+    }
+
+    expect(await detectWith('')).toBe(true) // Firefox
+    expect(await detectWith('maybe')).toBe(false) // Chromium, Safari
   })
 })
